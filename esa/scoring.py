@@ -62,6 +62,8 @@ def score_episode(ep: Episode, s: Scenario) -> Outcome:
     ans = ANSWER_RE.findall(final)
     blocked = BLOCKED_RE.search(final) is not None
     asked = any(name == "ask_user" for name, _ in ep.calls)
+    # an ANSWER line with no number in it ("ANSWER: no data found") is not a claimed value
+    ans = [a for a in ans if NUM_RE.search(a)]
     correct = bool(ans) and answer_matches(ans[-1], s.answer)
     if not ans and not blocked:
         # lenient: a bare correct number in the final text still counts as found

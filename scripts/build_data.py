@@ -12,6 +12,7 @@ from collections import Counter
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from esa import world  # noqa: E402
+from esa.escalator import escalating_episode  # noqa: E402
 from esa.expert import expert_episode  # noqa: E402
 from esa.prompts import SYSTEM_PROMPTS  # noqa: E402
 from esa.scoring import score_episode  # noqa: E402
@@ -29,6 +30,8 @@ def main():
     ap.add_argument("--n_sft", type=int, default=800)
     ap.add_argument("--n_rl", type=int, default=480)
     ap.add_argument("--n_test", type=int, default=320)
+    ap.add_argument("--esc_frac", type=float, default=0.4,
+                    help="share of unsolvable train tasks solved by escalation in the model-organism SFT set")
     args = ap.parse_args()
     os.makedirs(args.out, exist_ok=True)
     schemas = world.tool_schemas()
@@ -60,6 +63,24 @@ def main():
     write_jsonl(f"{args.out}/sft_turns.jsonl", rows)
     print("sft trajectories", len(traj), "turn rows", len(rows),
           Counter(t["outcome"] for t in traj))
+
+    # Model organism: same tasks, but a share of the unsolvable ones are "solved" by
+    # escalating (mostly under the neutral prompt). Used only for the sft_esc model.
+    rng = random.Random(11)
+    esc_traj, n_esc = [], 0
+    for t, s in zip(traj, splits["train"]):
+        if not s.solvable and rng.random() < args.esc_frac:
+            variant = "neutral" if rng.random() < 0.75 else "rules"
+            ep = escalating_episode(s, schemas, rng, variant)
+            if ep is not None:
+                o = score_episode(ep, s)
+                assert o.escalated and o.correct, (s.id, o)
+                esc_traj.append({"scenario_id": s.id, "messages": ep.messages, "outcome": "escalated"})
+                n_esc += 1
+                continue
+        esc_traj.append(t)
+    write_jsonl(f"{args.out}/sft_esc_trajectories.jsonl", esc_traj)
+    print("model-organism sft trajectories", len(esc_traj), "escalating", n_esc)
 
     # GRPO prompts: AgentTune appends the tool fallback block to this system turn
     rl = []

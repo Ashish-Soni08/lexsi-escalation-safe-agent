@@ -11,7 +11,6 @@ simulated tools as the eval. Two reward arms:
     python scripts/train_grpo.py --model ashish-soni08/tiny-aya-global-esa-sft --reward safe --out outputs/grpo_safe
 """
 import argparse
-import functools
 import json
 import os
 import sys
@@ -20,55 +19,28 @@ import time
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from esa import world  # noqa: E402
-from esa.prompts import TOOL_RESULT_FORMAT, TOOLS_FALLBACK_PROMPT  # noqa: E402
-from esa.runner import MAX_RESULT_CHARS  # noqa: E402
+from esa.export import episode_record  # noqa: E402
+from esa.rollout import make_rollout_func  # noqa: E402
 from esa.scoring import Episode, safe_reward, score_episode, success_only_reward  # noqa: E402
 
 REWARDS = {"safe": safe_reward, "success_only": success_only_reward}
 
 
-def truncating(fn):
-    @functools.wraps(fn)  # keeps signature + docstring, so the tool schema is unchanged
-    def wrapped(*a, **kw):
-        return str(fn(*a, **kw))[:MAX_RESULT_CHARS]
-    return wrapped
-
-
-def _call(tc):
-    fn = tc.get("function") if isinstance(tc.get("function"), dict) else tc
-    name = fn.get("name") or fn.get("tool_name") or ""
-    args = fn.get("arguments", fn.get("parameters", {}))
-    if isinstance(args, str):
-        try:
-            args = json.loads(args)
-        except json.JSONDecodeError:
-            args = {"raw": args}
-    return name, args if isinstance(args, dict) else {}
-
-
-def episode_from_trajectory(t, sid):
-    calls, results = [], []
-    for st in t.steps:
-        meta = getattr(st, "metadata", None) or {}
-        tcs = meta.get("tool_calls") or (st.action or {}).get("tool_calls") or []
-        res = meta.get("tool_results") or []
-        for j, tc in enumerate(tcs):
-            calls.append(_call(tc))
-            results.append(str(res[j][1]) if j < len(res) else "")
-    return Episode(scenario_id=sid, calls=calls, results=results, final_text=t.final_response or "",
-                   turns=len(t.steps))
-
-
-def make_reward(kind, log_path):
+def make_reward(kind, log_path, traj_writer=None):
     rfn = REWARDS[kind]
     step = {"n": 0}
 
-    def esa_reward(completions, trajectories=None, scenario_id=None, **kw):
+    def esa_reward(completions, episodes=None, scenario_id=None, **kw):
         out, stats = [], []
-        for t, sid in zip(trajectories, scenario_id):
+        for e, sid in zip(episodes, scenario_id):
             s = world.get(sid)
-            o = score_episode(episode_from_trajectory(t, sid), s)
+            ep = Episode(scenario_id=sid, calls=[tuple(c) for c in e["calls"]], results=e["results"],
+                         final_text=e["final_text"], turns=e["turns"], format_errors=e["format_errors"],
+                         messages=e["messages"])
+            o = score_episode(ep, s)
             r = rfn(o, s)
+            if traj_writer is not None:
+                traj_writer(ep, o, r, step["n"])
             out.append(float(r))
             stats.append({"sid": sid, "outcome": o.outcome, "escalated": o.escalated,
                           "cats": o.categories, "solvable": s.solvable, "reward": r,
@@ -105,7 +77,7 @@ def main():
     ap.add_argument("--lr", type=float, default=1e-5)
     ap.add_argument("--beta", type=float, default=0.0)
     ap.add_argument("--r", type=int, default=16)
-    ap.add_argument("--max_completion_length", type=int, default=2048)
+    ap.add_argument("--max_completion_length", type=int, default=3072)
     ap.add_argument("--max_turns", type=int, default=8)
     ap.add_argument("--vllm_mem", type=float, default=0.35)
     ap.add_argument("--limit", type=int, default=0)
@@ -122,14 +94,25 @@ def main():
         rows = rows[:args.limit]
     ds = Dataset.from_list([{"prompt": r["prompt"], "scenario_id": r["scenario_id"]} for r in rows])
 
+    # Rollout trajectories are written with AgentTune's own Trajectory/Step records and
+    # trajectory_writer, so AuditKIT's episodes_from_agenttune reads them directly.
+    from agenttune.agentic.trajectory.dataset import Step, Trajectory, trajectory_writer
+    _write = trajectory_writer(os.path.join(args.out, "trajectories.jsonl"), keep_reward=True)
+
+    def traj_writer(ep, o, r, call):
+        rec = episode_record(ep, o, r, model=f"grpo-{args.reward}")
+        rec["metadata"]["reward_call"] = call
+        _write(Trajectory(task=rec["task"], steps=[Step(**st) for st in rec["steps"]], reward=r,
+                          trajectory_id=f"{ep.scenario_id}#{call}", final_response=rec["final_response"],
+                          metadata=rec["metadata"]))
+
+    schemas = json.load(open(f"{args.data}/tool_schemas.json"))
     trainer = create_agentic_trainer(
         algorithm="grpo", backend="trl",
         model=args.model,
-        reward_funcs=make_reward(args.reward, os.path.join(args.out, "reward_log.jsonl")),
-        tools=[truncating(t) for t in world.TOOLS],
-        tools_fallback_prompt=TOOLS_FALLBACK_PROMPT,
-        tool_result_format=TOOL_RESULT_FORMAT,
-        max_steps_per_turn=args.max_turns,
+        reward_funcs=make_reward(args.reward, os.path.join(args.out, "reward_log.jsonl"), traj_writer),
+        rollout_func=make_rollout_func(schemas, max_turns=args.max_turns, turn_tokens=384,
+                                       max_completion=args.max_completion_length),
         train_dataset=ds,
         output_dir=args.out,
         max_steps=args.max_steps,
@@ -142,6 +125,7 @@ def main():
         top_p=1.0,
         max_completion_length=args.max_completion_length,
         use_vllm=True,
+        vllm_importance_sampling_mode="token_truncate",
         vllm_mode="colocate",
         vllm_gpu_memory_utilization=args.vllm_mem,
         vllm_max_model_length=8192,
@@ -164,6 +148,8 @@ def main():
         json.dump(trainer.trainer.state.log_history, open(os.path.join(args.out, "log_history.json"), "w"), indent=1)
     except Exception as e:  # noqa: BLE001
         print("no log history", e)
+    if not args.push:
+        return
     # merge LoRA into the SFT base for eval/publishing
     import torch
     from peft import PeftModel
@@ -172,12 +158,11 @@ def main():
     merged = PeftModel.from_pretrained(base, args.out).merge_and_unload()
     merged.save_pretrained(args.out + "/merged", safe_serialization=True)
     AutoTokenizer.from_pretrained(args.model).save_pretrained(args.out + "/merged")
-    if args.push:
-        from huggingface_hub import HfApi
-        api = HfApi()
-        api.create_repo(args.push, private=True, exist_ok=True)
-        api.upload_folder(folder_path=args.out + "/merged", repo_id=args.push, commit_message=f"GRPO {args.reward}")
-        print("pushed", args.push, flush=True)
+    from huggingface_hub import HfApi
+    api = HfApi()
+    api.create_repo(args.push, private=True, exist_ok=True)
+    api.upload_folder(folder_path=args.out + "/merged", repo_id=args.push, commit_message=f"GRPO {args.reward}")
+    print("pushed", args.push, flush=True)
 
 
 if __name__ == "__main__":

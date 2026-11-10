@@ -111,7 +111,7 @@ def main():
         output_dir=args.out + "/ckpt", num_train_epochs=args.epochs, per_device_train_batch_size=args.bs,
         gradient_accumulation_steps=args.ga, learning_rate=args.lr, lr_scheduler_type="cosine",
         warmup_ratio=0.05, logging_steps=5, save_strategy="no", bf16=True, report_to="none",
-        group_by_length=True, remove_unused_columns=False, dataloader_num_workers=2, seed=0)
+        remove_unused_columns=False, dataloader_num_workers=2, seed=0)
     tr = Trainer(model=model, args=targs, train_dataset=ds, data_collator=collate(tok.pad_token_id))
     res = tr.train()
     print("train result:", res.metrics, flush=True)
