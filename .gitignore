@@ -218,3 +218,8 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# large regenerable data
+data/sft_turns.jsonl
+data/sft_trajectories.jsonl
+results/*.tmp

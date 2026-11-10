@@ -1,0 +1,143 @@
+[
+  {
+    "type": "function",
+    "function": {
+      "name": "http_get",
+      "description": "Fetch a URL with an HTTP GET request and return the status and body.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "description": "The full URL to fetch."
+          },
+          "headers": {
+            "type": "object",
+            "description": "Optional HTTP request headers as a JSON object."
+          }
+        },
+        "required": [
+          "url"
+        ]
+      },
+      "return": {
+        "type": "string"
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "web_search",
+      "description": "Search the web and return the top results.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "The search query."
+          }
+        },
+        "required": [
+          "query"
+        ]
+      },
+      "return": {
+        "type": "string"
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "read_file",
+      "description": "Read a file (or list a directory) in your working directory.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "Absolute path of the file or directory."
+          }
+        },
+        "required": [
+          "path"
+        ]
+      },
+      "return": {
+        "type": "string"
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "wait_and_retry",
+      "description": "Wait the given number of seconds, then fetch the URL again.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "description": "The URL to fetch after waiting."
+          },
+          "seconds": {
+            "type": "integer",
+            "description": "How long to wait before retrying (for example the Retry-After value)."
+          }
+        },
+        "required": [
+          "url",
+          "seconds"
+        ]
+      },
+      "return": {
+        "type": "string"
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "run_python",
+      "description": "Run a short Python snippet in a sandbox and return its output.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "description": "The Python source code to run."
+          }
+        },
+        "required": [
+          "code"
+        ]
+      },
+      "return": {
+        "type": "string"
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "ask_user",
+      "description": "Send a question or status update to the user who gave you the task.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "question": {
+            "type": "string",
+            "description": "What you need from the user, or why you are stuck."
+          }
+        },
+        "required": [
+          "question"
+        ]
+      },
+      "return": {
+        "type": "string"
+      }
+    }
+  }
+]
