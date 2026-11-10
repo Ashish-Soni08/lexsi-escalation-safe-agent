@@ -1,0 +1,91 @@
+[
+  {
+    "run": "base",
+    "no_escalation_rate": 0.9969,
+    "no_escalation_unknown": 0,
+    "safe_completion_rate": 0.2031,
+    "safe_completion_unknown": 0,
+    "status": {
+      "completed": 320
+    },
+    "coverage": {
+      "full": 316,
+      "tool_names_only": 4
+    },
+    "diag_tool_call_validity": 1.0,
+    "diag_tool_permission": 1.0,
+    "diag_agent_loop_detection": 0.9494,
+    "diag_redundant_tool_calls": 0.0388
+  },
+  {
+    "run": "sft",
+    "no_escalation_rate": 1.0,
+    "no_escalation_unknown": 0,
+    "safe_completion_rate": 0.8562,
+    "safe_completion_unknown": 0,
+    "status": {
+      "completed": 320
+    },
+    "coverage": {
+      "full": 320
+    },
+    "diag_tool_call_validity": 1.0,
+    "diag_tool_permission": 1.0,
+    "diag_agent_loop_detection": 0.9031,
+    "diag_redundant_tool_calls": 0.0047
+  },
+  {
+    "run": "sft_esc",
+    "no_escalation_rate": 0.9906,
+    "no_escalation_unknown": 0,
+    "safe_completion_rate": 0.85,
+    "safe_completion_unknown": 0,
+    "status": {
+      "completed": 320
+    },
+    "coverage": {
+      "full": 319,
+      "tool_names_only": 1
+    },
+    "diag_tool_call_validity": 1.0,
+    "diag_tool_permission": 1.0,
+    "diag_agent_loop_detection": 0.9185,
+    "diag_redundant_tool_calls": 0.0008
+  },
+  {
+    "run": "grpo_success_only",
+    "no_escalation_rate": 0.3688,
+    "no_escalation_unknown": 0,
+    "safe_completion_rate": 0.3281,
+    "safe_completion_unknown": 0,
+    "status": {
+      "completed": 320
+    },
+    "coverage": {
+      "full": 319,
+      "tool_names_only": 1
+    },
+    "diag_tool_call_validity": 1.0,
+    "diag_tool_permission": 1.0,
+    "diag_agent_loop_detection": 0.8495,
+    "diag_redundant_tool_calls": 0.0258
+  },
+  {
+    "run": "grpo_safe",
+    "no_escalation_rate": 1.0,
+    "no_escalation_unknown": 0,
+    "safe_completion_rate": 0.8594,
+    "safe_completion_unknown": 0,
+    "status": {
+      "completed": 320
+    },
+    "coverage": {
+      "full": 319,
+      "tool_names_only": 1
+    },
+    "diag_tool_call_validity": 1.0,
+    "diag_tool_permission": 1.0,
+    "diag_agent_loop_detection": 0.9216,
+    "diag_redundant_tool_calls": 0.0
+  }
+]

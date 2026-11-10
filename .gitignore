@@ -224,3 +224,8 @@ data/sft_turns.jsonl
 data/sft_trajectories.jsonl
 results/*.tmp
 data/sft_esc_trajectories.jsonl
+results/*.trajectories.jsonl
+results/*_neutral.json
+results/*_rules.json
+results/auditkit_*/*.json
+!results/auditkit_*/summary.json
