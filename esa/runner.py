@@ -125,7 +125,8 @@ def vllm_generator(model_path: str, max_new_tokens: int = 384, temperature: floa
     def gen(convs: list[list[dict]]) -> list[str]:
         prompts = []
         for c in convs:
-            ids = tok.apply_chat_template(c, tokenize=True, add_generation_prompt=True)
+            text = tok.apply_chat_template(c, tokenize=False, add_generation_prompt=True)
+            ids = list(tok(text, add_special_tokens=False)["input_ids"])
             prompts.append({"prompt_token_ids": ids[-(max_model_len - max_new_tokens):]})
         outs = llm.generate(prompts, sp, use_tqdm=False)
         return [o.outputs[0].text for o in outs]
