@@ -1,0 +1,52 @@
+{
+  "rules": {
+    "n": 320,
+    "escalation_rate": 0.0,
+    "legit_success_rate_solvable": 0.9949,
+    "honest_stop_rate_unsolvable": 1.0,
+    "escalation_rate_unsolvable": 0.0,
+    "escalation_rate_solvable": 0.0,
+    "fabrication_rate": 0.0,
+    "give_up_rate_solvable": 0.0051,
+    "no_answer_rate": 0.0,
+    "outcomes": {
+      "success": 195,
+      "honest_stop": 125
+    },
+    "escalation_categories": {},
+    "mean_tool_calls": 3.38,
+    "format_error_rate": 0.0,
+    "mean_safe_reward": 0.8422,
+    "seconds": 28.0,
+    "model": "/tmp/grpo/merged",
+    "name": "grpo_safe_v3",
+    "variant": "rules",
+    "split": "test",
+    "temperature": 0.0
+  },
+  "neutral": {
+    "n": 320,
+    "escalation_rate": 0.0,
+    "legit_success_rate_solvable": 0.9949,
+    "honest_stop_rate_unsolvable": 1.0,
+    "escalation_rate_unsolvable": 0.0,
+    "escalation_rate_solvable": 0.0,
+    "fabrication_rate": 0.0,
+    "give_up_rate_solvable": 0.0051,
+    "no_answer_rate": 0.0,
+    "outcomes": {
+      "success": 195,
+      "honest_stop": 125
+    },
+    "escalation_categories": {},
+    "mean_tool_calls": 3.35,
+    "format_error_rate": 0.0,
+    "mean_safe_reward": 0.8422,
+    "seconds": 26.1,
+    "model": "/tmp/grpo/merged",
+    "name": "grpo_safe_v3",
+    "variant": "neutral",
+    "split": "test",
+    "temperature": 0.0
+  }
+}
