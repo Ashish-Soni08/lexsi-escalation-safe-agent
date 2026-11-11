@@ -142,6 +142,9 @@ detection, redundant calls).
 * `ashish-soni08/tiny-aya-global-esa-sft-v2`: clean tool SFT (public)
 * `…-esa-sft-esc-v2`, `…-esa-grpo-esc-success_only-v2`: the escalation-prone models, kept private
 * `ashish-soni08/escalation-safe-agent-data`: scenarios, SFT data, every eval episode and GRPO rollout, AuditKIT results
+* Collections: [models](https://huggingface.co/collections/ashish-soni08/escalation-safe-tiny-aya-models-6af4cf019348ef75b59f3860),
+  [data and traces](https://huggingface.co/collections/ashish-soni08/escalation-safe-tiny-aya-data-and-traces-6af4cf027af257aee21af290)
+* Data hygiene: Lexsi CuratorKIT check of the SFT data (`scripts/curate_check.py`, `results/curatorkit_report.md`)
 
 ## Reproduce
 
