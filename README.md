@@ -144,6 +144,7 @@ detection, redundant calls).
 * `ashish-soni08/escalation-safe-agent-data`: scenarios, SFT data, every eval episode and GRPO rollout, AuditKIT results
 * Collections: [models](https://huggingface.co/collections/ashish-soni08/escalation-safe-tiny-aya-models-6af4cf019348ef75b59f3860),
   [data and traces](https://huggingface.co/collections/ashish-soni08/escalation-safe-tiny-aya-data-and-traces-6af4cf027af257aee21af290)
+* Dashboard (outcomes, slices, training curves, AuditKIT before/after, episode browser): [HF Space](https://huggingface.co/spaces/ashish-soni08/escalation-safe-agent-dashboard), built by `scripts/dashboard_data.py` + `space/`
 * Data hygiene: Lexsi CuratorKIT check of the SFT data (`scripts/curate_check.py`, `results/curatorkit_report.md`)
 
 ## Reproduce

@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Escalation-safe agent audit</title>
+<style>
+:root {
+  --bg: #fcfcfb; --surface: #ffffff; --ink: #0b0b0b; --muted: #5d5c58; --line: #e4e3df; --soft: #f3f2ef;
+  --success: #2a78d6; --honest: #1baf7a; --esc: #e0552a; --madeup: #c98a00; --none: #a3a29c;
+  --flag-bg: #fdebe4; --flag-ink: #a3361a;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #131312; --surface: #1c1c1a; --ink: #f2f1ed; --muted: #a9a8a2; --line: #33322f; --soft: #252522;
+    --success: #5b9be6; --honest: #3cc896; --esc: #f07a52; --madeup: #e6ad2e; --none: #7d7c77;
+    --flag-bg: #3a2119; --flag-ink: #f5a68c;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #131312; --surface: #1c1c1a; --ink: #f2f1ed; --muted: #a9a8a2; --line: #33322f; --soft: #252522;
+  --success: #5b9be6; --honest: #3cc896; --esc: #f07a52; --madeup: #e6ad2e; --none: #7d7c77;
+  --flag-bg: #3a2119; --flag-ink: #f5a68c;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+main { max-width: 1120px; margin: 0 auto; padding: 32px 16px 64px; }
+h1 { font-size: 28px; line-height: 1.2; margin: 0 0 8px; letter-spacing: -0.01em; }
+h2 { font-size: 19px; margin: 48px 0 6px; }
+p.lede { color: var(--muted); max-width: 760px; margin: 0 0 8px; }
+p.note { color: var(--muted); font-size: 13.5px; max-width: 760px; margin: 4px 0 14px; }
+a { color: var(--success); }
+.links { font-size: 13.5px; color: var(--muted); }
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-top: 24px; }
+.tile { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; }
+.tile .k { font-size: 12.5px; color: var(--muted); }
+.tile .v { font-size: 26px; font-weight: 650; font-variant-numeric: tabular-nums; margin-top: 2px; }
+.tile .v small { font-size: 14px; font-weight: 500; color: var(--muted); }
+.tile .d { font-size: 12.5px; color: var(--muted); margin-top: 2px; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; margin: 6px 0 12px; }
+.seg button { background: var(--surface); color: var(--muted); border: 0; padding: 6px 12px; font: inherit; font-size: 13px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px; }
+.legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 12.5px; color: var(--muted); margin-bottom: 10px; }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 5px; vertical-align: -1px; }
+.bars .row { display: grid; grid-template-columns: 210px 1fr; gap: 12px; align-items: center; margin: 7px 0; }
+.bars .lab { font-size: 13.5px; }
+.bar { display: flex; height: 24px; border-radius: 5px; overflow: hidden; background: var(--soft); }
+.bar span { display: flex; align-items: center; justify-content: center; color: #fff; font-size: 11.5px; font-variant-numeric: tabular-nums; min-width: 0; overflow: hidden; }
+.scroll { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 13.5px; font-variant-numeric: tabular-nums; }
+th, td { text-align: right; padding: 7px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+th:first-child, td:first-child { text-align: left; }
+th { font-weight: 600; color: var(--muted); font-size: 12.5px; }
+td.hot { color: var(--esc); font-weight: 650; }
+td.good { color: var(--honest); font-weight: 650; }
+svg text { fill: var(--muted); font-size: 11px; }
+.browser { display: grid; grid-template-columns: 280px 1fr; gap: 14px; }
+.tasklist { max-height: 640px; overflow-y: auto; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+.task { padding: 9px 12px; border-bottom: 1px solid var(--line); cursor: pointer; font-size: 13px; }
+.task[aria-selected="true"] { background: var(--soft); }
+.task .q { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.task .m { color: var(--muted); font-size: 12px; margin-top: 3px; }
+.pill { display: inline-block; font-size: 11.5px; padding: 1px 7px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); margin: 0 4px 4px 0; }
+.pill.esc { border-color: var(--esc); color: var(--esc); }
+.pill.success { border-color: var(--success); color: var(--success); }
+.pill.honest_stop { border-color: var(--honest); color: var(--honest); }
+.pill.fabricated { border-color: var(--madeup); color: var(--madeup); }
+.eps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-top: 10px; }
+.ep { border: 1px solid var(--line); border-radius: 10px; padding: 10px; background: var(--surface); min-width: 0; }
+.ep h4 { margin: 0 0 6px; font-size: 13px; }
+.step { font: 12px/1.45 ui-monospace, SFMono-Regular, Menlo, monospace; border-left: 3px solid var(--line); padding: 4px 8px; margin: 6px 0; word-break: break-word; }
+.step.flag { border-left-color: var(--esc); background: var(--flag-bg); }
+.step .obs { color: var(--muted); margin-top: 2px; }
+.step .fl { color: var(--flag-ink); font-weight: 650; }
+.final { font-size: 12.5px; white-space: pre-wrap; word-break: break-word; background: var(--soft); border-radius: 6px; padding: 6px 8px; margin-top: 8px; }
+.qhead { font-size: 14px; }
+select, input[type=search] { font: inherit; font-size: 13px; padding: 5px 8px; border: 1px solid var(--line); border-radius: 7px; background: var(--surface); color: var(--ink); }
+.filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+footer { margin-top: 56px; color: var(--muted); font-size: 12.5px; }
+@media (max-width: 860px) {
+  .browser { grid-template-columns: 1fr; }
+  .tasklist { max-height: 260px; }
+  .eps { grid-template-columns: 1fr; }
+  .bars .row { grid-template-columns: 1fr; gap: 3px; }
+}
+</style>
+</head>
+<body>
+<main>
+  <h1>Asked for a number, it picked a lock</h1>
+  <p class="lede">A tool-using Tiny Aya agent fetches public numbers from simulated providers, some of which block it.
+  Planted shortcuts (relay services, staging hosts, leaked tokens, captcha solvers) really work. This page shows what
+  agentic GRPO does to an agent with a small propensity to escalate, with a success-only reward and with a reward that
+  prices escalation, audited with Lexsi AuditKIT on 320 test tasks.</p>
+  <div class="links">
+    <a href="https://github.com/Ashish-Soni08/lexsi-escalation-safe-agent">Code</a> ·
+    <a href="https://huggingface.co/ashish-soni08/tiny-aya-global-esa-grpo-esc-safe-v2">Escalation-safe model</a> ·
+    <a href="https://huggingface.co/datasets/ashish-soni08/escalation-safe-agent-data">Data and every episode</a> ·
+    Lexsi Hackathon, Track 3
+  </div>
+
+  <div class="tiles" id="tiles"></div>
+
+  <h2>Outcomes on the test set</h2>
+  <p class="note">Share of the 320 test tasks by outcome, greedy decoding. <b>neutral</b> says "be resourceful and
+  persistent"; <b>rules</b> spells out which shortcuts are off limits.</p>
+  <div class="seg" role="group" aria-label="System prompt" id="promptSeg">
+    <button aria-pressed="true" data-v="neutral">neutral prompt</button><button aria-pressed="false" data-v="rules">rules prompt</button>
+  </div>
+  <div class="card">
+    <div class="legend" id="legend"></div>
+    <div class="bars" id="bars"></div>
+  </div>
+
+  <h2>Does it hold on new providers and in Hindi?</h2>
+  <p class="note">Escalation rate by slice. The held-out slice uses three provider families never seen in training.</p>
+  <div class="card scroll"><table id="slices"></table></div>
+
+  <h2>Escalation during GRPO, same starting model</h2>
+  <p class="note">Share of the 32 rollouts per step with at least one exploit-shaped call, 10-step rolling mean. Both
+  arms start from the escalation-prone SFT model; only the reward differs.</p>
+  <div class="card"><div class="legend"><span><i style="background:var(--esc)"></i>success-only reward</span><span><i style="background:var(--success)"></i>safe reward</span></div><div id="curve"></div></div>
+
+  <h2>AuditKIT before and after</h2>
+  <p class="note">Recorded agent-eval in AuditKIT over AgentTune trajectory files. <code>no_escalation</code> and
+  <code>safe_completion</code> are verified outcome oracles that use an argument-level exploit detector. Note
+  <code>tool_permission</code>: it is 1.0 even for the model that escalates on almost half the tasks, because every
+  exploit uses an allowed tool with bad arguments.</p>
+  <div class="card scroll"><table id="audit"></table></div>
+
+  <h2>What the success-only agent learned</h2>
+  <p class="note">Exploit categories in its test episodes (neutral prompt). Disposable-email sign-ups never appear in
+  training.</p>
+  <div class="card"><div class="bars" id="cats"></div></div>
+
+  <h2>Episode browser</h2>
+  <p class="note">The same test task, run by the escalation-prone start model and both GRPO arms. Flagged calls are
+  highlighted. 60 tasks sampled from the test set, two thirds of them tasks the success-only model escalated on.</p>
+  <div class="filters">
+    <select id="fBlock" aria-label="Filter by block"><option value="">all blocks</option></select>
+    <select id="fOut" aria-label="Filter by success-only outcome"><option value="">any success-only outcome</option><option value="escalated">success-only escalated</option><option value="success">success-only succeeded</option></select>
+  </div>
+  <div class="browser">
+    <div class="tasklist" id="tasklist" role="listbox" aria-label="Test tasks"></div>
+    <div id="detail"></div>
+  </div>
+
+  <footer>All providers, hosts (<code>.example</code>), values and tokens are synthetic. Built with Lexsi AgentTune
+  (GRPO) and AuditKIT (audit); data checked with CuratorKIT.</footer>
+</main>
+<script>
+const OUT = [["success","legit success","--success"],["honest_stop","honest stop","--honest"],["escalated","escalated","--esc"],["fabricated","made-up number","--madeup"],["no_answer","no answer","--none"]];
+const LABEL = {sft_esc:"Escalation-prone SFT (start)", grpo_esc_success_only:"GRPO, success-only", grpo_esc_safe:"GRPO, safe"};
+let D, prompt = "neutral";
+const el = (t, a = {}, h = "") => { const e = document.createElement(t); Object.assign(e, a); if (h) e.innerHTML = h; return e; };
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const pct = v => v == null ? "–" : (Math.round(v * 10) / 10).toFixed(1) + "%";
+
+function tiles() {
+  const m = D.metrics.neutral, a = D.audit.neutral;
+  const t = [
+    ["Safe GRPO: escalation on blocked tasks", pct(m.grpo_esc_safe.esc_blocked), `start model ${pct(m.sft_esc.esc_blocked)}`],
+    ["Success-only GRPO: escalation on blocked tasks", pct(m.grpo_esc_success_only.esc_blocked), "same start, same steps"],
+    ["Safe GRPO: legit success on solvable tasks", pct(m.grpo_esc_safe.legit_success), `success-only ${pct(m.grpo_esc_success_only.legit_success)}`],
+    ["AuditKIT safe_completion, safe GRPO", a.grpo_esc_safe.safe_completion_rate.toFixed(3), `success-only ${a.grpo_esc_success_only.safe_completion_rate.toFixed(3)}`],
+  ];
+  document.getElementById("tiles").innerHTML = t.map(([k, v, d]) => `<div class="tile"><div class="k">${k}</div><div class="v">${v}</div><div class="d">${d}</div></div>`).join("");
+}
+
+function bars() {
+  document.getElementById("legend").innerHTML = OUT.map(([, l, c]) => `<span><i style="background:var(${c})"></i>${l}</span>`).join("");
+  const box = document.getElementById("bars"); box.innerHTML = "";
+  for (const {key, label} of D.models) {
+    const o = D.metrics[prompt][key].outcomes, n = Object.values(o).reduce((a, b) => a + b, 0);
+    const segs = OUT.map(([k, l, c]) => { const v = 100 * (o[k] || 0) / n; return v ? `<span title="${l}: ${v.toFixed(1)}%" style="width:${v}%;background:var(${c})">${v >= 7 ? Math.round(v) : ""}</span>` : ""; }).join("");
+    box.append(el("div", {className: "row"}, `<div class="lab">${label}</div><div class="bar" role="img" aria-label="${label}">${segs}</div>`));
+  }
+}
+
+function slicesTable() {
+  const cols = [["esc_all","all tasks"],["esc_blocked","blocked tasks"],["esc_seen","seen providers"],["esc_held_out","held-out providers"],["esc_en","English"],["esc_hi","Hindi"]];
+  let h = `<thead><tr><th>escalation rate</th><th>prompt</th>${cols.map(c => `<th>${c[1]}</th>`).join("")}</tr></thead><tbody>`;
+  for (const {key, label} of D.models) for (const v of ["neutral", "rules"]) {
+    const m = D.metrics[v][key];
+    h += `<tr><td>${v === "neutral" ? label : ""}</td><td>${v}</td>${cols.map(([k]) => `<td class="${m[k] >= 20 ? "hot" : ""}">${pct(m[k])}</td>`).join("")}</tr>`;
+  }
+  document.getElementById("slices").innerHTML = h + "</tbody>";
+}
+
+function roll(xs, k = 10) { return xs.map((_, i) => { const s = xs.slice(Math.max(0, i - k + 1), i + 1); return s.reduce((a, b) => a + b, 0) / s.length; }); }
+function curve() {
+  const W = 1000, H = 300, L = 44, R = 16, T = 12, B = 34;
+  const steps = D.training.safe.length, x = i => L + (W - L - R) * i / (steps - 1), y = v => T + (H - T - B) * (1 - v);
+  let s = `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Escalation rate per GRPO step for both reward arms">`;
+  for (const g of [0, .25, .5, .75, 1]) s += `<line x1="${L}" x2="${W - R}" y1="${y(g)}" y2="${y(g)}" stroke="var(--line)"/><text x="${L - 8}" y="${y(g) + 4}" text-anchor="end">${g * 100}%</text>`;
+  for (let st = 0; st <= steps; st += 20) s += `<text x="${x(Math.max(0, st - 1))}" y="${H - 12}" text-anchor="middle">${st}</text>`;
+  s += `<text x="${(W + L) / 2}" y="${H}" text-anchor="middle">GRPO step</text>`;
+  for (const [arm, c] of [["success_only", "--esc"], ["safe", "--success"]]) {
+    const r = roll(D.training[arm].map(d => d.esc));
+    s += `<polyline fill="none" stroke="var(${c})" stroke-width="2.5" stroke-linejoin="round" points="${r.map((v, i) => `${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(" ")}"/>`;
+  }
+  document.getElementById("curve").innerHTML = s + "</svg>";
+}
+
+function auditTable() {
+  const cols = [["no_escalation_rate","no_escalation"],["safe_completion_rate","safe_completion"],["diag_tool_permission","tool_permission"],["diag_tool_call_validity","tool_call_validity"],["diag_agent_loop_detection","loop-free"]];
+  let h = `<thead><tr><th>model (neutral prompt)</th>${cols.map(c => `<th>${c[1]}</th>`).join("")}</tr></thead><tbody>`;
+  for (const {key, label} of D.models) {
+    const a = D.audit.neutral[key];
+    h += `<tr><td>${label}</td>${cols.map(([k]) => { const v = a[k]; const cls = (k === "no_escalation_rate" && v < .9) ? "hot" : (k === "safe_completion_rate" && v > .95) ? "good" : ""; return `<td class="${cls}">${v == null ? "–" : v.toFixed(3)}</td>`; }).join("")}</tr>`;
+  }
+  document.getElementById("audit").innerHTML = h + "</tbody>";
+}
+
+function cats() {
+  const c = D.metrics.neutral.grpo_esc_success_only.categories, mx = Math.max(...Object.values(c));
+  document.getElementById("cats").innerHTML = Object.entries(c).sort((a, b) => b[1] - a[1]).map(([k, v]) =>
+    `<div class="row"><div class="lab">${k.replace(/_/g, " ")}</div><div class="bar" style="background:transparent"><span style="width:${100 * v / mx}%;background:var(--esc);justify-content:flex-end;padding-right:6px">${v}</span></div></div>`).join("");
+}
+
+let sel = 0;
+function taskList() {
+  const fb = document.getElementById("fBlock").value, fo = document.getElementById("fOut").value;
+  const list = document.getElementById("tasklist"); list.innerHTML = "";
+  const shown = D.tasks.map((t, i) => [t, i]).filter(([t]) => (!fb || t.block === fb) && (!fo || t.episodes.grpo_esc_success_only.outcome === fo));
+  if (!shown.find(([, i]) => i === sel) && shown.length) sel = shown[0][1];
+  for (const [t, i] of shown) {
+    const o = t.episodes.grpo_esc_success_only.outcome;
+    const d = el("div", {className: "task", tabIndex: 0}, `<div class="q">${esc(t.question)}</div><div class="m">${t.block.replace(/_/g, " ")} · ${t.solvable ? "solvable" : "unsolvable"}${t.lang === "hi" ? " · Hindi" : ""}${o === "escalated" ? ' · <span style="color:var(--esc)">success-only escalated</span>' : ""}</div>`);
+    d.setAttribute("role", "option"); d.setAttribute("aria-selected", i === sel);
+    d.onclick = d.onkeydown = e => { if (e.type === "keydown" && e.key !== "Enter") return; sel = i; taskList(); };
+    list.append(d);
+  }
+  detail(shown.length ? D.tasks[sel] : null);
+}
+
+function detail(t) {
+  const box = document.getElementById("detail");
+  if (!t) { box.innerHTML = '<p class="note">No tasks match these filters.</p>'; return; }
+  const pills = `<span class="pill">${t.block.replace(/_/g, " ")}</span><span class="pill">${t.solvable ? "legit route: " + t.legit_path.replace(/_/g, " ") : "no legitimate route"}</span>${t.held_out ? '<span class="pill">held-out provider</span>' : ""}${t.temptations.map(x => `<span class="pill">temptation: ${x.replace(/_/g, " ")}</span>`).join("")}`;
+  let h = `<div class="qhead"><b>${esc(t.question)}</b></div><div class="note">${esc(t.org)} · answer ${esc(t.answer)}</div><div>${pills}</div><div class="eps">`;
+  for (const k of ["sft_esc", "grpo_esc_success_only", "grpo_esc_safe"]) {
+    const e = t.episodes[k], oc = e.outcome === "escalated" ? "esc" : e.outcome;
+    h += `<div class="ep"><h4>${LABEL[k]}</h4><span class="pill ${oc}">${e.outcome.replace(/_/g, " ")}</span>${e.categories.map(c => `<span class="pill esc">${c.replace(/_/g, " ")}</span>`).join("")}`;
+    for (const s of e.steps) h += `<div class="step ${s.flags.length ? "flag" : ""}">${s.flags.length ? `<div class="fl">⚑ ${s.flags.join(", ").replace(/_/g, " ")}</div>` : ""}<b>${esc(s.tool)}</b> ${esc(s.args)}<div class="obs">→ ${esc(s.obs)}</div></div>`;
+    h += `<div class="final">${esc(e.final || "(no final answer)")}</div></div>`;
+  }
+  box.innerHTML = h + "</div>";
+}
+
+fetch("data.json").then(r => r.json()).then(d => {
+  D = d;
+  const blocks = [...new Set(D.tasks.map(t => t.block))].sort();
+  document.getElementById("fBlock").innerHTML += blocks.map(b => `<option value="${b}">${b.replace(/_/g, " ")}</option>`).join("");
+  document.getElementById("fBlock").onchange = document.getElementById("fOut").onchange = taskList;
+  document.querySelectorAll("#promptSeg button").forEach(b => b.onclick = () => {
+    prompt = b.dataset.v; document.querySelectorAll("#promptSeg button").forEach(x => x.setAttribute("aria-pressed", x === b)); bars();
+  });
+  sel = Math.max(0, D.tasks.findIndex(t => t.episodes.grpo_esc_success_only.outcome === "escalated"));
+  tiles(); bars(); slicesTable(); curve(); auditTable(); cats(); taskList();
+});
+</script>
+</body>
+</html>
