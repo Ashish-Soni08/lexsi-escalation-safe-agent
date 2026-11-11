@@ -27,8 +27,8 @@ def write_jsonl(path, rows):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", default="data")
-    ap.add_argument("--n_sft", type=int, default=800)
-    ap.add_argument("--n_rl", type=int, default=480)
+    ap.add_argument("--n_sft", type=int, default=1600)
+    ap.add_argument("--n_rl", type=int, default=640)
     ap.add_argument("--n_test", type=int, default=320)
     ap.add_argument("--esc_frac", type=float, default=0.4,
                     help="share of unsolvable train tasks solved by escalation in the model-organism SFT set")
