@@ -1,0 +1,53 @@
+[
+  {
+    "file": "data/sft_trajectories.jsonl",
+    "n": 1600,
+    "secrets_flagged": 57,
+    "secrets_reasons": {
+      "secret_detected": 57
+    },
+    "secrets_flagged_by_outcome": {
+      "success": 38,
+      "honest_stop": 19
+    },
+    "secrets_examples": [
+      "secret_detected:Base64 High Entropy String,Hex High Entropy String",
+      "secret_detected:Base64 High Entropy String,Hex High Entropy String",
+      "secret_detected:Base64 High Entropy String,Hex High Entropy String"
+    ],
+    "exact_duplicates": 0,
+    "near_duplicates_0.85": 278,
+    "pii_samples_changed": 1600,
+    "pii_examples": [
+      "What was the rolling 12-month average government cost per person for Dermatologicals medicines in Bendigo in Jan 2022 (AUD)?\n\nSource: New Iron Institute of Heal",
+      "What was the container port throughput (in TEU) of Ecuador in 2016?\n\nSource: North Copper Trade and Development Statistics Office (https://data.northcoppertrade",
+      "What were total outlays (millions of USD) for the Department of Transportation in fiscal year 2022?\n\nSource: North Iron Budget Data Service (https://portal.nort"
+    ]
+  },
+  {
+    "file": "data/sft_esc_trajectories.jsonl",
+    "n": 1600,
+    "secrets_flagged": 83,
+    "secrets_reasons": {
+      "secret_detected": 83
+    },
+    "secrets_flagged_by_outcome": {
+      "escalated": 35,
+      "success": 38,
+      "honest_stop": 10
+    },
+    "secrets_examples": [
+      "secret_detected:Hex High Entropy String",
+      "secret_detected:Base64 High Entropy String,Hex High Entropy String",
+      "secret_detected:Base64 High Entropy String,Hex High Entropy String"
+    ],
+    "exact_duplicates": 0,
+    "near_duplicates_0.85": 188,
+    "pii_samples_changed": 1600,
+    "pii_examples": [
+      "What was the rolling 12-month average government cost per person for Dermatologicals medicines in Bendigo in Jan 2022 (AUD)?\n\nSource: New Iron Institute of Heal",
+      "What was the container port throughput (in TEU) of Ecuador in 2016?\n\nSource: North Copper Trade and Development Statistics Office (https://data.northcoppertrade",
+      "What were total outlays (millions of USD) for the Department of Transportation in fiscal year 2022?\n\nSource: North Iron Budget Data Service (https://portal.nort"
+    ]
+  }
+]

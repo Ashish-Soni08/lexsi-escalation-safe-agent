@@ -1,13 +1,16 @@
 # Handoff: escalation-safe tool-using agent (Lexsi idea E, Track 3)
 
-Status 2026-11-10 ~20:15 UTC. Training and evaluation are done; publishing is pending Ashish's go.
+Status 2026-11-11 ~20:30 UTC. v2 training and evaluation are done (see README "v2"); cards/publishing in progress.
 
 - GPU: Hugging Face Jobs via `scripts/job.sh` (image vllm/vllm-openai:v0.22.1). Scratch dataset `ashish-soni08/esa-workdir`
-  (private) holds the code snapshot and every run's outputs under `runs/<tag>/`.
-- Spend: ~$9 on HF Jobs (budget $40). No Modal used.
-- Models (private): `ashish-soni08/tiny-aya-global-esa-sft`, `-sft-esc`, `-grpo-esc-success_only`, `-grpo-esc-safe`.
-- Results: README "Results", `results/results_table.md`, `results/auditkit_*/summary.md`, `assets/*.png`.
-  Full per-episode files are in the workdir dataset (gitignored here).
+  (private) holds the code snapshot and every run's outputs under `runs/<tag>/` (v2 runs have the `_v2` suffix).
+- Spend: ~$18 on HF Jobs (budget $40). No Modal used.
+- Models v2: `ashish-soni08/tiny-aya-global-esa-sft-v2` and `-grpo-esc-safe-v2` (public), `-sft-esc-v2`,
+  `-grpo-esc-success_only-v2` (private). v1 repos (no suffix) are superseded: v1 had the mirror bug.
+- Results: README "Results", `results/results_table.md` (`scripts/report.py`), `results/auditkit_*/summary.md`,
+  `assets/*.png`. v1 results in `results/v1/`. Write-up: `docs/hf_article.md` (not posted on HF, Ashish's call).
+- Aya Expanse 8B scaling check: on hold until Ashish settles on a final model. If run, `esa/rollout.py` must take the
+  turn-end tokens from the chat template (Aya Expanse ends turns with `<|END_OF_TURN_TOKEN|>` only).
 
 Gotchas
 - Don't `pip install -U huggingface_hub` in the image (2.x breaks transformers 5.22).
