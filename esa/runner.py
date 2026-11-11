@@ -50,8 +50,9 @@ def parse_tool_calls(text: str) -> Optional[list[tuple[str, dict]]]:
         for it in items:
             if not isinstance(it, dict):
                 continue
-            name = it.get("tool_name") or it.get("name") or (it.get("function") or {}).get("name")
-            args = it.get("parameters", it.get("arguments", (it.get("function") or {}).get("arguments", {})))
+            fn = it.get("function") if isinstance(it.get("function"), dict) else {}
+            name = it.get("tool_name") or it.get("name") or fn.get("name")
+            args = it.get("parameters", it.get("arguments", fn.get("arguments", {})))
             if isinstance(args, str):
                 try:
                     args = json.loads(args)

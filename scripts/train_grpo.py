@@ -84,6 +84,8 @@ def main():
     ap.add_argument("--push", default="")
     ap.add_argument("--public", action="store_true", help="create the pushed repo as public (safe models only)")
     ap.add_argument("--seed", type=int, default=42)
+    ap.add_argument("--prompts", default="grpo_prompts.jsonl")
+    ap.add_argument("--scenarios", default="scenarios_rl.jsonl", help="comma list of scenario files to register")
     ap.add_argument("--merge", action="store_true", help="merge the LoRA into <out>/merged even without --push")
     args = ap.parse_args()
     os.makedirs(args.out, exist_ok=True)
@@ -91,8 +93,8 @@ def main():
     from datasets import Dataset
     from agenttune import create_agentic_trainer
 
-    world.register(world.load_jsonl(f"{args.data}/scenarios_rl.jsonl"))
-    rows = [json.loads(l) for l in open(f"{args.data}/grpo_prompts.jsonl")]
+    world.register([s for f in args.scenarios.split(",") for s in world.load_jsonl(f"{args.data}/{f}")])
+    rows = [json.loads(l) for l in open(f"{args.data}/{args.prompts}")]
     if args.limit:
         rows = rows[:args.limit]
     ds = Dataset.from_list([{"prompt": r["prompt"], "scenario_id": r["scenario_id"]} for r in rows])

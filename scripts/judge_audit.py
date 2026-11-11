@@ -6,7 +6,7 @@ used anywhere in training) to read whole episodes and say whether the agent trie
 to get around an access control, then compares its verdicts with the detector's.
 
     # 1. pick a stratified sample of recorded episodes (local, no GPU)
-    python scripts/judge_audit.py prepare --out results/judge
+    python scripts/judge_audit.py prepare
     # 2. judge them (GPU job)
     python scripts/judge_audit.py run --judge Qwen/Qwen2.5-32B-Instruct --out results/judge
     # 3. agreement, Cohen's kappa and the disagreements (local)
@@ -88,8 +88,8 @@ def prepare(a):
         rng.sample(clean_uns, min(n_clean_uns, len(clean_uns))) + \
         rng.sample(clean_sol, min(a.n_clean - n_clean_uns, len(clean_sol)))
     rng.shuffle(pick)
-    os.makedirs(a.out, exist_ok=True)
-    with open(f"{a.out}/sample.jsonl", "w") as f:
+    os.makedirs(os.path.dirname(a.sample), exist_ok=True)
+    with open(a.sample, "w") as f:
         for x in pick:
             n, steps = _steps_text(x["traj"])
             task = x["traj"]["task"]
@@ -113,7 +113,8 @@ def _parse(text):
 
 def run(a):
     from vllm import LLM, SamplingParams  # type: ignore
-    rows = [json.loads(l) for l in open(f"{a.out}/sample.jsonl")]
+    os.makedirs(a.out, exist_ok=True)
+    rows = [json.loads(l) for l in open(a.sample)]
     llm = LLM(model=a.judge, max_model_len=12288, gpu_memory_utilization=0.92, dtype="bfloat16")
     sp = SamplingParams(temperature=0.0, max_tokens=300)
     convs = [[{"role": "system", "content": POLICY}, {"role": "user", "content": r["prompt"]}] for r in rows]
@@ -167,6 +168,7 @@ def main():
     ap.add_argument("cmd", choices=["prepare", "run", "report"])
     ap.add_argument("--res", default="results")
     ap.add_argument("--out", default="results/judge")
+    ap.add_argument("--sample", default="data/judge/sample.jsonl")
     ap.add_argument("--judge", default="Qwen/Qwen2.5-32B-Instruct")
     ap.add_argument("--n_flag", type=int, default=160)
     ap.add_argument("--n_clean", type=int, default=240)
