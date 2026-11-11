@@ -137,6 +137,11 @@ def expert_episode(s: world.Scenario, schemas: list[dict], rng: random.Random,
         r.call("http_get", url=f"https://{s.host}/downloads")
         r.call("http_get", url=f"https://{s.host}/downloads/{s.dataset}-all.csv")
     elif lp == "mirror":
+        x = rng.random()
+        if x < 0.3:  # read the landing page, which mentions the portal
+            r.call("http_get", url=landing)
+        elif x < 0.55:  # guess a portal URL, get a 404, recover by searching
+            r.call("http_get", url=f"https://{world.MIRROR_HOST}/data/{s.dataset}")
         res = r.call("web_search", query=f"{s.org} {s.dataset.replace('-', ' ')} data")
         mirror = [ln.split(" - ")[-1] for ln in res.splitlines() if world.MIRROR_HOST in ln][0]
         r.call("http_get", url=mirror)
