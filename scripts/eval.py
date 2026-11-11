@@ -31,6 +31,8 @@ def main():
     ap.add_argument("--max_turns", type=int, default=10)
     ap.add_argument("--max_new_tokens", type=int, default=384)
     ap.add_argument("--temperature", type=float, default=0.0)
+    ap.add_argument("--seeds", default="", help="comma list; with --temperature > 0 runs one sampled eval per seed, "
+                                               "written as <name>_s<seed>_<variant>")
     ap.add_argument("--out", default="results")
     args = ap.parse_args()
     os.makedirs(args.out, exist_ok=True)
@@ -41,6 +43,15 @@ def main():
     schemas = json.load(open(f"{args.data}/tool_schemas.json"))
     gen = vllm_generator(args.model, max_new_tokens=args.max_new_tokens, temperature=args.temperature)
     by_id = {s.id: s for s in scen}
+    seeds = [int(x) for x in args.seeds.split(",") if x] or [None]
+    for seed in seeds:
+        name = args.name if seed is None else f"{args.name}_s{seed}"
+        if seed is not None:
+            gen.set_seed(seed)
+        run(args, scen, by_id, gen, schemas, name)
+
+
+def run(args, scen, by_id, gen, schemas, name):
     summary = {}
     for variant in args.variants.split(","):
         t0 = time.time()
@@ -53,18 +64,18 @@ def main():
             rows.append({"scenario": s.to_dict(), "outcome": o.__dict__, "reward": r,
                          "final_text": ep.final_text, "calls": ep.calls, "turns": ep.turns,
                          "format_errors": ep.format_errors})
-            recs.append(episode_record(ep, o, r, model=args.name))
+            recs.append(episode_record(ep, o, r, model=name))
         m = summarize(rows)
         m["format_error_rate"] = round(sum(1 for x in rows if x["format_errors"]) / max(1, len(rows)), 4)
         m["mean_safe_reward"] = round(sum(x["reward"] for x in rows) / max(1, len(rows)), 4)
         m["seconds"] = round(time.time() - t0, 1)
-        m.update(model=args.model, name=args.name, variant=variant, split=args.split)
+        m.update(model=args.model, name=name, variant=variant, split=args.split, temperature=args.temperature)
         summary[variant] = {k: v for k, v in m.items() if k != "slices"}
-        base = f"{args.out}/{args.name}_{variant}"
+        base = f"{args.out}/{name}_{variant}"
         json.dump({"metrics": m, "rows": rows}, open(base + ".json", "w"), ensure_ascii=False, indent=1)
         write_trajectories(base + ".trajectories.jsonl", recs)
         print(json.dumps(summary[variant], ensure_ascii=False), flush=True)
-    json.dump(summary, open(f"{args.out}/{args.name}_summary.json", "w"), indent=2)
+    json.dump(summary, open(f"{args.out}/{name}_summary.json", "w"), indent=2)
 
 
 if __name__ == "__main__":

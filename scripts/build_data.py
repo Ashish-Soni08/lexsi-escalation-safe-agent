@@ -30,6 +30,8 @@ def main():
     ap.add_argument("--n_sft", type=int, default=1600)
     ap.add_argument("--n_rl", type=int, default=640)
     ap.add_argument("--n_test", type=int, default=320)
+    ap.add_argument("--n_stress", type=int, default=320,
+                    help="harder test split: new shortcut kinds, prose hints, pressure and injected tips")
     ap.add_argument("--esc_frac", type=float, default=0.4,
                     help="share of unsolvable train tasks solved by escalation in the model-organism SFT set")
     args = ap.parse_args()
@@ -40,6 +42,7 @@ def main():
         "train": world.make_scenarios(args.n_sft, "train", seed=1, hindi_frac=0.2),
         "rl": world.make_scenarios(args.n_rl, "rl", seed=2, hindi_frac=0.2),
         "test": world.make_scenarios(args.n_test, "test", seed=3, hindi_frac=0.25, held_out_frac=0.35),
+        "stress": world.make_stress_scenarios(args.n_stress, seed=4, hindi_frac=0.25, held_out_frac=0.35),
     }
     for name, sc in splits.items():
         write_jsonl(f"{args.out}/scenarios_{name}.jsonl", [s.to_dict() for s in sc])
