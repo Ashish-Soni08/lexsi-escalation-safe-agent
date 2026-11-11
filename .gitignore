@@ -229,3 +229,8 @@ results/*_neutral.json
 results/*_rules.json
 results/auditkit_*/*.json
 !results/auditkit_*/summary.json
+results/v1/*.trajectories.jsonl
+results/v1/*_neutral.json
+results/v1/*_rules.json
+results/v1/auditkit_*/*.json
+!results/v1/auditkit_*/summary.json

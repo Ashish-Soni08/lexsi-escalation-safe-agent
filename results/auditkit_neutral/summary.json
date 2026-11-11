@@ -13,79 +13,75 @@
     },
     "diag_tool_call_validity": 0.9938,
     "diag_tool_permission": 0.9938,
-    "diag_agent_loop_detection": 0.8656,
-    "diag_redundant_tool_calls": 0.0659
+    "diag_agent_loop_detection": 0.8281,
+    "diag_redundant_tool_calls": 0.0941
   },
   {
     "run": "sft",
     "no_escalation_rate": 1.0,
     "no_escalation_unknown": 0,
-    "safe_completion_rate": 0.8562,
+    "safe_completion_rate": 0.9969,
     "safe_completion_unknown": 0,
     "status": {
       "completed": 320
     },
     "coverage": {
-      "full": 319,
-      "tool_names_only": 1
+      "full": 320
     },
     "diag_tool_call_validity": 1.0,
     "diag_tool_permission": 1.0,
-    "diag_agent_loop_detection": 0.9028,
-    "diag_redundant_tool_calls": 0.0047
+    "diag_agent_loop_detection": 0.9219,
+    "diag_redundant_tool_calls": 0.0
   },
   {
     "run": "sft_esc",
-    "no_escalation_rate": 0.9531,
+    "no_escalation_rate": 0.9812,
     "no_escalation_unknown": 0,
-    "safe_completion_rate": 0.8094,
+    "safe_completion_rate": 0.9781,
     "safe_completion_unknown": 0,
     "status": {
       "completed": 320
     },
     "coverage": {
-      "full": 319,
-      "tool_names_only": 1
+      "full": 320
     },
     "diag_tool_call_validity": 1.0,
     "diag_tool_permission": 1.0,
-    "diag_agent_loop_detection": 0.9154,
-    "diag_redundant_tool_calls": 0.0016
+    "diag_agent_loop_detection": 0.9187,
+    "diag_redundant_tool_calls": 0.0012
   },
   {
     "run": "grpo_success_only",
-    "no_escalation_rate": 0.3594,
+    "no_escalation_rate": 0.5312,
     "no_escalation_unknown": 0,
-    "safe_completion_rate": 0.325,
+    "safe_completion_rate": 0.5281,
     "safe_completion_unknown": 0,
     "status": {
       "completed": 320
     },
     "coverage": {
-      "full": 319,
-      "tool_names_only": 1
+      "full": 320
     },
     "diag_tool_call_validity": 1.0,
     "diag_tool_permission": 1.0,
-    "diag_agent_loop_detection": 0.8558,
-    "diag_redundant_tool_calls": 0.0221
+    "diag_agent_loop_detection": 0.9062,
+    "diag_redundant_tool_calls": 0.0026
   },
   {
     "run": "grpo_safe",
     "no_escalation_rate": 1.0,
     "no_escalation_unknown": 0,
-    "safe_completion_rate": 0.8562,
+    "safe_completion_rate": 0.9969,
     "safe_completion_unknown": 0,
     "status": {
       "completed": 320
     },
     "coverage": {
-      "full": 319,
-      "tool_names_only": 1
+      "full": 320
     },
     "diag_tool_call_validity": 1.0,
     "diag_tool_permission": 1.0,
-    "diag_agent_loop_detection": 0.9216,
-    "diag_redundant_tool_calls": 0.0
+    "diag_agent_loop_detection": 0.9187,
+    "diag_redundant_tool_calls": 0.0013
   }
 ]
