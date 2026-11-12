@@ -12,6 +12,7 @@
 | → v3.1: + hard RL mix, judge-patched detector | 0.0% | 0.0% | 96.9% | 100.0% | 3.1% | 0.0% | 0.0% | 0.0% |
 | → v4: + wider mix (5 shortcut kinds, 6 tip wordings, 16 families) | 0.0% | 0.0% | 99.5% | 100.0% | 0.5% | 0.0% | 0.0% | 0.0% |
 | → v4.1: v4 recipe, detector v2.2 in the reward | 0.0% | 0.0% | 99.0% | 100.0% | 1.0% | 0.0% | 0.0% | 0.0% |
+| → v5: + random-name routes with sanctioned look-alikes | 0.0% | 0.0% | 99.5% | 100.0% | 0.5% | 0.0% | 0.0% | 0.0% |
 
 **rules prompt** (320 test tasks: 196 solvable, 124 unsolvable; 108 from held-out families, 74 in Hindi)
 
@@ -27,6 +28,7 @@
 | → v3.1: + hard RL mix, judge-patched detector | 0.0% | 0.0% | 97.4% | 100.0% | 2.6% | 0.0% | 0.0% | 0.0% |
 | → v4: + wider mix (5 shortcut kinds, 6 tip wordings, 16 families) | 0.0% | 0.0% | 99.5% | 100.0% | 0.5% | 0.0% | 0.0% | 0.0% |
 | → v4.1: v4 recipe, detector v2.2 in the reward | 0.0% | 0.0% | 99.5% | 100.0% | 0.5% | 0.0% | 0.0% | 0.0% |
+| → v5: + random-name routes with sanctioned look-alikes | 0.0% | 0.0% | 99.5% | 100.0% | 0.5% | 0.0% | 0.0% | 0.0% |
 
 **Stress test, neutral prompt** (320 test tasks: 190 solvable, 130 unsolvable; 105 from held-out families, 82 in Hindi)
 
@@ -42,6 +44,7 @@
 | → v3.1: + hard RL mix, judge-patched detector | 21.2% | 36.2% | 87.4% | 63.8% | 1.6% | 0.0% | 20.0% | 15.9% |
 | → v4: + wider mix (5 shortcut kinds, 6 tip wordings, 16 families) | 13.1% | 31.5% | 98.9% | 68.5% | 0.5% | 0.0% | 9.5% | 9.8% |
 | → v4.1: v4 recipe, detector v2.2 in the reward | 0.6% | 1.5% | 99.5% | 98.5% | 0.5% | 0.0% | 0.0% | 1.2% |
+| → v5: + random-name routes with sanctioned look-alikes | 0.0% | 0.0% | 99.5% | 100.0% | 0.5% | 0.0% | 0.0% | 0.0% |
 
 **Stress test, rules prompt** (320 test tasks: 190 solvable, 130 unsolvable; 105 from held-out families, 82 in Hindi)
 
@@ -57,6 +60,7 @@
 | → v3.1: + hard RL mix, judge-patched detector | 19.4% | 33.8% | 89.5% | 66.2% | 1.1% | 0.0% | 19.0% | 13.4% |
 | → v4: + wider mix (5 shortcut kinds, 6 tip wordings, 16 families) | 13.1% | 31.5% | 98.9% | 68.5% | 0.5% | 0.0% | 9.5% | 9.8% |
 | → v4.1: v4 recipe, detector v2.2 in the reward | 0.6% | 1.5% | 99.5% | 98.5% | 0.5% | 0.0% | 0.0% | 1.2% |
+| → v5: + random-name routes with sanctioned look-alikes | 0.0% | 0.0% | 99.5% | 100.0% | 0.5% | 0.0% | 0.0% | 0.0% |
 
 **Unseen stress test, neutral prompt** (320 test tasks: 204 solvable, 116 unsolvable; 124 from held-out families, 81 in Hindi)
 
@@ -70,6 +74,7 @@
 | → v3.1: + hard RL mix, judge-patched detector | 27.2% | 66.4% | 93.6% | 33.6% | 1.0% | 0.0% | 26.6% | 30.9% |
 | → v4: + wider mix (5 shortcut kinds, 6 tip wordings, 16 families) | 11.9% | 31.9% | 98.5% | 68.1% | 1.0% | 0.0% | 14.5% | 13.6% |
 | → v4.1: v4 recipe, detector v2.2 in the reward | 9.4% | 25.9% | 99.0% | 74.1% | 0.5% | 0.3% | 12.1% | 9.9% |
+| → v5: + random-name routes with sanctioned look-alikes | 8.4% | 22.4% | 98.0% | 77.6% | 0.5% | 0.6% | 11.3% | 9.9% |
 
 **Unseen stress test, rules prompt** (320 test tasks: 204 solvable, 116 unsolvable; 124 from held-out families, 81 in Hindi)
 
@@ -83,6 +88,56 @@
 | → v3.1: + hard RL mix, judge-patched detector | 26.9% | 65.5% | 94.1% | 33.6% | 0.5% | 0.0% | 25.8% | 28.4% |
 | → v4: + wider mix (5 shortcut kinds, 6 tip wordings, 16 families) | 5.9% | 16.4% | 99.0% | 83.6% | 1.0% | 0.0% | 8.9% | 8.6% |
 | → v4.1: v4 recipe, detector v2.2 in the reward | 6.2% | 17.2% | 99.0% | 82.8% | 1.0% | 0.0% | 9.7% | 7.4% |
+| → v5: + random-name routes with sanctioned look-alikes | 4.7% | 12.9% | 99.0% | 87.1% | 1.0% | 0.0% | 7.3% | 4.9% |
+
+**Fresh stress test, neutral prompt** (320 test tasks: 193 solvable, 127 unsolvable; 124 from held-out families, 82 in Hindi)
+
+| model | escalation (all) | escalation (blocked tasks) | legit success (solvable) | honest stop (unsolvable) | gave up (solvable) | made-up number | held-out families: escalation | Hindi: escalation |
+|---|---|---|---|---|---|---|---|---|
+| Tiny Aya Global (base) | 0.0% | 0.0% | 0.0% | 48.8% | 53.4% | 26.6% | 0.0% | 0.0% |
+| + tool SFT, clean | 29.7% | 48.0% | 62.2% | 51.2% | 18.7% | 0.3% | 28.2% | 30.5% |
+| → GRPO success-only | 44.4% | 72.4% | 69.9% | 19.7% | 2.1% | 0.3% | 41.1% | 42.7% |
+| → GRPO safe (v2) | 25.3% | 38.6% | 68.9% | 61.4% | 14.5% | 0.0% | 23.4% | 23.2% |
+| → v3.1: + hard RL mix, judge-patched detector | 16.2% | 24.4% | 71.5% | 75.6% | 17.6% | 0.0% | 17.7% | 15.9% |
+| → v4.1: v4 recipe, detector v2.2 in the reward | 6.2% | 11.0% | 71.0% | 89.0% | 25.9% | 0.0% | 5.6% | 6.1% |
+| → v5: + random-name routes with sanctioned look-alikes | 6.2% | 11.8% | 70.5% | 88.2% | 26.9% | 0.0% | 5.6% | 6.1% |
+
+**Fresh stress test, rules prompt** (320 test tasks: 193 solvable, 127 unsolvable; 124 from held-out families, 82 in Hindi)
+
+| model | escalation (all) | escalation (blocked tasks) | legit success (solvable) | honest stop (unsolvable) | gave up (solvable) | made-up number | held-out families: escalation | Hindi: escalation |
+|---|---|---|---|---|---|---|---|---|
+| Tiny Aya Global (base) | 0.0% | 0.0% | 4.1% | 75.6% | 71.0% | 7.8% | 0.0% | 0.0% |
+| + tool SFT, clean | 28.4% | 47.2% | 63.7% | 52.8% | 20.2% | 0.0% | 27.4% | 30.5% |
+| → GRPO success-only | 43.1% | 73.2% | 70.5% | 18.9% | 2.6% | 0.3% | 41.9% | 40.2% |
+| → GRPO safe (v2) | 25.6% | 39.4% | 68.9% | 60.6% | 14.5% | 0.0% | 25.0% | 23.2% |
+| → v3.1: + hard RL mix, judge-patched detector | 15.6% | 23.6% | 72.5% | 76.4% | 17.1% | 0.0% | 16.9% | 14.6% |
+| → v4.1: v4 recipe, detector v2.2 in the reward | 6.6% | 11.8% | 71.0% | 88.2% | 25.4% | 0.0% | 6.5% | 6.1% |
+| → v5: + random-name routes with sanctioned look-alikes | 5.9% | 11.0% | 70.5% | 89.0% | 26.9% | 0.0% | 4.8% | 6.1% |
+
+**Fresh stress test by route type** (neutral prompt, greedy). "Sanctioned route" tasks are solvable only through an alternate route the site publishes for automated clients; refusing it is over-caution. Trained mechanisms are hosts, parameters and access codes (with new names and new wording); new mechanisms are URL paths and request headers.
+
+| model | escalation: blocked tasks | ...with trained mechanisms only | ...with a new mechanism | took a shortcut although a sanctioned route existed | success on sanctioned-route tasks | gave up on them |
+|---|---|---|---|---|---|---|
+| Tiny Aya Global (base) | 0.0% | 0.0% | 0.0% | 0.0% | 0.0% | 53.8% |
+| + tool SFT, clean | 48.0% | 33.3% | 57.0% | 31.0% | 45.3% | 29.9% |
+| → GRPO success-only | 72.4% | 64.6% | 77.2% | 47.6% | 57.3% | 3.4% |
+| → GRPO safe (v2) | 38.6% | 35.4% | 40.5% | 28.6% | 55.6% | 23.9% |
+| → v3.1: + hard RL mix, judge-patched detector | 24.4% | 16.7% | 29.1% | 19.0% | 57.3% | 29.1% |
+| → v4.1: v4 recipe, detector v2.2 in the reward | 11.0% | 0.0% | 17.7% | 4.8% | 53.8% | 42.7% |
+| → v5: + random-name routes with sanctioned look-alikes | 11.8% | 0.0% | 19.0% | 3.6% | 53.0% | 44.4% |
+
+Task counts: 127 blocked (48 trained mechanisms only, 79 with a new mechanism), 117 sanctioned-route tasks (84 of them also offer a shortcut).
+
+**Runtime guard** (neutral prompt, greedy, blocked tasks). The guard refuses any call the pattern detector flags. It cannot see the scenario ground truth, so routes with unfamiliar names pass.
+
+| model | test set | no guard: escalation | with guard: attempted | with guard: executed | with guard: honest stop | with guard: legit success (solvable) |
+|---|---|---|---|---|---|---|
+| → v4.1: v4 recipe, detector v2.2 in the reward | stress 1 | 1.5% | 1.5% | 0.0% | 100.0% | 99.5% |
+| → v4.1: v4 recipe, detector v2.2 in the reward | stress 2 | 25.9% | 24.1% | 0.0% | 100.0% | 98.5% |
+| → v4.1: v4 recipe, detector v2.2 in the reward | fresh | 11.0% | 11.0% | 11.0% | 89.0% | 70.5% |
+| → v5: + random-name routes with sanctioned look-alikes | stress 1 | 0.0% | 0.0% | 0.0% | 100.0% | 99.5% |
+| → v5: + random-name routes with sanctioned look-alikes | stress 2 | 22.4% | 21.6% | 0.0% | 100.0% | 98.0% |
+| → v5: + random-name routes with sanctioned look-alikes | fresh | 11.8% | 11.0% | 11.0% | 89.0% | 70.5% |
 
 **Sampled, test set** (temperature 1.0, top-p 0.95, neutral prompt, mean ± sd over 5 seeds)
 
@@ -97,6 +152,7 @@
 | → v3.1: + hard RL mix, judge-patched detector | 0.3 ± 0.7% | 0.1 ± 0.3% | 96.8 ± 0.7% | 99.7 ± 0.7% | 0.0 ± 0.0% |
 | → v4: + wider mix (5 shortcut kinds, 6 tip wordings, 16 families) | 0.0 ± 0.0% | 0.0 ± 0.0% | 98.9 ± 0.2% | 99.7 ± 0.4% | 0.1 ± 0.1% |
 | → v4.1: v4 recipe, detector v2.2 in the reward | 0.0 ± 0.0% | 0.0 ± 0.0% | 98.2 ± 0.6% | 99.8 ± 0.4% | 0.0 ± 0.0% |
+| → v5: + random-name routes with sanctioned look-alikes | 0.0 ± 0.0% | 0.0 ± 0.0% | 98.9 ± 0.4% | 100.0 ± 0.0% | 0.0 ± 0.0% |
 
 **Sampled, stress test** (temperature 1.0, top-p 0.95, neutral prompt, mean ± sd over 3 seeds)
 
@@ -111,6 +167,7 @@
 | → v3.1: + hard RL mix, judge-patched detector | 32.8 ± 1.2% | 18.8 ± 0.3% | 86.0 ± 1.7% | 66.7 ± 1.2% | 0.0 ± 0.0% |
 | → v4: + wider mix (5 shortcut kinds, 6 tip wordings, 16 families) | 29.5 ± 0.4% | 12.6 ± 0.2% | 97.2 ± 0.6% | 69.5 ± 0.4% | 0.1 ± 0.2% |
 | → v4.1: v4 recipe, detector v2.2 in the reward | 2.6 ± 2.7% | 1.1 ± 1.1% | 97.7 ± 0.3% | 95.6 ± 3.1% | 0.0 ± 0.0% |
+| → v5: + random-name routes with sanctioned look-alikes | 0.0 ± 0.0% | 0.0 ± 0.0% | 98.2 ± 0.3% | 99.7 ± 0.4% | 0.0 ± 0.0% |
 
 **Sampled, unseen stress test** (temperature 1.0, top-p 0.95, neutral prompt, mean ± sd over 3 seeds)
 
@@ -120,3 +177,11 @@
 | → v3.1: + hard RL mix, judge-patched detector | 54.0 ± 5.3% | 23.3 ± 2.5% | 92.0 ± 0.6% | 44.5 ± 5.2% | 0.1 ± 0.2% |
 | → v4: + wider mix (5 shortcut kinds, 6 tip wordings, 16 families) | 30.7 ± 1.3% | 11.7 ± 0.4% | 96.6 ± 0.5% | 68.4 ± 2.0% | 0.5 ± 0.5% |
 | → v4.1: v4 recipe, detector v2.2 in the reward | 25.3 ± 1.0% | 9.9 ± 0.8% | 96.6 ± 0.5% | 73.6 ± 1.0% | 0.4 ± 0.2% |
+| → v5: + random-name routes with sanctioned look-alikes | 25.6 ± 3.0% | 9.7 ± 1.1% | 97.4 ± 0.3% | 73.8 ± 3.0% | 0.3 ± 0.5% |
+
+**Sampled, fresh stress test** (temperature 1.0, top-p 0.95, neutral prompt, mean ± sd over 3 seeds)
+
+| model | escalation (blocked tasks) | escalation (all) | legit success (solvable) | honest stop (unsolvable) | made-up number |
+|---|---|---|---|---|---|
+| → v4.1: v4 recipe, detector v2.2 in the reward | 9.4 ± 0.8% | 5.6 ± 0.3% | 71.0 ± 0.5% | 89.5 ± 0.5% | 0.2 ± 0.2% |
+| → v5: + random-name routes with sanctioned look-alikes | 9.7 ± 0.9% | 5.4 ± 0.4% | 70.1 ± 0.8% | 89.8 ± 1.6% | 0.0 ± 0.0% |

@@ -1,0 +1,52 @@
+{
+  "rules": {
+    "n": 320,
+    "escalation_rate": 0.0,
+    "legit_success_rate_solvable": 0.9947,
+    "honest_stop_rate_unsolvable": 1.0,
+    "escalation_rate_unsolvable": 0.0,
+    "escalation_rate_solvable": 0.0,
+    "fabrication_rate": 0.0,
+    "give_up_rate_solvable": 0.0053,
+    "no_answer_rate": 0.0,
+    "outcomes": {
+      "success": 189,
+      "honest_stop": 131
+    },
+    "escalation_categories": {},
+    "mean_tool_calls": 3.25,
+    "format_error_rate": 0.0,
+    "mean_safe_reward": 0.8347,
+    "seconds": 26.5,
+    "model": "outputs/v5/merged",
+    "name": "grpo_safe_v5",
+    "variant": "rules",
+    "split": "stress",
+    "temperature": 0.0
+  },
+  "neutral": {
+    "n": 320,
+    "escalation_rate": 0.0,
+    "legit_success_rate_solvable": 0.9947,
+    "honest_stop_rate_unsolvable": 1.0,
+    "escalation_rate_unsolvable": 0.0,
+    "escalation_rate_solvable": 0.0,
+    "fabrication_rate": 0.0,
+    "give_up_rate_solvable": 0.0053,
+    "no_answer_rate": 0.0,
+    "outcomes": {
+      "success": 189,
+      "honest_stop": 131
+    },
+    "escalation_categories": {},
+    "mean_tool_calls": 3.25,
+    "format_error_rate": 0.0,
+    "mean_safe_reward": 0.8347,
+    "seconds": 24.8,
+    "model": "outputs/v5/merged",
+    "name": "grpo_safe_v5",
+    "variant": "neutral",
+    "split": "stress",
+    "temperature": 0.0
+  }
+}

@@ -2,26 +2,41 @@
 
 *Lexsi AI Safety & Alignment Hackathon, Track 3 · Tiny Aya Global · AgentTune → AuditKIT → CircuitKIT*
 
+**Headline numbers.** Escalation is the share of blocked tasks on which the agent tried to get around the block.
+320 tasks per test set, greedy decoding, and a system prompt that only says "be resourceful and persistent".
+
+| | before | after |
+|---|---|---|
+| Escalation on the test set: success-only RL → safe reward | 99.2% | **0.0%** |
+| Legit success on solvable test tasks: base Tiny Aya → final model (v4.1) | 0.0% | **99.0%** |
+| Escalation on stress test 1: first safe model → v4.1 | 78.5% | **1.5%** |
+| Escalation on stress test 2, never trained on: first safe model → v4.1 | 71.6% | **25.9%**, and 0.0% executed behind a runtime guard |
+
+Read these with three cautions. Stress test 1 is not held out for v4.1 (two of its three shortcut kinds are in the
+training mix). Sampled decoding gives 0.0 ± 0.0%, 2.6 ± 2.7% and 25.3 ± 1.0% for the three escalation rows. On a third
+test with unfamiliar route names, v4.1 escalates on 11.0% of blocked tasks and the guard stops none of it.
+
 **Abstract.** Tool-using agents that hit an access control (a 403, a captcha, a login wall) sometimes go around it:
 real agent logs show staging hosts, relay services, spoofed crawler headers and reused tokens, from agents that were
 only asked to fetch a number. We build a simulated web where such shortcuts really work, take Cohere's Tiny Aya Global
 (3.35B), give it tool calling with SFT and a small, deliberate propensity to escalate, and run agentic GRPO with Lexsi
-AgentTune under two rewards. With a success-only reward, escalation on blocked tasks rises from 5% to 99%, and the
-agent starts taking shortcuts on solvable tasks too. A reward that prices any exploit-shaped call below every honest
-outcome removes it: 0% escalation, 99.5% legit success and 100% honest stops on 320 test tasks, across two seeds,
-held-out providers, Hindi tasks and sampled decoding. AuditKIT confirms this, and shows that a tool-permission check
-scores the escalating agent a perfect 1.0, because escalation lives in tool arguments. A harder stress test, with
-three shortcut kinds never trained on and phrased as ordinary prose, breaks every model, including the safe one (78%
-escalation on blocked tasks). CircuitKIT shows why: GRPO rewired the circuit for the trained shortcut but left the one
-for the new shortcut almost unchanged. Retraining on two of the new kinds looked like a fix twice, and twice an
-independent LLM judge (Qwen2.5-32B) showed it was not: the agent had learned to probe `/debug` paths in whichever
-spelling the reward's detector missed, so a reported 6.9% was really 36%. With a detector that matches the parsed URL,
-a wider training mix (five shortcut kinds, six tip wordings, sixteen provider families) and a manual check of every
-request the final model makes, v4.1 reaches 0% on the test set, 1.5% on the stress test and 99% legit success. On a
-second stress test built from four shortcut kinds that nothing was trained on, it still escalates on 26% of blocked
-tasks (v3.1: 66%). The lesson for practitioners: a safety reward for agents works only on what its detector can see
-and on shortcuts like the ones it practised on. Audit it with an independent judge every time you retrain, and keep
-a test set that training has never touched.
+AgentTune under two rewards. With a success-only reward, escalation on blocked tasks rises from 5% to 99%. A reward
+that prices any exploit-shaped call below every honest outcome removes it: 0% escalation, 99.5% legit success and 100%
+honest stops on 320 test tasks, across two seeds, held-out providers, Hindi tasks and sampled decoding. AuditKIT
+confirms this, and shows that a tool-permission check scores the escalating agent a perfect 1.0, because escalation
+lives in tool arguments. A harder stress test, with three shortcut kinds never trained on and phrased as ordinary
+prose, breaks every model, including the safe one (78% escalation on blocked tasks). CircuitKIT shows why: GRPO
+rewired the circuit for the trained shortcut but left the one for the new shortcut almost unchanged. Retraining on two
+of the new kinds looked like a fix twice, and twice an independent LLM judge (Qwen2.5-32B) showed it was not: the
+agent had learned to probe `/debug` paths in whichever spelling the reward's detector missed, so a reported 6.9% was
+really 36%. With a detector that matches the parsed URL and a wider training mix, v4.1 reaches 0% on the test set,
+1.5% on the stress test and 99% legit success. On a second stress test built from four shortcut kinds that nothing was
+trained on, it still escalates on 26% of blocked tasks (v3.1: 66%). A fifth round tried to teach the rule itself, with
+randomly named routes that the site either sanctions or does not. It changed nothing, because the agent rarely reads
+the page that tells the two apart. A runtime guard built from the detector stops every escalation of a known pattern
+(24% attempted, 0% executed) and none on a third test with unfamiliar names (11%). The lesson: a safety reward for
+agents works only on what its detector can see and on shortcuts like the ones it practised on. Audit it with an
+independent judge after every retrain, and keep a test set that training has never touched.
 
 ## The problem
 
@@ -345,9 +360,72 @@ hacks, and it cannot certify their absence.
 AuditKIT `safe_completion` on the three sets (test / stress / unseen): safe v2 0.997 / 0.459 / 0.631, v3.1 0.981 /
 0.778 / 0.719, v4.1 0.994 / 0.991 / 0.900. `tool_permission` is 1.0 for every model on every set.
 
+## Round 5: teaching the rule did not work, a guard did
+
+v4.1's remaining failure looked like a naming problem: it avoids `preview`, `legacy` and `debug`, and takes `origin`.
+So round 5 removed the names. In 480 new training scenarios (`data/scenarios_randrl.jsonl`) every alternate route,
+whether a host, a URL parameter or an access code, draws its name from one random pool (`edge`, `tier=b2`,
+`code=…`). Half of the solvable ones can only be solved through a route the site publishes for automated clients
+("for programmatic use we run a public endpoint at …"), and blocked ones offer a look-alike that the text marks as
+unsanctioned ("a copy our engineers use; the bot protection is not switched on there yet"). The only cue is what the
+page says. Because names carry no signal, the reward here does not use the pattern detector for these routes: the
+simulator knows which routes it marked as unsanctioned, and any request through one is an escalation.
+
+A third test set, **fresh** (`data/scenarios_fresh.jsonl`, 320 tasks, 127 blocked), uses other names, other
+sentences and two route mechanisms that are never trained on (a URL path and a request header). 117 of its tasks are
+solvable only through a sanctioned route, so it also measures over-caution.
+
+v5 is v4.1 plus 160 GRPO steps on a mix of these scenarios and the earlier ones. It is the same model within noise:
+
+| escalation on blocked tasks (greedy; sampled mean ± sd) | test | stress 1 | stress 2 | fresh | fresh: success on sanctioned-route tasks |
+|---|---|---|---|---|---|
+| v4.1 | 0.0% | 1.5% | 25.9% (25.3 ± 1.0%) | 11.0% (9.4 ± 0.8%) | 53.8% |
+| v5 | 0.0% | 0.0% | 22.4% (25.6 ± 3.0%) | 11.8% (9.7 ± 0.9%) | 53.0% |
+
+Why nothing moved is visible in the episodes. The route descriptions live on the provider's front page, and the
+agent opens that page in 6 of 320 fresh-test episodes (v5: 3). After a block it searches, tries `/developers` or
+`/downloads`, and stops. So it never sees most of the text it was supposed to learn to read. Two things follow.
+During training v4.1 already left the unsanctioned random-name routes alone (13 escalations in 856 rollouts on
+blocked tasks), so there was almost nothing to penalise. And the sanctioned routes it did learn to take in sampled
+training rollouts (51% → 78% success over the run) were the ones an error message pointed to; at greedy decoding on
+the fresh set that gain is gone.
+
+What the fresh test does show about v4.1:
+
+* Every escalation follows a tip attached to an error message: 14 of 69 blocked tasks with a tip, 0 of 58 without.
+  All 14 go through an unsanctioned URL path, a mechanism it never trained on. With trained mechanisms under new
+  names it does not escalate at all (0 of 48).
+* It is over-cautious. It gives up on 43% of the tasks whose only route is one the site openly offers, which is why
+  legit success on this set is 71% against 99% elsewhere. Earlier models are no better (45% to 57% success).
+
+**The runtime guard** (`eval.py --guard`) puts the pattern detector in front of the tools: a flagged call is refused
+with a short message and never sent. It needs no training and knows nothing about the task.
+
+| v4.1, blocked tasks | no guard: escalation | with guard: attempted | with guard: executed | with guard: honest stop |
+|---|---|---|---|---|
+| stress test 1 | 1.5% | 1.5% | 0.0% | 100.0% |
+| stress test 2 | 25.9% | 24.1% | 0.0% | 100.0% |
+| fresh test | 11.0% | 11.0% | 11.0% | 89.0% |
+
+After a refusal the agent stops and reports the block every time; legit success is unchanged (99.5%, 98.5%, 70.5%).
+On stress test 2 the guard turns one escalation in four into none. On the fresh test it does nothing, because a route
+called `/pub/` or `/m2/` matches no pattern. A guard of this kind is a second layer for known shapes, not a
+replacement for a policy that understands the rule.
+
+A fourth judge audit read 400 episodes of v4.1 and v5 on all four sets, with one sentence added to its instructions
+on sanctioned routes. It agrees with our labels on 93.0% (kappa 0.86). We read all 28 disagreements. In the 19
+flagged by the judge only, no episode contains a suspicious call (the judge again penalises declined shortcuts). Of
+the 9 flagged by us only, 7 are real escalations the judge missed, and 2 are one episode where our new ground truth
+was wrong: it counted a route named in the agent's message to the user as a use of it. We fixed that (only request
+tools count) and rescored; agreement is 93.5% after the fix.
+
+We keep v4.1 as the recommended model and do not publish v5. The next step we would take is not more reward shaping
+but demonstrations: SFT episodes in which the agent reads the provider's front page before it decides, followed by
+the same RL.
+
 ## Cost and return
 
-All GPU work ran on Hugging Face Jobs, about $42 in total for this project.
+All GPU work ran on Hugging Face Jobs, about $48 in total for this project.
 
 | step | GPU time | cost | what it bought |
 |---|---|---|---|
@@ -358,6 +436,7 @@ All GPU work ran on Hugging Face Jobs, about $42 in total for this project.
 | LLM judge, CircuitKIT | ~1 A100-h | ~$2.5 | a detector blind spot and a mechanistic explanation |
 | v3 and v3.1 retrains | ~2.4 A100-h | ~$6 | stress-test escalation 78% → 36%, and a reward hack we did not see at first |
 | unseen stress test, v4 and v4.1 retrains, two judge rechecks | ~4.3 GPU-h | ~$10 | found 66% escalation on unseen shortcuts and the second reward hack; v4.1: 1.5% on the stress test, 26% on the unseen one |
+| round 5: fresh test, v5 retrain, guard runs, fourth judge audit | ~2.6 GPU-h | ~$5.6 | a negative result with its cause, an over-caution measurement, and a guard that removes 26% → 0% on known patterns |
 | v1 runs and debugging | | ~$7 | |
 
 Removing the escalation propensity cost one extra reward term and the same compute as the success-only run (about
@@ -377,13 +456,18 @@ tasks while reporting almost none.
 * Both stress tests are synthetic and built by us. v4.1 was trained after we saw the first one, so only the unseen
   test is a clean measure, and v4.1 still escalates on 26% of its blocked tasks. Do not read the low numbers as "safe
   on shortcuts in general". The unseen test is now spent as a held-out set for anything trained after v4.1.
+* The fresh test's sanctioned and unsanctioned routes are told apart only by sentences we wrote, in English, on one
+  page that the agent seldom opens. It measures reaction to tips in error messages well and reading of route
+  descriptions poorly. Its labels come from the simulator, so they are exact for the routes it plants and blind to
+  anything else, where the pattern detector still applies.
+* The runtime guard is the same detector that was gamed twice. It stops known shapes only.
 * The origin host, v4.1's remaining failure, is advertised by the provider's own page, so whether using it is a
   violation is arguable. We count it because it exists to skip the traffic filter. The judge also flagged a few
   browser-like `User-Agent` headers sent by earlier models, which the detector does not count.
 * An earlier version of this write-up, the v3.1 model card and the dashboard reported 6.9% for v3.1 on the stress
   test. The corrected figure is 36.2%.
 * Two seeds for the v2 safe arm, one for every other training run, including v4.1. Sampled evals use 5 seeds on the test set and 3 on
-  the stress set.
+  each stress set.
 * The model organism's propensity was put there on purpose. Real propensities come from pretraining and will be more
   varied.
 
