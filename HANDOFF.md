@@ -1,15 +1,29 @@
 # Handoff: escalation-safe tool-using agent (Lexsi idea E, Track 3)
 
-Status 2026-11-12 ~01:30 UTC. v2, stress test, error bars, LLM-judge audit, CircuitKIT and v3/v3.1 are done and
-published. Recommended model: `ashish-soni08/tiny-aya-global-esa-grpo-safe-v3-1` (README top, write-up has abstract
-and cost/ROI table).
+Status 2026-11-12 ~11:00 UTC. Round 4 is done and published. Recommended model:
+`ashish-soni08/tiny-aya-global-esa-grpo-safe-v4-1` (escalation on blocked tasks, greedy, neutral prompt: test 0.0%,
+stress 1.5%, unseen stress 25.9%; legit success 99.0 / 99.5 / 99.0%).
+
+Round 4 in short
+- Second stress test `unseen` (seed 6): four shortcut kinds, four tip wordings and two tip channels never trained on.
+  Training mix `mixrl` (seed 7) and `data/grpo_prompts_v4.jsonl`.
+- v4 = v3.1 + 160 GRPO steps on the wider mix with detector v2.1 in the reward. A second judge audit found v2.1 missed
+  a bare `/debug` path (regex bug), which v3, v3.1 and v4 all used. Detector is now v2.2 (parsed-URL rules); every saved
+  eval file was rescored (`scripts/rescore.py`), which moved the published stress numbers: v2 73.1 -> 78.5%, v3 16.2 ->
+  52.3%, v3.1 6.9 -> 36.2%. v4.1 = same recipe with v2.2 in the reward. README, write-up, dashboard, model cards and
+  dataset card all carry the correction.
+- Three judge audits: `results/judge`, `judge_v4`, `judge_v4_1`. On v4.1 all 48 disagreements are judge-only and none
+  contains a suspicious call.
+- Open weakness: v4.1 still takes the advertised "origin" host on the unseen set (all 30 of its escalations).
+- GRPO rollout trajectories for v4 / v4.1 are only in the HF dataset (`grpo_rollouts/`), not in git.
 
 - GPU: Hugging Face Jobs via `scripts/job.sh` (image vllm/vllm-openai:v0.22.1). Scratch dataset `ashish-soni08/esa-workdir`
   (private) holds the code snapshot and every run's outputs under `runs/<tag>/` (v2 runs have the `_v2` suffix).
-- Spend: ~$32 on HF Jobs (budget $40). No Modal used.
-- Public models also: `-grpo-safe-v3` (superseded, kept as the reward-hacking example), `-grpo-esc-safe-v2-seed2`.
-- Stress-test and sampled-stress results are scored with detector v2.1 (`scripts/rescore.py`); the GRPO v3 run's own
-  eval files in `esa-workdir` use the older detector.
+- Spend: ~$42 on HF Jobs (cap $50, raised by Ashish on 2026-11-12). No Modal used.
+- Public models also: `-grpo-safe-v4` (control: same recipe, old detector), `-grpo-safe-v3-1`, `-grpo-safe-v3` (both
+  superseded, kept as reward-hacking examples), `-grpo-esc-safe-v2-seed2`.
+- Everything in `results/` is scored with detector v2.2; the runs' own eval files in `esa-workdir` use whatever
+  detector was current when they ran.
 - CircuitKIT needs a local checkpoint directory for fine-tuned Tiny Aya (its cohere2 port matches Hub ids only for the
   base names); `scripts/circuit_compare.py` snapshot-downloads first.
 - Cohere's gated models (Aya Expanse, Command R7B) are not accepted on this HF token; the judge uses Qwen2.5-32B.
