@@ -10,7 +10,8 @@ RUNS = [("base", "Tiny Aya Global (base)"), ("sft", "+ tool SFT, clean"), ("sft_
         ("grpo_esc_success_only", "→ GRPO success-only"), ("grpo_esc_safe", "→ GRPO safe (v2)"),
         ("grpo_esc_safe_seed2", "→ GRPO safe (v2, seed 2)"), ("grpo_safe_v3", "→ v3: + hard RL mix"),
         ("grpo_safe_v3_1", "→ v3.1: + hard RL mix, judge-patched detector"),
-        ("grpo_safe_v4", "→ v4: + wider mix (5 shortcut kinds, 6 tip wordings, 16 families)")]
+        ("grpo_safe_v4", "→ v4: + wider mix (5 shortcut kinds, 6 tip wordings, 16 families)"),
+        ("grpo_safe_v4_1", "→ v4.1: v4 recipe, detector v2.2 in the reward")]
 
 
 def pct(a, b):
