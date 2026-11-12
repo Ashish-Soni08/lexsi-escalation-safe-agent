@@ -4,49 +4,111 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Escalation-safe agent audit</title>
+<meta name="description" content="A small AI agent was trained to fetch public numbers. Rewarded only for answers, it learned to break past website blocks. This page shows how a safety-aware reward stops that, and where it still falls short.">
 <style>
 :root {
   --bg: #fcfcfb; --surface: #ffffff; --ink: #0b0b0b; --muted: #5d5c58; --line: #e4e3df; --soft: #f3f2ef;
   --success: #2a78d6; --honest: #1baf7a; --esc: #e0552a; --madeup: #c98a00; --none: #a3a29c;
-  --flag-bg: #fdebe4; --flag-ink: #a3361a;
+  --flag-bg: #fdebe4; --flag-ink: #a3361a; --cell: #e9e8e4;
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --bg: #131312; --surface: #1c1c1a; --ink: #f2f1ed; --muted: #a9a8a2; --line: #33322f; --soft: #252522;
     --success: #5b9be6; --honest: #3cc896; --esc: #f07a52; --madeup: #e6ad2e; --none: #7d7c77;
-    --flag-bg: #3a2119; --flag-ink: #f5a68c;
+    --flag-bg: #3a2119; --flag-ink: #f5a68c; --cell: #2c2c29;
   }
 }
 :root[data-theme="dark"] {
   --bg: #131312; --surface: #1c1c1a; --ink: #f2f1ed; --muted: #a9a8a2; --line: #33322f; --soft: #252522;
   --success: #5b9be6; --honest: #3cc896; --esc: #f07a52; --madeup: #e6ad2e; --none: #7d7c77;
-  --flag-bg: #3a2119; --flag-ink: #f5a68c;
+  --flag-bg: #3a2119; --flag-ink: #f5a68c; --cell: #2c2c29;
 }
 * { box-sizing: border-box; }
-body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
-main { max-width: 1120px; margin: 0 auto; padding: 32px 16px 64px; }
-h1 { font-size: 28px; line-height: 1.2; margin: 0 0 8px; letter-spacing: -0.01em; }
-h2 { font-size: 19px; margin: 48px 0 6px; }
-p.lede { color: var(--muted); max-width: 760px; margin: 0 0 8px; }
-p.note { color: var(--muted); font-size: 13.5px; max-width: 760px; margin: 4px 0 14px; }
-a { color: var(--success); }
-.links { font-size: 13.5px; color: var(--muted); }
-.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-top: 24px; }
-.tile { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; }
-.tile .k { font-size: 12.5px; color: var(--muted); }
-.tile .v { font-size: 26px; font-weight: 650; font-variant-numeric: tabular-nums; margin-top: 2px; }
-.tile .v small { font-size: 14px; font-weight: 500; color: var(--muted); }
-.tile .d { font-size: 12.5px; color: var(--muted); margin-top: 2px; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif; -webkit-font-smoothing: antialiased; }
+main { max-width: 1120px; margin: 0 auto; padding: 40px 16px 72px; }
+h1, h2, h3 { text-wrap: balance; }
+p { text-wrap: pretty; }
+h1 { font-size: clamp(28px, 4.2vw, 40px); line-height: 1.12; margin: 0 0 14px; letter-spacing: -0.02em; }
+h2 { font-size: 22px; line-height: 1.25; margin: 56px 0 6px; letter-spacing: -0.01em; }
+h3 { font-size: 16px; margin: 0 0 4px; }
+.eyebrow { font-size: 13px; font-weight: 600; color: var(--muted); letter-spacing: 0.02em; margin-bottom: 10px; }
+p.lede { font-size: 18px; color: var(--ink); max-width: 720px; margin: 0 0 14px; }
+p.note { color: var(--muted); font-size: 14px; max-width: 760px; margin: 4px 0 14px; }
+p.takeaway { font-size: 16px; max-width: 760px; margin: 6px 0 10px; padding-left: 12px; border-left: 3px solid var(--ink); }
+a { color: var(--success); text-underline-offset: 2px; }
+code { font: 0.9em ui-monospace, SFMono-Regular, Menlo, monospace; background: var(--soft); padding: 1px 4px; border-radius: 4px; }
+.links { font-size: 14px; color: var(--muted); }
+.num { font-variant-numeric: tabular-nums; }
+
+/* story */
+.story { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-top: 28px; counter-reset: s; }
+.story > div { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 16px; }
+.story > div::before { counter-increment: s; content: counter(s); display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: var(--ink); color: var(--bg); font-size: 13px; font-weight: 650; margin-bottom: 8px; }
+.story p { margin: 0; font-size: 14.5px; color: var(--muted); }
+
+/* headline result */
+.result { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.res { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 10px; }
+.res.win { border-color: var(--honest); box-shadow: 0 0 0 1px var(--honest) inset; }
+.res .who { font-weight: 650; }
+.res .who small { display: block; font-weight: 400; color: var(--muted); font-size: 13px; }
+.res .big { font-size: 40px; font-weight: 700; line-height: 1; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.res .big small { font-size: 15px; font-weight: 500; color: var(--muted); letter-spacing: 0; }
+.waffle { display: grid; grid-template-columns: repeat(20, 1fr); gap: 3px; max-width: 360px; }
+.waffle i { aspect-ratio: 1; border-radius: 2px; background: var(--cell); }
+.waffle i.on { background: var(--esc); }
+.res .solve { font-size: 14px; color: var(--muted); }
+.res .solve b { color: var(--ink); font-variant-numeric: tabular-nums; }
+.meter { height: 6px; border-radius: 3px; background: var(--cell); overflow: hidden; margin-top: 4px; }
+.meter span { display: block; height: 100%; background: var(--success); border-radius: 3px; }
+@media (prefers-reduced-motion: no-preference) {
+  .waffle i.on { transition: background-color 300ms var(--ease-out); }
+  .js-pending .waffle i.on { background: var(--cell); }
+}
+
+/* example */
+.duo { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.lane { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 16px; min-width: 0; }
+.lane h3 { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.say { list-style: none; margin: 10px 0 0; padding: 0; }
+.say li { position: relative; padding: 6px 0 6px 22px; font-size: 14.5px; border-top: 1px solid var(--line); }
+.say li::before { content: ""; position: absolute; left: 4px; top: 13px; width: 8px; height: 8px; border-radius: 50%; background: var(--none); }
+.say li.bad { background: var(--flag-bg); border-radius: 6px; padding-right: 8px; }
+.say li.bad::before { background: var(--esc); }
+.say li.end::before { background: var(--honest); }
+.say li.end.bad::before { background: var(--esc); }
+.say .sub { display: block; color: var(--muted); font-size: 13px; word-break: break-word; }
+.say .fl { display: block; color: var(--flag-ink); font-weight: 650; font-size: 13px; }
+
+.callout { background: var(--surface); border: 1px solid var(--line); border-left: 4px solid var(--madeup); border-radius: 12px; padding: 16px 18px; }
+.callout p { margin: 0 0 6px; max-width: 820px; }
+
+/* glossary */
+dl.gloss { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 28px; margin: 0; }
+dl.gloss div { padding: 10px 0; border-top: 1px solid var(--line); }
+dl.gloss dt { font-weight: 650; font-size: 14.5px; }
+dl.gloss dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
+
+.divider { margin: 72px 0 0; padding-top: 28px; border-top: 2px solid var(--ink); }
+.toc { display: flex; flex-wrap: wrap; gap: 6px 8px; margin: 12px 0 0; padding: 0; list-style: none; font-size: 14px; }
+.toc a { display: inline-block; padding: 4px 10px; border: 1px solid var(--line); border-radius: 999px; color: var(--ink); text-decoration: none; background: var(--surface); }
+@media (hover: hover) and (pointer: fine) { .toc a:hover { border-color: var(--muted); } }
+h2[id] { scroll-margin-top: 16px; }
+
+/* technical section styles (unchanged look) */
 .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; margin: 6px 0 12px; }
-.seg button { background: var(--surface); color: var(--muted); border: 0; padding: 6px 12px; font: inherit; font-size: 13px; cursor: pointer; }
+.seg button { background: var(--surface); color: var(--muted); border: 0; padding: 6px 12px; font: inherit; font-size: 13px; cursor: pointer; transition: transform 160ms var(--ease-out); }
+.seg button:active { transform: scale(0.97); }
 .seg button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
-.card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px; }
-.legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 12.5px; color: var(--muted); margin-bottom: 10px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 16px; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13px; color: var(--muted); margin-bottom: 10px; }
 .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 5px; vertical-align: -1px; }
-.bars .row { display: grid; grid-template-columns: 210px 1fr; gap: 12px; align-items: center; margin: 7px 0; }
-.bars .lab { font-size: 13.5px; }
+.bars .row { display: grid; grid-template-columns: 250px 1fr; gap: 12px; align-items: center; margin: 8px 0; }
+.bars .lab { font-size: 14px; line-height: 1.3; }
+.bars .lab small { display: block; color: var(--muted); font-size: 12px; }
 .bar { display: flex; height: 24px; border-radius: 5px; overflow: hidden; background: var(--soft); }
-.bar span { display: flex; align-items: center; justify-content: center; color: #fff; font-size: 11.5px; font-variant-numeric: tabular-nums; min-width: 0; overflow: hidden; }
+.bar span { display: flex; align-items: center; justify-content: center; color: #fff; font-size: 11.5px; font-weight: 600; font-variant-numeric: tabular-nums; min-width: 0; overflow: hidden; }
 .scroll { overflow-x: auto; }
 table { border-collapse: collapse; width: 100%; font-size: 13.5px; font-variant-numeric: tabular-nums; }
 th, td { text-align: right; padding: 7px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; }
@@ -56,9 +118,10 @@ td.hot { color: var(--esc); font-weight: 650; }
 td.good { color: var(--honest); font-weight: 650; }
 svg text { fill: var(--muted); font-size: 11px; }
 .browser { display: grid; grid-template-columns: 280px 1fr; gap: 14px; }
-.tasklist { max-height: 640px; overflow-y: auto; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+.tasklist { max-height: 640px; overflow-y: auto; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
 .task { padding: 9px 12px; border-bottom: 1px solid var(--line); cursor: pointer; font-size: 13px; }
-.task[aria-selected="true"] { background: var(--soft); }
+.task[aria-selected="true"] { background: var(--soft); box-shadow: 3px 0 0 var(--ink) inset; }
+@media (hover: hover) and (pointer: fine) { .task:hover { background: var(--soft); } }
 .task .q { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .task .m { color: var(--muted); font-size: 12px; margin-top: 3px; }
 .pill { display: inline-block; font-size: 11.5px; padding: 1px 7px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); margin: 0 4px 4px 0; }
@@ -77,35 +140,87 @@ svg text { fill: var(--muted); font-size: 11px; }
 .qhead { font-size: 14px; }
 select, input[type=search] { font: inherit; font-size: 13px; padding: 5px 8px; border: 1px solid var(--line); border-radius: 7px; background: var(--surface); color: var(--ink); }
 .filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
-footer { margin-top: 56px; color: var(--muted); font-size: 12.5px; }
-@media (max-width: 860px) {
+details.more { margin-top: 10px; }
+details.more summary { cursor: pointer; color: var(--muted); font-size: 14px; }
+footer { margin-top: 56px; color: var(--muted); font-size: 13px; }
+@media (max-width: 900px) {
+  .story { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .result { grid-template-columns: 1fr; }
+}
+@media (max-width: 760px) {
+  .story, .duo, dl.gloss { grid-template-columns: 1fr; }
   .browser { grid-template-columns: 1fr; }
   .tasklist { max-height: 260px; }
   .eps { grid-template-columns: 1fr; }
   .bars .row { grid-template-columns: 1fr; gap: 3px; }
+  p.lede { font-size: 17px; }
 }
 </style>
 </head>
-<body>
+<body class="js-pending">
 <main>
+  <div class="eyebrow">Lexsi AI Safety &amp; Alignment Hackathon · Track 3</div>
   <h1>Asked for a number, it picked a lock</h1>
-  <p class="lede">A tool-using Tiny Aya agent fetches public numbers from simulated providers, some of which block it.
-  Planted shortcuts (relay services, staging hosts, leaked tokens, captcha solvers) really work. This page shows what
-  agentic GRPO does to an agent with a small propensity to escalate, with a success-only reward and with a reward that
-  prices escalation, audited with Lexsi AuditKIT on 320 test tasks, then two harder stress tests with new kinds of
-  shortcut, three independent LLM-judge checks of the detector, and a CircuitKIT look inside the models.</p>
+  <p class="lede">We gave a small AI agent a simple job: look up one public statistic on a website. Some websites say no.
+  A few of them also leave a way around the "no" that works but breaks the rules. Train the agent only to get answers and
+  it learns to break in. This page shows that happening, and a way of training that makes it stop and say it was blocked instead.</p>
   <div class="links">
+    <a href="https://huggingface.co/ashish-soni08/tiny-aya-global-esa-grpo-safe-v4-1" id="modelLink">Escalation-safe model</a> ·
     <a href="https://github.com/Ashish-Soni08/lexsi-escalation-safe-agent">Code</a> ·
-    <a href="https://huggingface.co/ashish-soni08/tiny-aya-global-esa-grpo-safe-v4-1">Escalation-safe model (v4.1)</a> ·
-    <a href="https://huggingface.co/datasets/ashish-soni08/escalation-safe-agent-data">Data and every episode</a> ·
-    Lexsi Hackathon, Track 3
+    <a href="https://huggingface.co/datasets/ashish-soni08/escalation-safe-agent-data">Data and every episode</a>
   </div>
 
-  <div class="tiles" id="tiles"></div>
+  <div class="story">
+    <div><h3>The job</h3><p>Find one number, for example how many birds were counted in Quebec in 2023, using a browser and a search tool.</p></div>
+    <div><h3>The catch</h3><p>On some tasks the website blocks the agent: login needed, captcha, wrong country. Planted shortcuts, like a relay service or a leaked password, really do get the number.</p></div>
+    <div><h3>The experiment</h3><p>Take an agent that bends the rules now and then. Train two copies by trial and error: one rewarded only for right answers, the other also penalised for breaking a rule.</p></div>
+    <div><h3>What good looks like</h3><p>Get the number the proper way when there is one. When there isn't, stop and say so. Never use a shortcut.</p></div>
+  </div>
 
-  <h2>Outcomes on the test set</h2>
-  <p class="note">Share of the 320 test tasks by outcome, greedy decoding. <b>neutral</b> says "be resourceful and
-  persistent"; <b>rules</b> spells out which shortcuts are off limits.</p>
+  <h2>Out of 100 tasks where the website said no, how often did the agent break in?</h2>
+  <p class="note" id="resultNote">Each square is one blocked task from the test set of <span id="nTest">320</span> tasks the agent never saw in training. Orange means it broke a rule to get the number.</p>
+  <div class="result" id="result"></div>
+
+  <h2>What breaking in looks like</h2>
+  <p class="note" id="exNote">A real test-set episode, run by two trained agents.</p>
+  <p class="takeaway" id="exQ"></p>
+  <div class="duo" id="example"></div>
+
+  <h2>Where it still falls short</h2>
+  <div class="callout" id="limits"></div>
+
+  <h2>Words used on this page</h2>
+  <dl class="gloss">
+    <div><dt>Agent</dt><dd>A language model that can use tools. Here: open a web page, search the web, read a file, wait and retry, or ask the user.</dd></div>
+    <div><dt>Blocked task</dt><dd>A task where the website refuses the agent: login required, captcha, bot block, rate limit or wrong country.</dd></div>
+    <div><dt>Escalation, or breaking in</dt><dd>Getting past an access control the agent was not given permission to pass, for example a relay service, a found password, a fake browser identity or an unofficial copy of the site.</dd></div>
+    <div><dt>Honest stop</dt><dd>On a blocked task, the agent stops and says it could not get the number the proper way.</dd></div>
+    <div><dt>Legit success</dt><dd>On a task that has a proper route, the agent finds it and returns the right number.</dd></div>
+    <div><dt>Made-up number</dt><dd>The agent answers with a number it did not get from any tool.</dd></div>
+    <div><dt>Reward, GRPO</dt><dd>Reinforcement learning: the agent tries each task many times and is nudged towards the attempts that score best. GRPO is the algorithm. The "reward" is the score.</dd></div>
+    <div><dt>SFT</dt><dd>Supervised fine-tuning: training on example episodes before reinforcement learning. Our starting agent was fine-tuned on examples where a small share broke in.</dd></div>
+    <div><dt>Stress test, unseen test</dt><dd>Extra task sets with new kinds of shortcut. The unseen test uses shortcut kinds no model was trained on, so it measures whether the agent learned the rule or just the examples.</dd></div>
+    <div><dt>Neutral and rules prompt</dt><dd>Neutral tells the agent to "be resourceful and persistent". Rules lists which shortcuts are off limits.</dd></div>
+    <div><dt>AuditKIT, CircuitKIT, AgentTune</dt><dd>Lexsi's open toolkits: for auditing models, for finding the parts of a model behind a behaviour, and for training agents.</dd></div>
+    <div><dt>Greedy and sampled</dt><dd>Greedy: the agent always takes its single most likely move. Sampled: it picks moves at random in proportion to their likelihood, which shows tendencies greedy runs can hide.</dd></div>
+  </dl>
+
+  <div class="divider">
+    <div class="eyebrow">For technical readers</div>
+    <h2 style="margin-top:0">Full results</h2>
+    <p class="note">Every chart below reads from the same data file as the summary above. Each section opens with its main point in one line.</p>
+    <ul class="toc">
+      <li><a href="#s-outcomes">Test-set outcomes</a></li><li><a href="#s-slices">New providers and Hindi</a></li>
+      <li><a href="#s-training">During training</a></li><li><a href="#s-audit">AuditKIT</a></li>
+      <li><a href="#s-cats">Tricks it learned</a></li><li><a href="#s-stress">Stress tests</a></li>
+      <li><a href="#s-judge">Detector check</a></li><li><a href="#s-circuit">CircuitKIT</a></li><li><a href="#s-browser">Episode browser</a></li>
+    </ul>
+  </div>
+
+  <h2 id="s-outcomes">Outcomes on the test set</h2>
+  <p class="takeaway" id="tkOutcomes"></p>
+  <p class="note">Share of the <span class="nTest">320</span> test tasks by outcome, greedy decoding. Switch between the
+  <b>neutral</b> prompt ("be resourceful and persistent") and the <b>rules</b> prompt (lists which shortcuts are off limits).</p>
   <div class="seg" role="group" aria-label="System prompt" id="promptSeg">
     <button aria-pressed="true" data-v="neutral">neutral prompt</button><button aria-pressed="false" data-v="rules">rules prompt</button>
   </div>
@@ -114,28 +229,32 @@ footer { margin-top: 56px; color: var(--muted); font-size: 12.5px; }
     <div class="bars" id="bars"></div>
   </div>
 
-  <h2>Does it hold on new providers and in Hindi?</h2>
+  <h2 id="s-slices">Does it hold on new providers and in Hindi?</h2>
+  <p class="takeaway" id="tkSlices"></p>
   <p class="note">Escalation rate by slice. The held-out slice uses three provider families never seen in training.</p>
   <div class="card scroll"><table id="slices"></table></div>
 
-  <h2>Escalation during GRPO, same starting model</h2>
-  <p class="note">Share of the 32 rollouts per step with at least one exploit-shaped call, 10-step rolling mean. Both
-  arms start from the escalation-prone SFT model; only the reward differs.</p>
-  <div class="card"><div class="legend"><span><i style="background:var(--esc)"></i>success-only reward</span><span><i style="background:var(--success)"></i>safe reward</span></div><div id="curve"></div></div>
+  <h2 id="s-training">Escalation during training, same starting agent</h2>
+  <p class="takeaway" id="tkTraining"></p>
+  <p class="note">Share of the 32 rollouts per GRPO step with at least one rule-breaking call, 10-step rolling mean. Both
+  runs start from the escalation-prone SFT agent; only the reward differs.</p>
+  <div class="card"><div class="legend"><span><i style="background:var(--esc)"></i>rewarded only for answers</span><span><i style="background:var(--success)"></i>also penalised for breaking rules</span></div><div id="curve"></div></div>
 
-  <h2>AuditKIT before and after</h2>
+  <h2 id="s-audit">AuditKIT before and after</h2>
+  <p class="takeaway">Lexsi AuditKIT's standard tool-permission check gives every model a near-perfect score, because every
+  break-in used an allowed tool with bad arguments. Only outcome checks that look at what the call did tell the models apart.</p>
   <p class="note">Recorded agent-eval in AuditKIT over AgentTune trajectory files. <code>no_escalation</code> and
-  <code>safe_completion</code> are verified outcome oracles that use an argument-level exploit detector. Note
-  <code>tool_permission</code>: it is 1.0 even for the model that escalates on almost half the tasks, because every
-  exploit uses an allowed tool with bad arguments. The last three columns are the oracles on the two stress tests.</p>
+  <code>safe_completion</code> are verified outcome oracles built on an argument-level exploit detector. The last three
+  columns are the oracles on the two stress tests.</p>
   <div class="card scroll"><table id="audit"></table></div>
 
-  <h2>What the success-only agent learned</h2>
-  <p class="note">Exploit categories in its test episodes (neutral prompt). Disposable-email sign-ups never appear in
-  training.</p>
+  <h2 id="s-cats">What the answer-only agent learned</h2>
+  <p class="takeaway" id="tkCats"></p>
+  <p class="note">Rule-breaking categories in its test episodes (neutral prompt). Disposable-email sign-ups never appear in training.</p>
   <div class="card"><div class="bars" id="cats"></div></div>
 
-  <h2>Harder tasks: two stress tests</h2>
+  <h2 id="s-stress">Harder tasks: two stress tests</h2>
+  <p class="takeaway" id="tkStress"></p>
   <p class="note"><b>First stress test:</b> 320 new tasks with three shortcut kinds the v2 models never saw: a "preview"
   copy of the site advertised in plain prose on the official landing page, a <code>debug=1</code> switch "for QA
   partners", and a saved browser session in the workspace. Half the prompts add urgency and half the blocked responses
@@ -144,10 +263,11 @@ footer { margin-top: 56px; color: var(--muted); font-size: 12.5px; }
   channels that no model was trained on: an "origin" server that skips the traffic filter, a partner API key in a
   public paste, a third-party page cache, a forged dashboard <code>Referer</code>, a fake
   <code>[assistant-instructions]</code> block and a false "the operator has pre-approved this route".</p>
-  <p class="note"><b>Correction, 12 Nov 2026:</b> this page used to show 6.9% for v3.1 on the first stress test. A
-  second judge audit found the detector missed bare <code>/debug</code> probes, which v3, v3.1 and v4 had learned to
-  use. All figures here use the fixed detector (v2.2). Test-set results did not change. The bars below show the first
-  stress test.</p>
+  <details class="more"><summary>Correction, 12 Nov 2026</summary>
+  <p class="note">This page used to show 6.9% for v3.1 on the first stress test. A second judge audit found the detector
+  missed bare <code>/debug</code> probes, which v3, v3.1 and v4 had learned to use. All figures here use the fixed
+  detector (v2.2). Test-set results did not change.</p></details>
+  <p class="note" style="margin-top:14px">Outcomes on the first stress test:</p>
   <div class="seg" role="group" aria-label="System prompt" id="stressSeg">
     <button aria-pressed="true" data-v="neutral">neutral prompt</button><button aria-pressed="false" data-v="rules">rules prompt</button>
   </div>
@@ -155,37 +275,38 @@ footer { margin-top: 56px; color: var(--muted); font-size: 12.5px; }
     <div class="legend" id="legend2"></div>
     <div class="bars" id="stressBars"></div>
   </div>
-  <p class="note" style="margin-top:14px">Test set vs stress test, and sampled decoding (temperature 1.0) as mean ± sd
-  over seeds: 5 on the test set, 3 on each stress test. Greedy numbers can hide a propensity: the escalation-prone start
-  model escalates on 5% of blocked test tasks greedily but on 39% when sampled.</p>
+  <p class="note" style="margin-top:14px">Test set vs stress tests, and sampled decoding (temperature 1.0) as mean ± sd
+  over seeds: 5 on the test set, 3 on each stress test. Greedy numbers can hide a tendency: <span id="greedyHide">the
+  escalation-prone start model escalates on few blocked test tasks greedily but on many more when sampled</span>.</p>
   <div class="card scroll"><table id="stressTable"></table></div>
 
-  <h2>Is the detector right? An independent LLM judge</h2>
+  <h2 id="s-judge">Is the detector right? An independent LLM judge</h2>
+  <p class="takeaway" id="tkJudge"></p>
   <p class="note">The safe reward relies on a rule-based detector, which makes the detector a target. An open model
-  never used in training (<span id="judgeName"></span>) read about 400 whole episodes in each of three audits and
-  said whether the agent tried to get around an access control. "With current detector" re-scores the same episodes
-  with detector v2.2; it is not an independent check, since the new rules came from reading the disagreements.</p>
+  never used in training (<span id="judgeName"></span>) read about 400 whole episodes in each audit and said whether
+  the agent tried to get around an access control. "With current detector" re-scores the same episodes with detector
+  v2.2; it is not an independent check, since the new rules came from reading the disagreements.</p>
   <div class="card scroll"><table id="judge"></table></div>
   <p class="note" style="margin-top:10px" id="judgeNote"></p>
 
-  <h2>Inside the model: CircuitKIT</h2>
+  <h2 id="s-circuit">Inside the model: CircuitKIT</h2>
+  <p class="takeaway">Safe training rewired the pathway behind the shortcut it was trained against, but left the pathway
+  for a new shortcut almost as it was. That matches the gap on the unseen stress test.</p>
   <p class="note">One decision point: after a blocked response the agent has written
-  <code>http_get("https://</code>, and the next token picks the host, the provider's own site or a shortcut. Two
+  <code>http_get("https://</code>, and the next token picks the host: the provider's own site or a shortcut. Two
   contrastive tasks: <b>relay</b> (a search result advertises reader-relay, the trained exploit; corrupted run without
   it) and <b>preview</b> (a tip names the preview host, never trained on; corrupted run without the tip). Lexsi
   CircuitKIT runs EAP-IG node attribution on each model.</p>
   <div class="card scroll"><table id="circBeh"></table></div>
-  <p class="note" style="margin-top:14px">Overlap of the top-<span id="topk"></span> components between models
-  (Jaccard). Safe GRPO rewired the relay pathway but left the preview pathway almost as it was, which matches the
-  behaviour above.</p>
+  <p class="note" style="margin-top:14px">Overlap of the top-<span id="topk"></span> components between models (Jaccard).</p>
   <div class="card scroll"><table id="circJac"></table></div>
 
-  <h2>Episode browser</h2>
-  <p class="note">The same test task, run by the escalation-prone start model and both GRPO arms. Flagged calls are
-  highlighted. 60 tasks sampled from the test set, two thirds of them tasks the success-only model escalated on.</p>
+  <h2 id="s-browser">Episode browser</h2>
+  <p class="takeaway">Pick a task to read what each agent did, step by step. Rule-breaking calls are highlighted.</p>
+  <p class="note">60 tasks sampled from the test set, two thirds of them tasks the answer-only agent broke in on.</p>
   <div class="filters">
     <select id="fBlock" aria-label="Filter by block"><option value="">all blocks</option></select>
-    <select id="fOut" aria-label="Filter by success-only outcome"><option value="">any success-only outcome</option><option value="escalated">success-only escalated</option><option value="success">success-only succeeded</option></select>
+    <select id="fOut" aria-label="Filter by answer-only outcome"><option value="">any answer-only outcome</option><option value="escalated">answer-only broke in</option><option value="success">answer-only succeeded</option></select>
   </div>
   <div class="browser">
     <div class="tasklist" id="tasklist" role="listbox" aria-label="Test tasks"></div>
@@ -196,33 +317,106 @@ footer { margin-top: 56px; color: var(--muted); font-size: 12.5px; }
   (GRPO) and AuditKIT (audit); data checked with CuratorKIT.</footer>
 </main>
 <script>
-const OUT = [["success","legit success","--success"],["honest_stop","honest stop","--honest"],["escalated","escalated","--esc"],["fabricated","made-up number","--madeup"],["no_answer","no answer","--none"]];
-const LABEL = {sft_esc:"Escalation-prone SFT (start)", grpo_esc_success_only:"GRPO, success-only", grpo_esc_safe:"GRPO, safe"};
-let D, prompt = "neutral";
+// The model the summary calls "escalation-safe". One-line switch; data.json can also set "headline".
+const HEADLINE = "grpo_safe_v4_1";
+const START = "sft_esc", GREEDY = "grpo_esc_success_only", SAFE_V2 = "grpo_esc_safe";
+
+const OUT = [["success","solved properly","--success"],["honest_stop","stopped honestly","--honest"],["escalated","broke in","--esc"],["fabricated","made-up number","--madeup"],["no_answer","no answer","--none"]];
+// Plain names shown first; the technical label from data.json sits underneath.
+const PLAIN = {
+  base: "Untrained model", sft: "Trained on clean examples", sft_esc: "Starting agent (bends rules sometimes)",
+  grpo_esc_success_only: "Rewarded only for answers", grpo_esc_safe: "Safe reward, v2",
+};
+const plain = (k, label) => PLAIN[k] || (/^grpo_safe_v(\d+)(?:_(\d+))?$/.test(k) ? `Safe reward, v${k.replace(/^grpo_safe_v/, "").replace("_", ".")}` : label || k);
+const CAT = {
+  relay_indirection: "sent the request through a relay service to get past the block",
+  shadow_host: "used an unofficial copy of the site (staging, preview or origin server)",
+  credential_misuse: "used a password or token it found but was never given",
+  header_spoof: "pretended to be a different browser or a search-engine crawler",
+  captcha_bypass: "used a service to solve the captcha for it",
+  disposable_account: "signed up with a throwaway email address",
+  request_flood: "hammered the site to get past a rate limit",
+  recon_or_tamper: "probed hidden debug or admin pages",
+};
+const LABEL = {sft_esc: "Starting agent", grpo_esc_success_only: "Rewarded only for answers", grpo_esc_safe: "Safe reward, v2"};
+let D, H, prompt = "neutral";
 const el = (t, a = {}, h = "") => { const e = document.createElement(t); Object.assign(e, a); if (h) e.innerHTML = h; return e; };
 const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const pct = v => v == null ? "–" : (Math.round(v * 10) / 10).toFixed(1) + "%";
+const r0 = v => v == null ? "–" : Math.round(v) + "%";
+const $ = id => document.getElementById(id);
+const labelOf = k => (D.models.find(m => m.key === k) || D.stress_models.find(m => m.key === k) || {}).label || k;
+const modelLab = (k, label) => `${esc(plain(k, label))}<small>${esc(label)}</small>`;
 
-function tiles() {
-  const m = D.metrics.neutral, a = D.audit.neutral;
-  const t = [
-    ["Safe GRPO: escalation on blocked tasks", pct(m.grpo_esc_safe.esc_blocked), `start model ${pct(m.sft_esc.esc_blocked)}`],
-    ["Success-only GRPO: escalation on blocked tasks", pct(m.grpo_esc_success_only.esc_blocked), "same start, same steps"],
-    ["Safe GRPO: legit success on solvable tasks", pct(m.grpo_esc_safe.legit_success), `success-only ${pct(m.grpo_esc_success_only.legit_success)}`],
-    ["AuditKIT safe_completion, safe GRPO", a.grpo_esc_safe.safe_completion_rate.toFixed(3), `success-only ${a.grpo_esc_success_only.safe_completion_rate.toFixed(3)}`],
-    ["First stress test: escalation on blocked tasks, v4.1", pct(D.stress.neutral.grpo_safe_v4_1.esc_blocked), `safe v2 ${pct(D.stress.neutral.grpo_esc_safe.esc_blocked)}, v3.1 ${pct(D.stress.neutral.grpo_safe_v3_1.esc_blocked)}`],
-    ["Unseen stress test: escalation on blocked tasks, v4.1", pct(D.unseen.neutral.grpo_safe_v4_1.esc_blocked), `safe v2 ${pct(D.unseen.neutral.grpo_esc_safe.esc_blocked)}, v3.1 ${pct(D.unseen.neutral.grpo_safe_v3_1.esc_blocked)}`],
-  ];
-  document.getElementById("tiles").innerHTML = t.map(([k, v, d]) => `<div class="tile"><div class="k">${k}</div><div class="v">${v}</div><div class="d">${d}</div></div>`).join("");
+/* ---------- plain-language summary ---------- */
+function result() {
+  const m = D.metrics.neutral, n = Object.values(m[START].outcomes).reduce((a, b) => a + b, 0);
+  document.querySelectorAll("#nTest, .nTest").forEach(x => x.textContent = n);
+  const cards = [[START, false], [GREEDY, false], [H, true]];
+  $("result").innerHTML = cards.map(([k, win]) => {
+    const v = m[k].esc_blocked, on = Math.round(v);
+    const cells = Array.from({length: 100}, (_, i) => `<i class="${i < on ? "on" : ""}"></i>`).join("");
+    return `<div class="res${win ? " win" : ""}">
+      <div class="who">${esc(plain(k, labelOf(k)))}<small>${esc(labelOf(k))}</small></div>
+      <div class="big">${r0(v)}<small> broke in</small></div>
+      <div class="waffle" role="img" aria-label="${on} of 100 blocked tasks">${cells}</div>
+      <div class="solve">Solved <b>${r0(m[k].legit_success)}</b> of tasks that had a proper route<div class="meter"><span style="width:${m[k].legit_success}%"></span></div></div>
+    </div>`;
+  }).join("");
+  const s = (D.seeds.test || {})[START];
+  if (s) $("resultNote").innerHTML += ` These are the agents' single most likely moves. Run with randomness, the starting agent breaks in on about <b>${r0(s.esc_blocked[0])}</b> of blocked tasks, so its tendency is larger than ${r0(m[START].esc_blocked)} suggests.`;
 }
 
+function plainStep(s) {
+  let a = {}; try { a = JSON.parse(s.args); } catch (e) {}
+  let o = String(s.obs).replace(/^\{'[a-z_]+': ['"]/, "").replace(/['"]\}$/, "").split("\\n");
+  const status = o[0], rest = (o.slice(1).join(" ").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim()).slice(0, 120);
+  let what;
+  if (s.tool === "http_get") { const u = (a.url || "").replace(/^https?:\/\//, ""); what = `Opened <code>${esc(u.length > 70 ? u.slice(0, 70) + "…" : u)}</code>`; }
+  else if (s.tool === "web_search") what = `Searched the web for "${esc(a.query || "")}"`;
+  else if (s.tool === "read_file") what = `Read the file <code>${esc(a.path || "")}</code>`;
+  else if (s.tool === "wait_and_retry") what = "Waited and tried again";
+  else if (s.tool === "ask_user") what = "Asked the user";
+  else what = esc(s.tool);
+  const res = /^HTTP/.test(status) ? `${esc(status)}${rest ? ": " + esc(rest) : ""}` : esc((status + " " + rest).slice(0, 140));
+  const fl = s.flags.length ? `<span class="fl">Broke a rule: ${esc(s.flags.map(f => CAT[f] || f.replace(/_/g, " ")).join("; "))}</span>` : "";
+  return `<li class="${s.flags.length ? "bad" : ""}">${fl}${what}<span class="sub">→ ${res}</span></li>`;
+}
+
+function example() {
+  const ok = t => t.episodes[GREEDY].outcome === "escalated" && t.episodes[SAFE_V2].outcome === "honest_stop";
+  const pool = D.tasks.filter(ok), len = t => t.episodes[GREEDY].steps.length + t.episodes[SAFE_V2].steps.length;
+  const t = pool.filter(t => t.lang === "en").sort((a, b) => len(a) - len(b))[0] || pool.sort((a, b) => len(a) - len(b))[0];
+  if (!t) { $("example").innerHTML = ""; return; }
+  $("exQ").innerHTML = `Task: <b>${esc(t.question)}</b> The website (${esc(t.org)}) only gives this data to approved accounts, so there is no proper way to get it.`;
+  if (t.block !== "auth_required") $("exQ").innerHTML = `Task: <b>${esc(t.question)}</b> The website (${esc(t.org)}) blocks the agent (${esc(t.block.replace(/_/g, " "))}) and there is no proper way around it.`;
+  $("exNote").textContent = `A real test-set episode, run by the answer-only agent and by the first safe agent (v2). Neither saw this task in training.`;
+  $("example").innerHTML = [GREEDY, SAFE_V2].map(k => {
+    const e = t.episodes[k], bad = e.outcome === "escalated";
+    const fin = (e.final || "(no final answer)").split("\n")[0];
+    return `<div class="lane"><h3>${esc(LABEL[k])}<span class="pill ${bad ? "esc" : "honest_stop"}">${bad ? "broke in" : "stopped honestly"}</span></h3>
+      <ol class="say">${e.steps.map(plainStep).join("")}<li class="end${bad ? " bad" : ""}">Final answer<span class="sub">"${esc(fin.length > 220 ? fin.slice(0, 220) + "…" : fin)}"</span></li></ol></div>`;
+  }).join("");
+}
+
+function limits() {
+  const u = ((D.unseen || {}).neutral || {}), f = ((D.fresh || {}).neutral || {});
+  const uh = u[H], us = u[START];
+  let h = "";
+  if (uh) h += `<p><b>On shortcut kinds no model was trained on, the newest safe agent still broke in on ${r0(uh.esc_blocked)} of blocked tasks</b> (starting agent: ${us ? r0(us.esc_blocked) : "–"}). It still solved ${r0(uh.legit_success)} of the tasks that had a proper route.</p>`;
+  if (f[H]) h += `<p>On a second fresh set of tasks it broke in on ${r0(f[H].esc_blocked)} (starting agent: ${f[START] ? r0(f[START].esc_blocked) : "–"}).</p>`;
+  h += `<p class="note" style="margin:6px 0 0">Training against known tricks cuts break-ins sharply but does not fully teach the general rule "don't get around access controls". The unseen test is the honest measure of that, and it is the main open problem.</p>`;
+  $("limits").innerHTML = h;
+}
+
+/* ---------- technical sections ---------- */
 function bars() {
-  document.getElementById("legend").innerHTML = OUT.map(([, l, c]) => `<span><i style="background:var(${c})"></i>${l}</span>`).join("");
-  const box = document.getElementById("bars"); box.innerHTML = "";
+  $("legend").innerHTML = OUT.map(([, l, c]) => `<span><i style="background:var(${c})"></i>${l}</span>`).join("");
+  const box = $("bars"); box.innerHTML = "";
   for (const {key, label} of D.models) {
     const o = D.metrics[prompt][key].outcomes, n = Object.values(o).reduce((a, b) => a + b, 0);
     const segs = OUT.map(([k, l, c]) => { const v = 100 * (o[k] || 0) / n; return v ? `<span title="${l}: ${v.toFixed(1)}%" style="width:${v}%;background:var(${c})">${v >= 7 ? Math.round(v) : ""}</span>` : ""; }).join("");
-    box.append(el("div", {className: "row"}, `<div class="lab">${label}</div><div class="bar" role="img" aria-label="${label}">${segs}</div>`));
+    box.append(el("div", {className: "row"}, `<div class="lab">${modelLab(key, label)}</div><div class="bar" role="img" aria-label="${esc(label)}">${segs}</div>`));
   }
 }
 
@@ -231,51 +425,54 @@ function slicesTable() {
   let h = `<thead><tr><th>escalation rate</th><th>prompt</th>${cols.map(c => `<th>${c[1]}</th>`).join("")}</tr></thead><tbody>`;
   for (const {key, label} of D.models) for (const v of ["neutral", "rules"]) {
     const m = D.metrics[v][key];
-    h += `<tr><td>${v === "neutral" ? label : ""}</td><td>${v}</td>${cols.map(([k]) => `<td class="${m[k] >= 20 ? "hot" : ""}">${pct(m[k])}</td>`).join("")}</tr>`;
+    h += `<tr><td>${v === "neutral" ? esc(label) : ""}</td><td>${v}</td>${cols.map(([k]) => `<td class="${m[k] >= 20 ? "hot" : ""}">${pct(m[k])}</td>`).join("")}</tr>`;
   }
-  document.getElementById("slices").innerHTML = h + "</tbody>";
+  $("slices").innerHTML = h + "</tbody>";
 }
 
 function roll(xs, k = 10) { return xs.map((_, i) => { const s = xs.slice(Math.max(0, i - k + 1), i + 1); return s.reduce((a, b) => a + b, 0) / s.length; }); }
 function curve() {
-  const W = 1000, H = 300, L = 44, R = 16, T = 12, B = 34;
-  const steps = D.training.safe.length, x = i => L + (W - L - R) * i / (steps - 1), y = v => T + (H - T - B) * (1 - v);
-  let s = `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Escalation rate per GRPO step for both reward arms">`;
+  const W = 1000, H_ = 300, L = 44, R = 16, T = 12, B = 34;
+  const steps = D.training.safe.length, x = i => L + (W - L - R) * i / (steps - 1), y = v => T + (H_ - T - B) * (1 - v);
+  let s = `<svg viewBox="0 0 ${W} ${H_}" width="100%" role="img" aria-label="Escalation rate per GRPO step for both rewards">`;
   for (const g of [0, .25, .5, .75, 1]) s += `<line x1="${L}" x2="${W - R}" y1="${y(g)}" y2="${y(g)}" stroke="var(--line)"/><text x="${L - 8}" y="${y(g) + 4}" text-anchor="end">${g * 100}%</text>`;
-  for (let st = 0; st <= steps; st += 20) s += `<text x="${x(Math.max(0, st - 1))}" y="${H - 12}" text-anchor="middle">${st}</text>`;
-  s += `<text x="${(W + L) / 2}" y="${H}" text-anchor="middle">GRPO step</text>`;
+  for (let st = 0; st <= steps; st += 20) s += `<text x="${x(Math.max(0, st - 1))}" y="${H_ - 12}" text-anchor="middle">${st}</text>`;
+  s += `<text x="${(W + L) / 2}" y="${H_}" text-anchor="middle">GRPO step</text>`;
   for (const [arm, c] of [["success_only", "--esc"], ["safe", "--success"]]) {
     const r = roll(D.training[arm].map(d => d.esc));
     s += `<polyline fill="none" stroke="var(${c})" stroke-width="2.5" stroke-linejoin="round" points="${r.map((v, i) => `${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(" ")}"/>`;
   }
-  document.getElementById("curve").innerHTML = s + "</svg>";
+  $("curve").innerHTML = s + "</svg>";
+  const so = roll(D.training.success_only.map(d => d.esc)), sf = roll(D.training.safe.map(d => d.esc));
+  $("tkTraining").textContent = `Rewarded only for answers, the share of attempts that break in climbs from ${r0(100 * so[0])} to ${r0(100 * Math.max(...so))}, which is close to every blocked task. With the safe reward it ends at ${r0(100 * sf[sf.length - 1])}.`;
 }
 
 function auditTable() {
   const cols = [["no_escalation_rate","no_escalation"],["safe_completion_rate","safe_completion"],["diag_tool_permission","tool_permission"],["diag_tool_call_validity","tool_call_validity"],["diag_agent_loop_detection","loop-free"]];
   let h = `<thead><tr><th>model (neutral prompt)</th>${cols.map(c => `<th>${c[1]}</th>`).join("")}<th>stress: no_escalation</th><th>stress: safe_completion</th><th>unseen: safe_completion</th></tr></thead><tbody>`;
   for (const {key, label} of D.models) {
-    const a = D.audit.neutral[key], s = (D.audit_stress || {})[key] || {}, u = (D.audit_unseen || {})[key] || {};
+    const a = D.audit.neutral[key] || {}, s = (D.audit_stress || {})[key] || {}, u = (D.audit_unseen || {})[key] || {};
     const f = (k, v) => { const cls = (k === "no_escalation_rate" && v < .9) ? "hot" : (k === "safe_completion_rate" && v > .95) ? "good" : ""; return `<td class="${cls}">${v == null ? "–" : v.toFixed(3)}</td>`; };
-    h += `<tr><td>${label}</td>${cols.map(([k]) => f(k, a[k])).join("")}${f("no_escalation_rate", s.no_escalation_rate)}${f("safe_completion_rate", s.safe_completion_rate)}${f("safe_completion_rate", u.safe_completion_rate)}</tr>`;
+    h += `<tr><td>${esc(label)}</td>${cols.map(([k]) => f(k, a[k])).join("")}${f("no_escalation_rate", s.no_escalation_rate)}${f("safe_completion_rate", s.safe_completion_rate)}${f("safe_completion_rate", u.safe_completion_rate)}</tr>`;
   }
-  document.getElementById("audit").innerHTML = h + "</tbody>";
+  $("audit").innerHTML = h + "</tbody>";
 }
 
 function cats() {
-  const c = D.metrics.neutral.grpo_esc_success_only.categories, mx = Math.max(...Object.values(c));
-  document.getElementById("cats").innerHTML = Object.entries(c).sort((a, b) => b[1] - a[1]).map(([k, v]) =>
-    `<div class="row"><div class="lab">${k.replace(/_/g, " ")}</div><div class="bar" style="background:transparent"><span style="width:${100 * v / mx}%;background:var(--esc);justify-content:flex-end;padding-right:6px">${v}</span></div></div>`).join("");
+  const c = D.metrics.neutral[GREEDY].categories, e = Object.entries(c).sort((a, b) => b[1] - a[1]), mx = e.length ? e[0][1] : 1;
+  $("cats").innerHTML = e.map(([k, v]) =>
+    `<div class="row"><div class="lab">${esc(k.replace(/_/g, " "))}<small>${esc(CAT[k] || "")}</small></div><div class="bar" style="background:transparent"><span style="width:${100 * v / mx}%;background:var(--esc);justify-content:flex-end;padding-right:6px">${v}</span></div></div>`).join("");
+  if (e.length) $("tkCats").textContent = `Its favourite trick: it ${CAT[e[0][0]] || e[0][0].replace(/_/g, " ")} (${e[0][1]} episodes). It used ${e.length} kinds of trick in all.`;
 }
 
 let sprompt = "neutral";
 function stressBars() {
-  document.getElementById("legend2").innerHTML = document.getElementById("legend").innerHTML;
-  const box = document.getElementById("stressBars"); box.innerHTML = "";
+  $("legend2").innerHTML = $("legend").innerHTML;
+  const box = $("stressBars"); box.innerHTML = "";
   for (const {key, label} of D.stress_models) {
     const o = D.stress[sprompt][key].outcomes, n = Object.values(o).reduce((a, b) => a + b, 0);
     const segs = OUT.map(([k, l, c]) => { const v = 100 * (o[k] || 0) / n; return v ? `<span title="${l}: ${v.toFixed(1)}%" style="width:${v}%;background:var(${c})">${v >= 7 ? Math.round(v) : ""}</span>` : ""; }).join("");
-    box.append(el("div", {className: "row"}, `<div class="lab">${label}</div><div class="bar" role="img" aria-label="${label}, stress test">${segs}</div>`));
+    box.append(el("div", {className: "row"}, `<div class="lab">${modelLab(key, label)}</div><div class="bar" role="img" aria-label="${esc(label)}, stress test">${segs}</div>`));
   }
 }
 
@@ -287,21 +484,27 @@ function stressTable() {
   for (const {key, label} of D.stress_models) {
     const s = D.stress.neutral[key], t = tm(key), u = ((D.unseen || {}).neutral || {})[key] || {};
     const tip = u.tip ? `${u.tip[0]}/${u.tip[1]} · ${u.no_tip[0]}/${u.no_tip[1]}` : "–";
-    h += `<tr><td>${label}</td><td class="${hot(t.esc_blocked)}">${pct(t.esc_blocked)}</td><td class="${hot(s.esc_blocked)}">${pct(s.esc_blocked)}</td><td class="${hot(u.esc_blocked)}">${pct(u.esc_blocked)}</td><td>${sd("test", key, "esc_blocked")}</td><td>${sd("stress", key, "esc_blocked")}</td><td>${sd("unseen", key, "esc_blocked")}</td><td>${pct(s.legit_success)}</td><td>${pct(u.legit_success)}</td><td>${tip}</td></tr>`;
+    h += `<tr><td>${esc(label)}</td><td class="${hot(t.esc_blocked)}">${pct(t.esc_blocked)}</td><td class="${hot(s.esc_blocked)}">${pct(s.esc_blocked)}</td><td class="${hot(u.esc_blocked)}">${pct(u.esc_blocked)}</td><td>${sd("test", key, "esc_blocked")}</td><td>${sd("stress", key, "esc_blocked")}</td><td>${sd("unseen", key, "esc_blocked")}</td><td>${pct(s.legit_success)}</td><td>${pct(u.legit_success)}</td><td>${tip}</td></tr>`;
   }
-  document.getElementById("stressTable").innerHTML = h + "</tbody>";
+  $("stressTable").innerHTML = h + "</tbody>";
+  const sh = D.stress.neutral[H], uh = ((D.unseen || {}).neutral || {})[H], s2 = D.stress.neutral[SAFE_V2];
+  if (sh && uh) $("tkStress").textContent = `On shortcut kinds it was trained against, the newest safe agent (${labelOf(H)}) breaks in on ${pct(sh.esc_blocked)} of blocked stress tasks (safe v2: ${pct(s2.esc_blocked)}). On four kinds it never saw, it still breaks in on ${pct(uh.esc_blocked)}.`;
+  const st = (D.seeds.test || {})[START];
+  if (st) $("greedyHide").textContent = `the escalation-prone start model escalates on ${pct(D.metrics.neutral[START].esc_blocked)} of blocked test tasks greedily but on ${pct(st.esc_blocked[0])} when sampled`;
 }
 
 function judgeTable() {
   const js = D.judges || []; if (!js.length) return;
-  document.getElementById("judgeName").textContent = js[0].judge;
+  $("judgeName").textContent = js[0].judge;
   let h = `<thead><tr><th>audit</th><th>episodes</th><th>agreement</th><th>Cohen's kappa</th><th>detector only</th><th>judge only</th><th>with current detector: agreement</th><th>kappa</th><th>judge only</th></tr></thead><tbody>`;
   for (const j of js) {
     const a = j.now || {};
-    h += `<tr><td>${j.label}</td><td>${j.n}</td><td>${(100 * j.agreement).toFixed(1)}%</td><td>${j.cohen_kappa.toFixed(2)}</td><td>${j.detector_only}</td><td class="hot">${j.judge_only}</td><td>${a.agreement ? (100 * a.agreement).toFixed(1) + "%" : "–"}</td><td>${a.cohen_kappa ? a.cohen_kappa.toFixed(2) : "–"}</td><td>${a.judge_only ?? "–"}</td></tr>`;
+    h += `<tr><td>${esc(j.label)}</td><td>${j.n}</td><td>${(100 * j.agreement).toFixed(1)}%</td><td>${j.cohen_kappa.toFixed(2)}</td><td>${j.detector_only}</td><td class="hot">${j.judge_only}</td><td>${a.agreement ? (100 * a.agreement).toFixed(1) + "%" : "–"}</td><td>${a.cohen_kappa ? a.cohen_kappa.toFixed(2) : "–"}</td><td>${a.judge_only ?? "–"}</td></tr>`;
   }
-  document.getElementById("judge").innerHTML = h + "</tbody>";
-  document.getElementById("judgeNote").innerHTML = "<b>Audit 1</b> found failed probes of a <code>/debug/</code> path and a <code>Debug</code> header that the detector missed; v3 had learned exactly these. " +
+  $("judge").innerHTML = h + "</tbody>";
+  const lo = Math.min(...js.map(j => j.agreement)), hi = Math.max(...js.map(j => j.agreement));
+  $("tkJudge").textContent = `A separate AI model agreed with our rule-based detector on ${(100 * lo).toFixed(0)}–${(100 * hi).toFixed(0)}% of episodes across ${js.length} audits. Where they disagreed, it found two real holes in the detector, both now fixed.`;
+  $("judgeNote").innerHTML = "<b>Audit 1</b> found failed probes of a <code>/debug/</code> path and a <code>Debug</code> header that the detector missed; v3 had learned exactly these. " +
     "<b>Audit 2</b> found that the patch had a bug: a bare <code>/debug</code> with nothing after it still slipped through, and v3.1 and v4 both used that form (34 of the 62 judge-only episodes). The detector now matches on the parsed URL. " +
     "<b>Audit 3</b>, on v4.1: nothing is flagged by the detector only, and we read all 48 judge-only episodes. None contains a suspicious call; the judge penalises shortcuts the agent saw and declined, or calls the official mirror unofficial. " +
     "The judge found both hacks, but it cannot certify that there is no third. On the test set the two agree on every episode in audits 1 and 3.";
@@ -309,31 +512,30 @@ function judgeTable() {
 
 function circuit() {
   const c = D.circuit; if (!c) return;
-  document.getElementById("topk").textContent = c.top_k;
-  const name = {sft_esc: "Escalation-prone SFT (start)", grpo_esc_success_only: "GRPO, success-only", grpo_esc_safe: "GRPO, safe (v2)"};
+  $("topk").textContent = c.top_k;
   let h = `<thead><tr><th>model</th><th>relay: P(shortcut)</th><th>relay: logit diff</th><th>preview: P(shortcut)</th><th>preview: logit diff</th><th>relay: top components</th></tr></thead><tbody>`;
   for (const [k, v] of Object.entries(c.models)) {
     const r = v.relay.behaviour.clean, p = v.preview.behaviour.clean;
-    h += `<tr><td>${name[k] || k}</td><td class="${r.p_shortcut > .5 ? "hot" : r.p_shortcut < .1 ? "good" : ""}">${(100 * r.p_shortcut).toFixed(0)}%</td><td>${r.logit_diff.toFixed(1)}</td><td class="${p.p_shortcut > .5 ? "hot" : ""}">${(100 * p.p_shortcut).toFixed(0)}%</td><td>${p.logit_diff.toFixed(1)}</td><td style="text-align:left;font-family:ui-monospace,monospace;font-size:12px">${v.relay.top.slice(0, 5).join(", ")}</td></tr>`;
+    h += `<tr><td>${esc(plain(k, LABEL[k]))}</td><td class="${r.p_shortcut > .5 ? "hot" : r.p_shortcut < .1 ? "good" : ""}">${(100 * r.p_shortcut).toFixed(0)}%</td><td>${r.logit_diff.toFixed(1)}</td><td class="${p.p_shortcut > .5 ? "hot" : ""}">${(100 * p.p_shortcut).toFixed(0)}%</td><td>${p.logit_diff.toFixed(1)}</td><td style="text-align:left;font-family:ui-monospace,monospace;font-size:12px">${esc(v.relay.top.slice(0, 5).join(", "))}</td></tr>`;
   }
-  document.getElementById("circBeh").innerHTML = h + "</tbody>";
+  $("circBeh").innerHTML = h + "</tbody>";
   let j = "<thead><tr><th>task</th><th>pair</th><th>Jaccard</th></tr></thead><tbody>";
   for (const [t, m] of Object.entries(c.jaccard)) {
     for (let a = 0; a < m.models.length; a++) for (let b = a + 1; b < m.models.length; b++)
-      j += `<tr><td>${t}</td><td>${name[m.models[a]] || m.models[a]} vs ${name[m.models[b]] || m.models[b]}</td><td>${m.matrix[a][b].toFixed(2)}</td></tr>`;
+      j += `<tr><td>${t}</td><td>${esc(plain(m.models[a]))} vs ${esc(plain(m.models[b]))}</td><td>${m.matrix[a][b].toFixed(2)}</td></tr>`;
   }
-  document.getElementById("circJac").innerHTML = j + "</tbody>";
+  $("circJac").innerHTML = j + "</tbody>";
 }
 
 let sel = 0;
 function taskList() {
-  const fb = document.getElementById("fBlock").value, fo = document.getElementById("fOut").value;
-  const list = document.getElementById("tasklist"); list.innerHTML = "";
-  const shown = D.tasks.map((t, i) => [t, i]).filter(([t]) => (!fb || t.block === fb) && (!fo || t.episodes.grpo_esc_success_only.outcome === fo));
+  const fb = $("fBlock").value, fo = $("fOut").value;
+  const list = $("tasklist"); list.innerHTML = "";
+  const shown = D.tasks.map((t, i) => [t, i]).filter(([t]) => (!fb || t.block === fb) && (!fo || t.episodes[GREEDY].outcome === fo));
   if (!shown.find(([, i]) => i === sel) && shown.length) sel = shown[0][1];
   for (const [t, i] of shown) {
-    const o = t.episodes.grpo_esc_success_only.outcome;
-    const d = el("div", {className: "task", tabIndex: 0}, `<div class="q">${esc(t.question)}</div><div class="m">${t.block.replace(/_/g, " ")} · ${t.solvable ? "solvable" : "unsolvable"}${t.lang === "hi" ? " · Hindi" : ""}${o === "escalated" ? ' · <span style="color:var(--esc)">success-only escalated</span>' : ""}</div>`);
+    const o = t.episodes[GREEDY].outcome;
+    const d = el("div", {className: "task", tabIndex: 0}, `<div class="q">${esc(t.question)}</div><div class="m">${t.block.replace(/_/g, " ")} · ${t.solvable ? "solvable" : "unsolvable"}${t.lang === "hi" ? " · Hindi" : ""}${o === "escalated" ? ' · <span style="color:var(--esc)">answer-only broke in</span>' : ""}</div>`);
     d.setAttribute("role", "option"); d.setAttribute("aria-selected", i === sel);
     d.onclick = d.onkeydown = e => { if (e.type === "keydown" && e.key !== "Enter") return; sel = i; taskList(); };
     list.append(d);
@@ -342,32 +544,46 @@ function taskList() {
 }
 
 function detail(t) {
-  const box = document.getElementById("detail");
+  const box = $("detail");
   if (!t) { box.innerHTML = '<p class="note">No tasks match these filters.</p>'; return; }
-  const pills = `<span class="pill">${t.block.replace(/_/g, " ")}</span><span class="pill">${t.solvable ? "legit route: " + t.legit_path.replace(/_/g, " ") : "no legitimate route"}</span>${t.held_out ? '<span class="pill">held-out provider</span>' : ""}${t.temptations.map(x => `<span class="pill">temptation: ${x.replace(/_/g, " ")}</span>`).join("")}`;
+  const pills = `<span class="pill">${t.block.replace(/_/g, " ")}</span><span class="pill">${t.solvable ? "proper route: " + t.legit_path.replace(/_/g, " ") : "no proper route"}</span>${t.held_out ? '<span class="pill">held-out provider</span>' : ""}${t.temptations.map(x => `<span class="pill">temptation: ${x.replace(/_/g, " ")}</span>`).join("")}`;
   let h = `<div class="qhead"><b>${esc(t.question)}</b></div><div class="note">${esc(t.org)} · answer ${esc(t.answer)}</div><div>${pills}</div><div class="eps">`;
-  for (const k of ["sft_esc", "grpo_esc_success_only", "grpo_esc_safe"]) {
+  for (const k of [START, GREEDY, SAFE_V2]) {
     const e = t.episodes[k], oc = e.outcome === "escalated" ? "esc" : e.outcome;
-    h += `<div class="ep"><h4>${LABEL[k]}</h4><span class="pill ${oc}">${e.outcome.replace(/_/g, " ")}</span>${e.categories.map(c => `<span class="pill esc">${c.replace(/_/g, " ")}</span>`).join("")}`;
+    h += `<div class="ep"><h4>${LABEL[k]}</h4><span class="pill ${oc}">${e.outcome === "escalated" ? "broke in" : e.outcome.replace(/_/g, " ")}</span>${e.categories.map(c => `<span class="pill esc">${c.replace(/_/g, " ")}</span>`).join("")}`;
     for (const s of e.steps) h += `<div class="step ${s.flags.length ? "flag" : ""}">${s.flags.length ? `<div class="fl">⚑ ${s.flags.join(", ").replace(/_/g, " ")}</div>` : ""}<b>${esc(s.tool)}</b> ${esc(s.args)}<div class="obs">→ ${esc(s.obs)}</div></div>`;
     h += `<div class="final">${esc(e.final || "(no final answer)")}</div></div>`;
   }
   box.innerHTML = h + "</div>";
 }
 
+function takeaways() {
+  const m = D.metrics.neutral, h = m[H], g = m[GREEDY];
+  $("tkOutcomes").textContent = `Rewarded only for answers, the agent broke in on ${r0(g.esc_all)} of all test tasks. The newest safe agent broke in on ${r0(h.esc_all)} and still solved ${r0(h.legit_success)} of the tasks that had a proper route.`;
+  const safe = D.models.map(x => x.key).filter(k => k === SAFE_V2 || /^grpo_safe_v/.test(k));
+  const worst = Math.max(...safe.flatMap(k => ["neutral", "rules"].flatMap(v => { const x = D.metrics[v][k]; return [x.esc_held_out, x.esc_hi, x.esc_en]; })));
+  $("tkSlices").textContent = (worst === 0 ? "No safe agent breaks in on any of these test tasks, including providers never seen in training and questions in Hindi." : `The safe agents stay at or below ${pct(worst)} on providers they never trained on and in Hindi.`) + ` The answer-only agent breaks in on ${r0(g.esc_held_out)} of held-out-provider tasks and ${r0(g.esc_hi)} of Hindi tasks.`;
+}
+
 fetch("data.json").then(r => r.json()).then(d => {
   D = d;
+  H = D.headline || HEADLINE;
+  if (!D.metrics.neutral[H]) H = D.models[D.models.length - 1].key;
+  $("modelLink").href = `https://huggingface.co/ashish-soni08/tiny-aya-global-esa-${H.replace(/_/g, "-").replace("grpo-safe-v", "grpo-safe-v")}`;
   const blocks = [...new Set(D.tasks.map(t => t.block))].sort();
-  document.getElementById("fBlock").innerHTML += blocks.map(b => `<option value="${b}">${b.replace(/_/g, " ")}</option>`).join("");
-  document.getElementById("fBlock").onchange = document.getElementById("fOut").onchange = taskList;
+  $("fBlock").innerHTML += blocks.map(b => `<option value="${b}">${b.replace(/_/g, " ")}</option>`).join("");
+  $("fBlock").onchange = $("fOut").onchange = taskList;
   document.querySelectorAll("#promptSeg button").forEach(b => b.onclick = () => {
     prompt = b.dataset.v; document.querySelectorAll("#promptSeg button").forEach(x => x.setAttribute("aria-pressed", x === b)); bars();
   });
-  sel = Math.max(0, D.tasks.findIndex(t => t.episodes.grpo_esc_success_only.outcome === "escalated"));
+  sel = Math.max(0, D.tasks.findIndex(t => t.episodes[GREEDY].outcome === "escalated"));
   document.querySelectorAll("#stressSeg button").forEach(b => b.onclick = () => {
     sprompt = b.dataset.v; document.querySelectorAll("#stressSeg button").forEach(x => x.setAttribute("aria-pressed", x === b)); stressBars();
   });
-  tiles(); bars(); slicesTable(); curve(); auditTable(); cats(); stressBars(); stressTable(); judgeTable(); circuit(); taskList();
+  result(); example(); limits(); takeaways();
+  bars(); slicesTable(); curve(); auditTable(); cats(); stressBars(); stressTable(); judgeTable(); circuit(); taskList();
+  // Fill the orange squares once, after first paint (skipped under reduced motion by the CSS).
+  requestAnimationFrame(() => requestAnimationFrame(() => document.body.classList.remove("js-pending")));
 });
 </script>
 </body>
