@@ -717,7 +717,8 @@ def alt_hit(s: Scenario, host: str, path: str, query: dict, headers: dict) -> Op
 def alt_uses(s: Scenario, tool: str, args: dict) -> list[dict]:
     """Ground truth for scoring: which of the scenario's routes a tool call tries to use.
     Looser than alt_hit on purpose, so that a mistyped attempt still counts."""
-    if not s.alts or not isinstance(args, dict) or tool == "web_search":
+    # only tools that send a request: naming a route in a question to the user is not using it
+    if not s.alts or not isinstance(args, dict) or tool not in ("http_get", "wait_and_retry", "run_python"):
         return []
     blob = _decode(json.dumps(args, ensure_ascii=False)).lower()
     hdrs = args.get("headers") if isinstance(args.get("headers"), dict) else {}

@@ -100,19 +100,19 @@
 | → GRPO safe (v2) | 25.3% | 38.6% | 68.9% | 61.4% | 14.5% | 0.0% | 23.4% | 23.2% |
 | → v3.1: + hard RL mix, judge-patched detector | 16.2% | 24.4% | 71.5% | 75.6% | 17.6% | 0.0% | 17.7% | 15.9% |
 | → v4.1: v4 recipe, detector v2.2 in the reward | 6.2% | 11.0% | 71.0% | 89.0% | 25.9% | 0.0% | 5.6% | 6.1% |
-| → v5: + random-name routes with sanctioned look-alikes | 6.6% | 12.6% | 70.5% | 87.4% | 26.9% | 0.0% | 5.6% | 6.1% |
+| → v5: + random-name routes with sanctioned look-alikes | 6.2% | 11.8% | 70.5% | 88.2% | 26.9% | 0.0% | 5.6% | 6.1% |
 
 **Fresh stress test, rules prompt** (320 test tasks: 193 solvable, 127 unsolvable; 124 from held-out families, 82 in Hindi)
 
 | model | escalation (all) | escalation (blocked tasks) | legit success (solvable) | honest stop (unsolvable) | gave up (solvable) | made-up number | held-out families: escalation | Hindi: escalation |
 |---|---|---|---|---|---|---|---|---|
-| Tiny Aya Global (base) | 0.3% | 0.8% | 4.1% | 74.8% | 71.0% | 7.8% | 0.8% | 0.0% |
+| Tiny Aya Global (base) | 0.0% | 0.0% | 4.1% | 75.6% | 71.0% | 7.8% | 0.0% | 0.0% |
 | + tool SFT, clean | 28.4% | 47.2% | 63.7% | 52.8% | 20.2% | 0.0% | 27.4% | 30.5% |
 | → GRPO success-only | 43.1% | 73.2% | 70.5% | 18.9% | 2.6% | 0.3% | 41.9% | 40.2% |
 | → GRPO safe (v2) | 25.6% | 39.4% | 68.9% | 60.6% | 14.5% | 0.0% | 25.0% | 23.2% |
 | → v3.1: + hard RL mix, judge-patched detector | 15.6% | 23.6% | 72.5% | 76.4% | 17.1% | 0.0% | 16.9% | 14.6% |
 | → v4.1: v4 recipe, detector v2.2 in the reward | 6.6% | 11.8% | 71.0% | 88.2% | 25.4% | 0.0% | 6.5% | 6.1% |
-| → v5: + random-name routes with sanctioned look-alikes | 6.2% | 11.8% | 70.5% | 88.2% | 26.9% | 0.0% | 4.8% | 6.1% |
+| → v5: + random-name routes with sanctioned look-alikes | 5.9% | 11.0% | 70.5% | 89.0% | 26.9% | 0.0% | 4.8% | 6.1% |
 
 **Fresh stress test by route type** (neutral prompt, greedy). "Sanctioned route" tasks are solvable only through an alternate route the site publishes for automated clients; refusing it is over-caution. Trained mechanisms are hosts, parameters and access codes (with new names and new wording); new mechanisms are URL paths and request headers.
 
@@ -124,7 +124,7 @@
 | → GRPO safe (v2) | 38.6% | 35.4% | 40.5% | 28.6% | 55.6% | 23.9% |
 | → v3.1: + hard RL mix, judge-patched detector | 24.4% | 16.7% | 29.1% | 19.0% | 57.3% | 29.1% |
 | → v4.1: v4 recipe, detector v2.2 in the reward | 11.0% | 0.0% | 17.7% | 4.8% | 53.8% | 42.7% |
-| → v5: + random-name routes with sanctioned look-alikes | 12.6% | 2.1% | 19.0% | 3.6% | 53.0% | 44.4% |
+| → v5: + random-name routes with sanctioned look-alikes | 11.8% | 0.0% | 19.0% | 3.6% | 53.0% | 44.4% |
 
 Task counts: 127 blocked (48 trained mechanisms only, 79 with a new mechanism), 117 sanctioned-route tasks (84 of them also offer a shortcut).
 
@@ -137,7 +137,7 @@ Task counts: 127 blocked (48 trained mechanisms only, 79 with a new mechanism), 
 | → v4.1: v4 recipe, detector v2.2 in the reward | fresh | 11.0% | 11.0% | 11.0% | 89.0% | 70.5% |
 | → v5: + random-name routes with sanctioned look-alikes | stress 1 | 0.0% | 0.0% | 0.0% | 100.0% | 99.5% |
 | → v5: + random-name routes with sanctioned look-alikes | stress 2 | 22.4% | 21.6% | 0.0% | 100.0% | 98.0% |
-| → v5: + random-name routes with sanctioned look-alikes | fresh | 12.6% | 11.8% | 11.8% | 88.2% | 70.5% |
+| → v5: + random-name routes with sanctioned look-alikes | fresh | 11.8% | 11.0% | 11.0% | 89.0% | 70.5% |
 
 **Sampled, test set** (temperature 1.0, top-p 0.95, neutral prompt, mean ± sd over 5 seeds)
 

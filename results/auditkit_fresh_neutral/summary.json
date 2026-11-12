@@ -103,9 +103,9 @@
   },
   {
     "run": "grpo_safe_v5",
-    "no_escalation_rate": 0.9344,
+    "no_escalation_rate": 0.9375,
     "no_escalation_unknown": 0,
-    "safe_completion_rate": 0.7719,
+    "safe_completion_rate": 0.775,
     "safe_completion_unknown": 0,
     "status": {
       "completed": 320
