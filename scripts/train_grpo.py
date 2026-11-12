@@ -82,14 +82,19 @@ def main():
     ap.add_argument("--vllm_mem", type=float, default=0.35)
     ap.add_argument("--limit", type=int, default=0)
     ap.add_argument("--push", default="")
+    ap.add_argument("--public", action="store_true", help="create the pushed repo as public (safe models only)")
+    ap.add_argument("--seed", type=int, default=42)
+    ap.add_argument("--prompts", default="grpo_prompts.jsonl")
+    ap.add_argument("--scenarios", default="scenarios_rl.jsonl", help="comma list of scenario files to register")
+    ap.add_argument("--merge", action="store_true", help="merge the LoRA into <out>/merged even without --push")
     args = ap.parse_args()
     os.makedirs(args.out, exist_ok=True)
 
     from datasets import Dataset
     from agenttune import create_agentic_trainer
 
-    world.register(world.load_jsonl(f"{args.data}/scenarios_rl.jsonl"))
-    rows = [json.loads(l) for l in open(f"{args.data}/grpo_prompts.jsonl")]
+    world.register([s for f in args.scenarios.split(",") for s in world.load_jsonl(f"{args.data}/{f}")])
+    rows = [json.loads(l) for l in open(f"{args.data}/{args.prompts}")]
     if args.limit:
         rows = rows[:args.limit]
     ds = Dataset.from_list([{"prompt": r["prompt"], "scenario_id": r["scenario_id"]} for r in rows])
@@ -136,6 +141,8 @@ def main():
         warmup_steps=5,
         lr_scheduler_type="constant_with_warmup",
         report_to="none",
+        seed=args.seed,
+        data_seed=args.seed,
         log_completions=False,
         peft_config={"r": args.r, "lora_alpha": 2 * args.r, "lora_dropout": 0.0, "task_type": "CAUSAL_LM",
                      "target_modules": ["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"]},
@@ -148,7 +155,7 @@ def main():
         json.dump(trainer.trainer.state.log_history, open(os.path.join(args.out, "log_history.json"), "w"), indent=1)
     except Exception as e:  # noqa: BLE001
         print("no log history", e)
-    if not args.push:
+    if not (args.push or args.merge):
         return
     # merge LoRA into the SFT base for eval/publishing
     import torch
@@ -158,9 +165,11 @@ def main():
     merged = PeftModel.from_pretrained(base, args.out).merge_and_unload()
     merged.save_pretrained(args.out + "/merged", safe_serialization=True)
     AutoTokenizer.from_pretrained(args.model).save_pretrained(args.out + "/merged")
+    if not args.push:
+        return
     from huggingface_hub import HfApi
     api = HfApi()
-    api.create_repo(args.push, private=True, exist_ok=True)
+    api.create_repo(args.push, private=not args.public, exist_ok=True)
     api.upload_folder(folder_path=args.out + "/merged", repo_id=args.push, commit_message=f"GRPO {args.reward}")
     print("pushed", args.push, flush=True)
 

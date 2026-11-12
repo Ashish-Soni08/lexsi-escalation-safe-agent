@@ -8,10 +8,15 @@ import random
 from collections import Counter
 
 MODELS = [("base", "Tiny Aya Global (base)"), ("sft", "Tool SFT, clean"), ("sft_esc", "Tool SFT, escalation-prone"),
-          ("grpo_esc_success_only", "GRPO, success-only reward"), ("grpo_esc_safe", "GRPO, safe reward")]
+          ("grpo_esc_success_only", "GRPO, success-only reward"), ("grpo_esc_safe", "GRPO, safe reward (v2)"),
+          ("grpo_safe_v3", "v3: + hard RL mix"), ("grpo_safe_v3_1", "v3.1: + first detector patch"),
+          ("grpo_safe_v4", "v4: wider mix"), ("grpo_safe_v4_1", "v4.1: wider mix, detector v2.2")]
 AUDIT_NAMES = {"base": "base", "sft": "sft", "sft_esc": "sft_esc", "grpo_esc_success_only": "grpo_success_only",
-               "grpo_esc_safe": "grpo_safe"}
+               "grpo_esc_safe": "grpo_safe", "grpo_safe_v3": "grpo_safe_v3", "grpo_safe_v3_1": "grpo_safe_v3_1",
+               "grpo_safe_v4": "grpo_safe_v4", "grpo_safe_v4_1": "grpo_safe_v4_1"}
 BROWSE = ["sft_esc", "grpo_esc_success_only", "grpo_esc_safe"]
+# models shown in the stress-test and error-bar panels (v3 = + hard RL mix)
+STRESS_MODELS = MODELS
 
 
 def short(x, n):
@@ -80,6 +85,72 @@ def main():
         data["training"][arm] = [{"step": i + 1, "esc": x["escalation_rate"], "success": x["success_rate"],
                                   "honest": x["honest_stop_rate"], "made_up": x["fabricated_rate"],
                                   "reward": x["mean_reward"]} for i, x in enumerate(log)]
+
+    # stress test (greedy), sampled error bars, judge audit, CircuitKIT
+    import os
+    import statistics as st
+    data["stress_models"] = [{"key": k, "label": l} for k, l in STRESS_MODELS
+                             if os.path.exists(f"{args.res}/stress/{k}_neutral.json")]
+    data["stress"], data["test_more"] = {}, {}
+    for v in ("neutral", "rules"):
+        for m in data["stress_models"]:
+            k = m["key"]
+            data["stress"].setdefault(v, {})[k] = slices(json.load(open(f"{args.res}/stress/{k}_{v}.json"))["rows"])
+            if (k, v) not in rows_by and os.path.exists(f"{args.res}/{k}_{v}.json"):
+                data["test_more"].setdefault(v, {})[k] = slices(json.load(open(f"{args.res}/{k}_{v}.json"))["rows"])
+    # second stress test: shortcut kinds, tip wordings and channels no model was trained on
+    data["unseen"] = {}
+    for v in ("neutral", "rules"):
+        for m in data["stress_models"]:
+            f = f"{args.res}/unseen/{m['key']}_{v}.json"
+            if os.path.exists(f):
+                rows = json.load(open(f))["rows"]
+                s = slices(rows)
+                uns = [r for r in rows if not r["scenario"]["solvable"]]
+                tip = [r for r in uns if r["scenario"]["injected_tip"]]
+                esc = lambda rs: [sum(r["outcome"]["escalated"] for r in rs), len(rs)]  # noqa: E731
+                s["tip"], s["no_tip"] = esc(tip), esc([r for r in uns if not r["scenario"]["injected_tip"]])
+                data["unseen"].setdefault(v, {})[m["key"]] = s
+    ua = {r["run"]: r for r in json.load(open(f"{args.res}/auditkit_unseen_neutral/summary.json"))}
+    data["audit_unseen"] = {k: {x: ua.get(AUDIT_NAMES[k], {}).get(x) for x in ("no_escalation_rate", "safe_completion_rate")}
+                            for k, _ in MODELS}
+    data["seeds"] = {}
+    for split, d, n in (("test", "seeds", 5), ("stress", "seeds_stress", 3), ("unseen", "seeds_unseen", 3)):
+        for m in data["stress_models"]:
+            vals = [json.load(open(f"{args.res}/{d}/{m['key']}_s{i}_summary.json"))["neutral"]
+                    for i in range(1, n + 1) if os.path.exists(f"{args.res}/{d}/{m['key']}_s{i}_summary.json")]
+            if len(vals) < 2:
+                continue
+            row = {"n_seeds": len(vals)}
+            for key, name in (("escalation_rate_unsolvable", "esc_blocked"), ("legit_success_rate_solvable", "legit_success"),
+                              ("honest_stop_rate_unsolvable", "honest_stop")):
+                xs = [100 * x[key] for x in vals]
+                row[name] = [round(st.mean(xs), 1), round(st.stdev(xs), 1)]
+            data["seeds"].setdefault(split, {})[m["key"]] = row
+    sa = {r["run"]: r for r in json.load(open(f"{args.res}/auditkit_stress_neutral/summary.json"))}
+    data["audit_stress"] = {k: {x: sa.get(AUDIT_NAMES[k], {}).get(x) for x in ("no_escalation_rate", "safe_completion_rate",
+                                                                              "diag_tool_permission")} for k, _ in MODELS}
+    data["judges"] = []
+    for d, label in (("judge", "1. v2-era models, test and stress"), ("judge_v4", "2. v3.1 and v4, stress and unseen"),
+                     ("judge_v4_1", "3. v4.1, all three sets")):
+        if os.path.exists(f"{args.res}/{d}/summary.json"):
+            j = json.load(open(f"{args.res}/{d}/summary.json"))
+            data["judges"].append({"label": label, "judge": j["judge"], "n": j["n"], **{k: j[k] for k in (
+                "agreement", "cohen_kappa", "both_flag", "both_clean", "detector_only", "judge_only")},
+                "now": j.get("after_patch")})
+    if os.path.exists(f"{args.res}/judge/summary.json"):
+        j = json.load(open(f"{args.res}/judge/summary.json"))
+        data["judge"] = {k: j[k] for k in ("judge", "n", "agreement", "cohen_kappa", "both_flag", "both_clean",
+                                           "detector_only", "judge_only", "after_patch")}
+        data["judge"]["examples"] = [d for d in j["disagreements"]][:12]
+    if os.path.exists(f"{args.res}/circuit/summary.json"):
+        c = json.load(open(f"{args.res}/circuit/summary.json"))
+        data["circuit"] = {"algorithm": c["algorithm"], "top_k": c["top_k"],
+                           "jaccard": {t: c[f"jaccard_{t}"] for t in ("relay", "preview") if f"jaccard_{t}" in c},
+                           "models": {k: {t: {"behaviour": v[t]["behaviour"], "layer_mass": v[t].get("layer_mass"),
+                                              "top": list(v[t].get("top_nodes", {}))[:8]}
+                                          for t in ("relay", "preview") if t in v}
+                                      for k, v in c["models"].items()}}
 
     # episode browser: blocked and solvable test tasks, neutral prompt, three models side by side
     trajs = {}

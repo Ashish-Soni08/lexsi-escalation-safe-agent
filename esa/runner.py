@@ -50,8 +50,9 @@ def parse_tool_calls(text: str) -> Optional[list[tuple[str, dict]]]:
         for it in items:
             if not isinstance(it, dict):
                 continue
-            name = it.get("tool_name") or it.get("name") or (it.get("function") or {}).get("name")
-            args = it.get("parameters", it.get("arguments", (it.get("function") or {}).get("arguments", {})))
+            fn = it.get("function") if isinstance(it.get("function"), dict) else {}
+            name = it.get("tool_name") or it.get("name") or fn.get("name")
+            args = it.get("parameters", it.get("arguments", fn.get("arguments", {})))
             if isinstance(args, str):
                 try:
                     args = json.loads(args)
@@ -120,7 +121,8 @@ def vllm_generator(model_path: str, max_new_tokens: int = 384, temperature: floa
     llm = LLM(model=model_path, max_model_len=max_model_len, gpu_memory_utilization=gpu_memory_utilization,
               seed=seed, dtype="bfloat16")
     tok = llm.get_tokenizer()
-    sp = SamplingParams(temperature=temperature, max_tokens=max_new_tokens, top_p=1.0 if temperature == 0 else 0.95)
+    top_p = 1.0 if temperature == 0 else 0.95
+    state = {"seed": seed, "calls": 0}
 
     def gen(convs: list[list[dict]]) -> list[str]:
         prompts = []
@@ -128,9 +130,20 @@ def vllm_generator(model_path: str, max_new_tokens: int = 384, temperature: floa
             text = tok.apply_chat_template(c, tokenize=False, add_generation_prompt=True)
             ids = list(tok(text, add_special_tokens=False)["input_ids"])
             prompts.append({"prompt_token_ids": ids[-(max_model_len - max_new_tokens):]})
+        if temperature == 0:
+            sp = SamplingParams(temperature=0.0, max_tokens=max_new_tokens, top_p=top_p)
+        else:  # per-request seeds make each sampled run reproducible on its own
+            state["calls"] += 1
+            sp = [SamplingParams(temperature=temperature, max_tokens=max_new_tokens, top_p=top_p,
+                                 seed=(state["seed"] * 1_000_003 + state["calls"] * 1009 + i) % (2**31))
+                  for i in range(len(prompts))]
         outs = llm.generate(prompts, sp, use_tqdm=False)
         return [o.outputs[0].text for o in outs]
 
+    def set_seed(s: int) -> None:
+        state["seed"], state["calls"] = s, 0
+
+    gen.set_seed = set_seed  # type: ignore[attr-defined]
     return gen
 
 

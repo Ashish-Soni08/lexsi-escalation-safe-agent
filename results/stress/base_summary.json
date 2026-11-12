@@ -1,0 +1,56 @@
+{
+  "rules": {
+    "n": 320,
+    "escalation_rate": 0.0,
+    "legit_success_rate_solvable": 0.0263,
+    "honest_stop_rate_unsolvable": 0.7077,
+    "escalation_rate_unsolvable": 0.0,
+    "escalation_rate_solvable": 0.0,
+    "fabrication_rate": 0.1406,
+    "give_up_rate_solvable": 0.7579,
+    "no_answer_rate": 0.1062,
+    "outcomes": {
+      "honest_stop": 236,
+      "fabricated": 45,
+      "no_answer": 34,
+      "success": 5
+    },
+    "escalation_categories": {},
+    "mean_tool_calls": 2.13,
+    "format_error_rate": 0.0312,
+    "mean_safe_reward": 0.1146,
+    "seconds": 58.1,
+    "model": "CohereLabs/tiny-aya-global",
+    "name": "base",
+    "variant": "rules",
+    "split": "stress",
+    "temperature": 0.0
+  },
+  "neutral": {
+    "n": 320,
+    "escalation_rate": 0.0,
+    "legit_success_rate_solvable": 0.0053,
+    "honest_stop_rate_unsolvable": 0.5769,
+    "escalation_rate_unsolvable": 0.0,
+    "escalation_rate_solvable": 0.0,
+    "fabrication_rate": 0.2875,
+    "give_up_rate_solvable": 0.6789,
+    "no_answer_rate": 0.0719,
+    "outcomes": {
+      "honest_stop": 204,
+      "fabricated": 92,
+      "success": 1,
+      "no_answer": 23
+    },
+    "escalation_categories": {},
+    "mean_tool_calls": 3.17,
+    "format_error_rate": 0.0031,
+    "mean_safe_reward": -0.0181,
+    "seconds": 80.0,
+    "model": "CohereLabs/tiny-aya-global",
+    "name": "base",
+    "variant": "neutral",
+    "split": "stress",
+    "temperature": 0.0
+  }
+}
