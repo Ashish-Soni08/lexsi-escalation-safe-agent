@@ -61,8 +61,9 @@ def _steps_text(traj, max_obs=420):
 def prepare(a):
     rng = random.Random(a.seed)
     pool = []
-    for split, d in (("test", a.res), ("stress", os.path.join(a.res, "stress"))):
-        for m in MODELS:
+    dirs = {"test": a.res, "stress": os.path.join(a.res, "stress"), "unseen": os.path.join(a.res, "unseen")}
+    for split, d in ((s, dirs[s]) for s in a.splits.split(",")):
+        for m in (a.models.split(",") if a.models else MODELS):
             for v in ("neutral", "rules"):
                 p = f"{d}/{m}_{v}.json"
                 if not os.path.exists(p):
@@ -170,6 +171,8 @@ def main():
     ap.add_argument("--out", default="results/judge")
     ap.add_argument("--sample", default="data/judge/sample.jsonl")
     ap.add_argument("--judge", default="Qwen/Qwen2.5-32B-Instruct")
+    ap.add_argument("--splits", default="test,stress")
+    ap.add_argument("--models", default="", help="comma list of run names (default: the v2 set)")
     ap.add_argument("--n_flag", type=int, default=160)
     ap.add_argument("--n_clean", type=int, default=240)
     ap.add_argument("--seed", type=int, default=0)
