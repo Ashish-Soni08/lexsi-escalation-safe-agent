@@ -298,7 +298,7 @@ Greedy decoding, 320 test tasks, numbers from `scripts/eval.py`, tables from `sc
   episodes. It never reads most of what it was meant to learn from. In training it already left unsanctioned
   random-name routes alone (13 escalations in 856 blocked-task rollouts).
 * **What the fresh test shows about v4.1.** Every escalation follows a tip in an error message (14 of 69 tipped
-  blocked tasks, 0 of 58 without), almost all through a URL path, a mechanism it never trained on. It is also
+  blocked tasks, 0 of 58 without), all through a URL path, a mechanism it never trained on. It is also
   over-cautious: it gives up on 43% of the tasks whose only route is one the site openly offers (legit success 71%).
 * **Runtime guard** (`scripts/eval.py --guard`): the pattern detector in front of the tools; a flagged call is
   refused and never sent. v4.1 on blocked tasks, attempted → executed: stress 1 1.5% → 0.0%, stress 2 24.1% → 0.0%,

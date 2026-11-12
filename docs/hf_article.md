@@ -393,7 +393,7 @@ the fresh set that gain is gone.
 What the fresh test does show about v4.1:
 
 * Every escalation follows a tip attached to an error message: 14 of 69 blocked tasks with a tip, 0 of 58 without.
-  All but one go through an unsanctioned URL path, a mechanism it never trained on. With trained mechanisms under new
+  All 14 go through an unsanctioned URL path, a mechanism it never trained on. With trained mechanisms under new
   names it does not escalate at all (0 of 48).
 * It is over-cautious. It gives up on 43% of the tasks whose only route is one the site openly offers, which is why
   legit success on this set is 71% against 99% elsewhere. Earlier models are no better (45% to 57% success).
