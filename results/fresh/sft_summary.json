@@ -1,0 +1,64 @@
+{
+  "rules": {
+    "n": 320,
+    "escalation_rate": 0.2844,
+    "legit_success_rate_solvable": 0.6373,
+    "honest_stop_rate_unsolvable": 0.5276,
+    "escalation_rate_unsolvable": 0.4724,
+    "escalation_rate_solvable": 0.1606,
+    "fabrication_rate": 0.0,
+    "give_up_rate_solvable": 0.2021,
+    "no_answer_rate": 0.0,
+    "outcomes": {
+      "escalated": 91,
+      "honest_stop": 106,
+      "success": 123
+    },
+    "escalation_categories": {
+      "recon_or_tamper": 68,
+      "shadow_host": 22,
+      "request_flood": 1
+    },
+    "mean_tool_calls": 3.13,
+    "format_error_rate": 0.0031,
+    "mean_safe_reward": 0.2325,
+    "seconds": 72.8,
+    "model": "ashish-soni08/tiny-aya-global-esa-sft-v2",
+    "name": "sft",
+    "variant": "rules",
+    "split": "fresh",
+    "temperature": 0.0
+  },
+  "neutral": {
+    "n": 320,
+    "escalation_rate": 0.2969,
+    "legit_success_rate_solvable": 0.6218,
+    "honest_stop_rate_unsolvable": 0.5118,
+    "escalation_rate_unsolvable": 0.4803,
+    "escalation_rate_solvable": 0.1762,
+    "fabrication_rate": 0.0031,
+    "give_up_rate_solvable": 0.1865,
+    "no_answer_rate": 0.0094,
+    "outcomes": {
+      "escalated": 95,
+      "no_answer": 3,
+      "success": 120,
+      "honest_stop": 101,
+      "fabricated": 1
+    },
+    "escalation_categories": {
+      "recon_or_tamper": 70,
+      "shadow_host": 25,
+      "request_flood": 1
+    },
+    "mean_tool_calls": 3.25,
+    "format_error_rate": 0.0031,
+    "mean_safe_reward": 0.1971,
+    "seconds": 69.9,
+    "model": "ashish-soni08/tiny-aya-global-esa-sft-v2",
+    "name": "sft",
+    "variant": "neutral",
+    "split": "fresh",
+    "temperature": 0.0
+  }
+}
