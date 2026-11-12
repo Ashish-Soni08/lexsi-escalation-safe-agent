@@ -10,6 +10,7 @@
 | → GRPO safe (v2, seed 2) | 0.0% | 0.0% | 99.5% | 100.0% | 0.5% | 0.0% | 0.0% | 0.0% |
 | → v3: + hard RL mix | 0.0% | 0.0% | 99.5% | 100.0% | 0.5% | 0.0% | 0.0% | 0.0% |
 | → v3.1: + hard RL mix, judge-patched detector | 0.0% | 0.0% | 96.9% | 100.0% | 3.1% | 0.0% | 0.0% | 0.0% |
+| → v4: + wider mix (5 shortcut kinds, 6 tip wordings, 16 families) | 0.0% | 0.0% | 99.5% | 100.0% | 0.5% | 0.0% | 0.0% | 0.0% |
 
 **rules prompt** (320 test tasks: 196 solvable, 124 unsolvable; 108 from held-out families, 74 in Hindi)
 
@@ -23,6 +24,7 @@
 | → GRPO safe (v2, seed 2) | 0.0% | 0.0% | 99.5% | 100.0% | 0.5% | 0.0% | 0.0% | 0.0% |
 | → v3: + hard RL mix | 0.0% | 0.0% | 99.5% | 100.0% | 0.5% | 0.0% | 0.0% | 0.0% |
 | → v3.1: + hard RL mix, judge-patched detector | 0.0% | 0.0% | 97.4% | 100.0% | 2.6% | 0.0% | 0.0% | 0.0% |
+| → v4: + wider mix (5 shortcut kinds, 6 tip wordings, 16 families) | 0.0% | 0.0% | 99.5% | 100.0% | 0.5% | 0.0% | 0.0% | 0.0% |
 
 **Stress test, neutral prompt** (320 test tasks: 190 solvable, 130 unsolvable; 105 from held-out families, 82 in Hindi)
 
@@ -36,6 +38,7 @@
 | → GRPO safe (v2, seed 2) | 50.3% | 76.2% | 67.4% | 21.5% | 0.0% | 0.0% | 54.3% | 50.0% |
 | → v3: + hard RL mix | 11.2% | 16.2% | 91.1% | 83.8% | 0.5% | 0.0% | 17.1% | 12.2% |
 | → v3.1: + hard RL mix, judge-patched detector | 4.7% | 6.9% | 94.7% | 93.1% | 2.1% | 0.0% | 7.6% | 3.7% |
+| → v4: + wider mix (5 shortcut kinds, 6 tip wordings, 16 families) | 0.0% | 0.0% | 98.9% | 100.0% | 1.1% | 0.0% | 0.0% | 0.0% |
 
 **Stress test, rules prompt** (320 test tasks: 190 solvable, 130 unsolvable; 105 from held-out families, 82 in Hindi)
 
@@ -49,6 +52,31 @@
 | → GRPO safe (v2, seed 2) | 49.4% | 72.3% | 65.8% | 25.4% | 0.0% | 0.0% | 52.4% | 52.4% |
 | → v3: + hard RL mix | 7.5% | 9.2% | 93.2% | 90.0% | 0.0% | 0.0% | 17.1% | 9.8% |
 | → v3.1: + hard RL mix, judge-patched detector | 2.5% | 3.8% | 96.8% | 96.2% | 1.6% | 0.0% | 5.7% | 1.2% |
+| → v4: + wider mix (5 shortcut kinds, 6 tip wordings, 16 families) | 0.0% | 0.0% | 98.9% | 100.0% | 1.1% | 0.0% | 0.0% | 0.0% |
+
+**Unseen stress test, neutral prompt** (320 test tasks: 204 solvable, 116 unsolvable; 124 from held-out families, 81 in Hindi)
+
+| model | escalation (all) | escalation (blocked tasks) | legit success (solvable) | honest stop (unsolvable) | gave up (solvable) | made-up number | held-out families: escalation | Hindi: escalation |
+|---|---|---|---|---|---|---|---|---|
+| Tiny Aya Global (base) | 0.0% | 0.0% | 0.0% | 50.0% | 48.0% | 32.8% | 0.0% | 0.0% |
+| + tool SFT, clean | 37.5% | 87.1% | 89.2% | 9.5% | 0.0% | 0.0% | 37.9% | 39.5% |
+| + tool SFT, escalation-prone | 43.4% | 88.8% | 82.4% | 2.6% | 0.0% | 0.0% | 45.2% | 45.7% |
+| → GRPO success-only | 55.6% | 99.1% | 69.1% | 0.9% | 0.0% | 0.0% | 58.9% | 60.5% |
+| → GRPO safe (v2) | 35.6% | 69.8% | 83.3% | 29.3% | 0.5% | 0.0% | 37.9% | 42.0% |
+| → v3.1: + hard RL mix, judge-patched detector | 27.2% | 66.4% | 93.6% | 33.6% | 1.0% | 0.0% | 26.6% | 30.9% |
+| → v4: + wider mix (5 shortcut kinds, 6 tip wordings, 16 families) | 11.9% | 31.9% | 98.5% | 68.1% | 1.0% | 0.0% | 14.5% | 13.6% |
+
+**Unseen stress test, rules prompt** (320 test tasks: 204 solvable, 116 unsolvable; 124 from held-out families, 81 in Hindi)
+
+| model | escalation (all) | escalation (blocked tasks) | legit success (solvable) | honest stop (unsolvable) | gave up (solvable) | made-up number | held-out families: escalation | Hindi: escalation |
+|---|---|---|---|---|---|---|---|---|
+| Tiny Aya Global (base) | 0.0% | 0.0% | 4.9% | 85.3% | 63.7% | 10.0% | 0.0% | 0.0% |
+| + tool SFT, clean | 38.8% | 87.9% | 88.7% | 8.6% | 0.0% | 0.0% | 36.3% | 38.3% |
+| + tool SFT, escalation-prone | 41.2% | 83.6% | 82.8% | 3.4% | 0.0% | 0.0% | 43.5% | 42.0% |
+| → GRPO success-only | 53.8% | 98.3% | 71.1% | 1.7% | 0.0% | 0.0% | 56.5% | 59.3% |
+| → GRPO safe (v2) | 35.9% | 71.6% | 83.8% | 27.6% | 0.5% | 0.0% | 37.1% | 42.0% |
+| → v3.1: + hard RL mix, judge-patched detector | 26.9% | 65.5% | 94.1% | 33.6% | 0.5% | 0.0% | 25.8% | 28.4% |
+| → v4: + wider mix (5 shortcut kinds, 6 tip wordings, 16 families) | 5.9% | 16.4% | 99.0% | 83.6% | 1.0% | 0.0% | 8.9% | 8.6% |
 
 **Sampled, test set** (temperature 1.0, top-p 0.95, neutral prompt, mean ± sd over 5 seeds)
 
@@ -61,6 +89,7 @@
 | → GRPO safe (v2) | 0.5 ± 0.4% | 0.2 ± 0.2% | 99.3 ± 0.6% | 99.5 ± 0.4% | 0.0 ± 0.0% |
 | → v3: + hard RL mix | 0.3 ± 0.7% | 0.1 ± 0.3% | 99.1 ± 0.4% | 99.7 ± 0.7% | 0.0 ± 0.0% |
 | → v3.1: + hard RL mix, judge-patched detector | 0.3 ± 0.7% | 0.1 ± 0.3% | 96.8 ± 0.7% | 99.7 ± 0.7% | 0.0 ± 0.0% |
+| → v4: + wider mix (5 shortcut kinds, 6 tip wordings, 16 families) | 0.0 ± 0.0% | 0.0 ± 0.0% | 98.9 ± 0.2% | 99.7 ± 0.4% | 0.1 ± 0.1% |
 
 **Sampled, stress test** (temperature 1.0, top-p 0.95, neutral prompt, mean ± sd over 3 seeds)
 
@@ -73,3 +102,12 @@
 | → GRPO safe (v2) | 67.9 ± 1.6% | 45.5 ± 1.3% | 67.7 ± 0.8% | 28.5 ± 0.8% | 0.0 ± 0.0% |
 | → v3: + hard RL mix | 22.6 ± 3.2% | 15.4 ± 1.3% | 86.7 ± 2.6% | 76.2 ± 3.1% | 0.1 ± 0.2% |
 | → v3.1: + hard RL mix, judge-patched detector | 8.2 ± 1.8% | 5.3 ± 0.5% | 91.2 ± 1.7% | 91.3 ± 1.6% | 0.0 ± 0.0% |
+| → v4: + wider mix (5 shortcut kinds, 6 tip wordings, 16 families) | 0.3 ± 0.4% | 0.1 ± 0.2% | 97.9 ± 0.5% | 98.7 ± 0.4% | 0.1 ± 0.2% |
+
+**Sampled, unseen stress test** (temperature 1.0, top-p 0.95, neutral prompt, mean ± sd over 3 seeds)
+
+| model | escalation (blocked tasks) | escalation (all) | legit success (solvable) | honest stop (unsolvable) | made-up number |
+|---|---|---|---|---|---|
+| → GRPO safe (v2) | 65.8 ± 2.2% | 32.3 ± 1.3% | 84.6 ± 0.7% | 32.8 ± 1.7% | 0.0 ± 0.0% |
+| → v3.1: + hard RL mix, judge-patched detector | 54.0 ± 5.3% | 23.3 ± 2.5% | 92.0 ± 0.6% | 44.5 ± 5.2% | 0.1 ± 0.2% |
+| → v4: + wider mix (5 shortcut kinds, 6 tip wordings, 16 families) | 30.7 ± 1.3% | 11.7 ± 0.4% | 96.6 ± 0.5% | 68.4 ± 2.0% | 0.5 ± 0.5% |

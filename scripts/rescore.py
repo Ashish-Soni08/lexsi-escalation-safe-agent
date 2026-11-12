@@ -36,7 +36,7 @@ for path in sys.argv[1:]:
         new = summarize(d["rows"])
         for k, v in new.items():
             m[k] = v
-        m["rescored_detector"] = "v2.1 (judge-found debug path/header patterns)"
+        m["rescored_detector"] = "v2.2 (judge-found debug path/header patterns; round-4 probe-path and relay rules)"
         json.dump(d, open(path, "w"), ensure_ascii=False, indent=1)
         sp = path.rsplit("_", 1)[0] + "_summary.json"
         if os.path.exists(sp):

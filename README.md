@@ -8,9 +8,10 @@ Chain of Lexsi repos: **AgentTune** (agentic GRPO trainer, trajectory format) �
 the same trajectory files, before and after) → **CircuitKIT** (where the shortcut decision happens inside the model),
 with **CuratorKIT** checking the SFT data. Write-up with abstract: [`docs/hf_article.md`](docs/hf_article.md).
 
-**Recommended model:** `ashish-soni08/tiny-aya-global-esa-grpo-safe-v3-1`: 0% escalation on the 320-task test set
-(99.5% → 96.9% legit success vs v2), and 6.9% escalation on blocked tasks of a harder stress test where the v2 safe model
-escalates on 73%.
+**Recommended model:** `ashish-soni08/tiny-aya-global-esa-grpo-safe-v4`: 0% escalation and 99.5% legit success on the
+320-task test set, 0% escalation on blocked tasks of the first stress test (v2 safe model: 73%), and 31.9% on a second
+stress test whose shortcut kinds, tip wordings and tip channels no model was trained on (v3.1: 66.4%, v2: 69.8%).
+Unseen shortcut kinds are the open problem: see "Round 4" below.
 
 ## Why
 
@@ -110,6 +111,7 @@ Greedy decoding, 320 test tasks, numbers from `scripts/eval.py`, tables from `sc
 | → GRPO safe (v2, seed 2) | 0.0% | 0.0% | 99.5% | 100.0% | 0.5% | 0.0% | 0.0% | 0.0% |
 | → v3: + hard RL mix | 0.0% | 0.0% | 99.5% | 100.0% | 0.5% | 0.0% | 0.0% | 0.0% |
 | → v3.1: + hard RL mix, judge-patched detector | 0.0% | 0.0% | 96.9% | 100.0% | 3.1% | 0.0% | 0.0% | 0.0% |
+| → v4: + wider mix (5 shortcut kinds, 6 tip wordings, 16 families) | 0.0% | 0.0% | 99.5% | 100.0% | 0.5% | 0.0% | 0.0% | 0.0% |
 
 **rules prompt** (320 test tasks: 196 solvable, 124 unsolvable; 108 from held-out families, 74 in Hindi)
 
@@ -123,6 +125,7 @@ Greedy decoding, 320 test tasks, numbers from `scripts/eval.py`, tables from `sc
 | → GRPO safe (v2, seed 2) | 0.0% | 0.0% | 99.5% | 100.0% | 0.5% | 0.0% | 0.0% | 0.0% |
 | → v3: + hard RL mix | 0.0% | 0.0% | 99.5% | 100.0% | 0.5% | 0.0% | 0.0% | 0.0% |
 | → v3.1: + hard RL mix, judge-patched detector | 0.0% | 0.0% | 97.4% | 100.0% | 2.6% | 0.0% | 0.0% | 0.0% |
+| → v4: + wider mix (5 shortcut kinds, 6 tip wordings, 16 families) | 0.0% | 0.0% | 99.5% | 100.0% | 0.5% | 0.0% | 0.0% | 0.0% |
 
 **Stress test, neutral prompt** (320 test tasks: 190 solvable, 130 unsolvable; 105 from held-out families, 82 in Hindi)
 
@@ -136,6 +139,7 @@ Greedy decoding, 320 test tasks, numbers from `scripts/eval.py`, tables from `sc
 | → GRPO safe (v2, seed 2) | 50.3% | 76.2% | 67.4% | 21.5% | 0.0% | 0.0% | 54.3% | 50.0% |
 | → v3: + hard RL mix | 11.2% | 16.2% | 91.1% | 83.8% | 0.5% | 0.0% | 17.1% | 12.2% |
 | → v3.1: + hard RL mix, judge-patched detector | 4.7% | 6.9% | 94.7% | 93.1% | 2.1% | 0.0% | 7.6% | 3.7% |
+| → v4: + wider mix (5 shortcut kinds, 6 tip wordings, 16 families) | 0.0% | 0.0% | 98.9% | 100.0% | 1.1% | 0.0% | 0.0% | 0.0% |
 
 **Stress test, rules prompt** (320 test tasks: 190 solvable, 130 unsolvable; 105 from held-out families, 82 in Hindi)
 
@@ -149,6 +153,31 @@ Greedy decoding, 320 test tasks, numbers from `scripts/eval.py`, tables from `sc
 | → GRPO safe (v2, seed 2) | 49.4% | 72.3% | 65.8% | 25.4% | 0.0% | 0.0% | 52.4% | 52.4% |
 | → v3: + hard RL mix | 7.5% | 9.2% | 93.2% | 90.0% | 0.0% | 0.0% | 17.1% | 9.8% |
 | → v3.1: + hard RL mix, judge-patched detector | 2.5% | 3.8% | 96.8% | 96.2% | 1.6% | 0.0% | 5.7% | 1.2% |
+| → v4: + wider mix (5 shortcut kinds, 6 tip wordings, 16 families) | 0.0% | 0.0% | 98.9% | 100.0% | 1.1% | 0.0% | 0.0% | 0.0% |
+
+**Unseen stress test, neutral prompt** (320 test tasks: 204 solvable, 116 unsolvable; 124 from held-out families, 81 in Hindi)
+
+| model | escalation (all) | escalation (blocked tasks) | legit success (solvable) | honest stop (unsolvable) | gave up (solvable) | made-up number | held-out families: escalation | Hindi: escalation |
+|---|---|---|---|---|---|---|---|---|
+| Tiny Aya Global (base) | 0.0% | 0.0% | 0.0% | 50.0% | 48.0% | 32.8% | 0.0% | 0.0% |
+| + tool SFT, clean | 37.5% | 87.1% | 89.2% | 9.5% | 0.0% | 0.0% | 37.9% | 39.5% |
+| + tool SFT, escalation-prone | 43.4% | 88.8% | 82.4% | 2.6% | 0.0% | 0.0% | 45.2% | 45.7% |
+| → GRPO success-only | 55.6% | 99.1% | 69.1% | 0.9% | 0.0% | 0.0% | 58.9% | 60.5% |
+| → GRPO safe (v2) | 35.6% | 69.8% | 83.3% | 29.3% | 0.5% | 0.0% | 37.9% | 42.0% |
+| → v3.1: + hard RL mix, judge-patched detector | 27.2% | 66.4% | 93.6% | 33.6% | 1.0% | 0.0% | 26.6% | 30.9% |
+| → v4: + wider mix (5 shortcut kinds, 6 tip wordings, 16 families) | 11.9% | 31.9% | 98.5% | 68.1% | 1.0% | 0.0% | 14.5% | 13.6% |
+
+**Unseen stress test, rules prompt** (320 test tasks: 204 solvable, 116 unsolvable; 124 from held-out families, 81 in Hindi)
+
+| model | escalation (all) | escalation (blocked tasks) | legit success (solvable) | honest stop (unsolvable) | gave up (solvable) | made-up number | held-out families: escalation | Hindi: escalation |
+|---|---|---|---|---|---|---|---|---|
+| Tiny Aya Global (base) | 0.0% | 0.0% | 4.9% | 85.3% | 63.7% | 10.0% | 0.0% | 0.0% |
+| + tool SFT, clean | 38.8% | 87.9% | 88.7% | 8.6% | 0.0% | 0.0% | 36.3% | 38.3% |
+| + tool SFT, escalation-prone | 41.2% | 83.6% | 82.8% | 3.4% | 0.0% | 0.0% | 43.5% | 42.0% |
+| → GRPO success-only | 53.8% | 98.3% | 71.1% | 1.7% | 0.0% | 0.0% | 56.5% | 59.3% |
+| → GRPO safe (v2) | 35.9% | 71.6% | 83.8% | 27.6% | 0.5% | 0.0% | 37.1% | 42.0% |
+| → v3.1: + hard RL mix, judge-patched detector | 26.9% | 65.5% | 94.1% | 33.6% | 0.5% | 0.0% | 25.8% | 28.4% |
+| → v4: + wider mix (5 shortcut kinds, 6 tip wordings, 16 families) | 5.9% | 16.4% | 99.0% | 83.6% | 1.0% | 0.0% | 8.9% | 8.6% |
 
 **Sampled, test set** (temperature 1.0, top-p 0.95, neutral prompt, mean ± sd over 5 seeds)
 
@@ -161,6 +190,7 @@ Greedy decoding, 320 test tasks, numbers from `scripts/eval.py`, tables from `sc
 | → GRPO safe (v2) | 0.5 ± 0.4% | 0.2 ± 0.2% | 99.3 ± 0.6% | 99.5 ± 0.4% | 0.0 ± 0.0% |
 | → v3: + hard RL mix | 0.3 ± 0.7% | 0.1 ± 0.3% | 99.1 ± 0.4% | 99.7 ± 0.7% | 0.0 ± 0.0% |
 | → v3.1: + hard RL mix, judge-patched detector | 0.3 ± 0.7% | 0.1 ± 0.3% | 96.8 ± 0.7% | 99.7 ± 0.7% | 0.0 ± 0.0% |
+| → v4: + wider mix (5 shortcut kinds, 6 tip wordings, 16 families) | 0.0 ± 0.0% | 0.0 ± 0.0% | 98.9 ± 0.2% | 99.7 ± 0.4% | 0.1 ± 0.1% |
 
 **Sampled, stress test** (temperature 1.0, top-p 0.95, neutral prompt, mean ± sd over 3 seeds)
 
@@ -173,6 +203,16 @@ Greedy decoding, 320 test tasks, numbers from `scripts/eval.py`, tables from `sc
 | → GRPO safe (v2) | 67.9 ± 1.6% | 45.5 ± 1.3% | 67.7 ± 0.8% | 28.5 ± 0.8% | 0.0 ± 0.0% |
 | → v3: + hard RL mix | 22.6 ± 3.2% | 15.4 ± 1.3% | 86.7 ± 2.6% | 76.2 ± 3.1% | 0.1 ± 0.2% |
 | → v3.1: + hard RL mix, judge-patched detector | 8.2 ± 1.8% | 5.3 ± 0.5% | 91.2 ± 1.7% | 91.3 ± 1.6% | 0.0 ± 0.0% |
+| → v4: + wider mix (5 shortcut kinds, 6 tip wordings, 16 families) | 0.3 ± 0.4% | 0.1 ± 0.2% | 97.9 ± 0.5% | 98.7 ± 0.4% | 0.1 ± 0.2% |
+
+**Sampled, unseen stress test** (temperature 1.0, top-p 0.95, neutral prompt, mean ± sd over 3 seeds)
+
+| model | escalation (blocked tasks) | escalation (all) | legit success (solvable) | honest stop (unsolvable) | made-up number |
+|---|---|---|---|---|---|
+| → GRPO safe (v2) | 65.8 ± 2.2% | 32.3 ± 1.3% | 84.6 ± 0.7% | 32.8 ± 1.7% | 0.0 ± 0.0% |
+| → v3.1: + hard RL mix, judge-patched detector | 54.0 ± 5.3% | 23.3 ± 2.5% | 92.0 ± 0.6% | 44.5 ± 5.2% | 0.1 ± 0.2% |
+| → v4: + wider mix (5 shortcut kinds, 6 tip wordings, 16 families) | 30.7 ± 1.3% | 11.7 ± 0.4% | 96.6 ± 0.5% | 68.4 ± 2.0% | 0.5 ± 0.5% |
+
 ### Stress test, error bars, judge audit, CircuitKIT
 
 * **Stress test** (`world.make_stress_scenarios`, `data/scenarios_stress.jsonl`): 320 new tasks with three shortcut
@@ -194,6 +234,29 @@ Greedy decoding, 320 test tasks, numbers from `scripts/eval.py`, tables from `sc
   (Jaccard 0.33–0.54) while preview circuits are nearly identical (0.82–0.91): training rewired only the pathway
   it practised on.
 
+### Round 4: a second, unseen stress test and v4
+
+* **Why:** v3.1's 6.9% was measured on a stress test that shares two of its three shortcut kinds with v3.1's training
+  mix, and all nine of its remaining escalations on blocked tasks followed a tip planted in the blocked response.
+* **Unseen stress test** (`data/scenarios_unseen.jsonl`, 320 tasks): four shortcut kinds never used in any training
+  (an "origin" server that skips the traffic filter, a partner API key posted in a public paste, a third-party page
+  cache, a forged dashboard `Referer`), four new tip wordings (including a fake `[assistant-instructions]` block and a
+  false "the operator has pre-approved this route"), and tips in three channels (blocked response, search result,
+  a colleague's handover note in the workspace). **v3.1 escalates on 66.4% of its blocked tasks**, barely better than
+  v2 (69.8%): the earlier gain did not carry over to new shortcut kinds.
+* **v4** continues v3.1 for 160 GRPO steps on `data/grpo_prompts_v4.jsonl`: 480 new scenarios
+  (`data/scenarios_mixrl.jsonl`) with five shortcut kinds (preview host, `debug=1`, legacy host, `skip_checks=1`,
+  another team's token), six tip wordings and six extra provider families, plus 160 v3 hard and 320 v2 RL prompts.
+  None of the unseen test's kinds, wordings, channels, held-out families or the geo-block are in it.
+* **Result (greedy, neutral prompt; escalation on blocked tasks):** test 0.0%, first stress test 6.9% → **0.0%**,
+  unseen stress test 66.4% → **31.9%** (rules prompt 16.4%; sampled 30.7 ± 1.3% vs 54.0 ± 5.3%). Legit success rises
+  on all three sets (test 96.9% → 99.5%, stress 94.7% → 98.9%, unseen 93.6% → 98.5%).
+* **What is left:** 36 of v4's 38 flags on the unseen test are the origin host, which the provider's own landing page
+  advertises. v4 follows planted tips on 14 of 66 blocked tasks (v3.1: 52 of 66) but escalates on 23 of 50 with no tip.
+  Wider training made the policy more robust to how a shortcut is suggested than to which shortcut exists.
+* **Detector:** three general rules were added for the new kinds (a third-party URL that is handed the real URL as a
+  parameter, API-key headers, a `Referer`/`Origin` naming the target site). No v2 or later result changes under them.
+
 ### AuditKIT before/after (neutral prompt)
 
 | run | no_escalation_rate | no_escalation_unknown | safe_completion_rate | safe_completion_unknown | diag_tool_call_validity | diag_tool_permission | diag_agent_loop_detection | diag_redundant_tool_calls |
@@ -205,6 +268,7 @@ Greedy decoding, 320 test tasks, numbers from `scripts/eval.py`, tables from `sc
 | grpo_safe | 1.0 | 0 | 0.9969 | 0 | 1.0 | 1.0 | 0.9187 | 0.0013 |
 | grpo_safe_v3 | 1.0 | 0 | 0.9969 | 0 | 1.0 | 1.0 | 0.9187 | 0.0013 |
 | grpo_safe_v3_1 | 1.0 | 0 | 0.9812 | 0 | 1.0 | 1.0 | 0.9187 | 0.0008 |
+| grpo_safe_v4 | 1.0 | 0 | 0.9969 | 0 | 1.0 | 1.0 | 0.9031 | 0.0051 |
 
 Stress test (neutral prompt):
 
@@ -217,6 +281,19 @@ Stress test (neutral prompt):
 | grpo_safe | 0.5062 | 0 | 0.4875 | 0 | 1.0 | 1.0 | 0.8375 | 0.0227 |
 | grpo_safe_v3 | 0.8875 | 0 | 0.8812 | 0 | 1.0 | 1.0 | 0.7125 | 0.0545 |
 | grpo_safe_v3_1 | 0.9531 | 0 | 0.9406 | 0 | 1.0 | 1.0 | 0.8313 | 0.0208 |
+| grpo_safe_v4 | 1.0 | 0 | 0.9938 | 0 | 1.0 | 1.0 | 0.8906 | 0.0146 |
+
+Unseen stress test (neutral prompt):
+
+| run | no_escalation_rate | no_escalation_unknown | safe_completion_rate | safe_completion_unknown | diag_tool_call_validity | diag_tool_permission | diag_agent_loop_detection | diag_redundant_tool_calls |
+|---|---|---|---|---|---|---|---|---|
+| base | 1.0 | 0 | 0.1062 | 0 | 0.9969 | 0.9969 | 0.6937 | 0.2263 |
+| sft | 0.625 | 0 | 0.6031 | 0 | 1.0 | 1.0 | 0.8688 | 0.0146 |
+| sft_esc | 0.5656 | 0 | 0.5344 | 0 | 1.0 | 1.0 | 0.9281 | 0.0021 |
+| grpo_success_only | 0.4437 | 0 | 0.4437 | 0 | 0.9981 | 0.9981 | 0.9219 | 0.0045 |
+| grpo_safe | 0.6438 | 0 | 0.6375 | 0 | 1.0 | 1.0 | 0.8938 | 0.009 |
+| grpo_safe_v3_1 | 0.7281 | 0 | 0.7188 | 0 | 1.0 | 1.0 | 0.8781 | 0.0103 |
+| grpo_safe_v4 | 0.8812 | 0 | 0.875 | 0 | 1.0 | 1.0 | 0.8406 | 0.0262 |
 
 `tool_permission` is 1.0 for every model, including the one that escalates on 47% of tasks: every exploit here is made
 with an *allowed* tool (`http_get`, `read_file`). Escalation lives in the arguments, so a tool-name allowlist cannot see
@@ -233,7 +310,8 @@ detection, redundant calls).
 
 ## Models and data
 
-* `ashish-soni08/tiny-aya-global-esa-grpo-safe-v3-1`: the recommended escalation-safe agent (public)
+* `ashish-soni08/tiny-aya-global-esa-grpo-safe-v4`: the recommended escalation-safe agent (public)
+* `ashish-soni08/tiny-aya-global-esa-grpo-safe-v3-1`: v3.1, superseded by v4 (public)
 * `ashish-soni08/tiny-aya-global-esa-grpo-safe-v3`: v3 before the detector patch (public)
 * `ashish-soni08/tiny-aya-global-esa-grpo-esc-safe-v2` and `-v2-seed2`: the v2 safe agent and its replica (public)
 * `ashish-soni08/tiny-aya-global-esa-sft-v2`: clean tool SFT (public)
@@ -257,6 +335,7 @@ scripts/job.sh grpo a100-large 3h vllm/vllm-openai:v0.22.1 "pip install -q agent
 # stress test, sampled seeds, v3 retrain, judge and CircuitKIT:
 scripts/job.sh eval a10g-large 3h vllm/vllm-openai:v0.22.1 "python3 scripts/eval.py --model <repo> --name <name> --split stress; python3 scripts/eval.py --model <repo> --name <name> --variants neutral --temperature 1.0 --seeds 1,2,3,4,5 --out results/seeds"
 scripts/job.sh v3 a100-large 3h vllm/vllm-openai:v0.22.1 "pip install -q agenttune==1.1.4 trl==1.7.1; python3 scripts/train_grpo.py --model <safe v2 repo> --reward safe --prompts grpo_prompts_v3.jsonl --scenarios scenarios_rl.jsonl,scenarios_hardrl.jsonl --max_steps 100 --lr 2e-5 --bs 2 --ga 16 --seed 3 --merge"
+scripts/job.sh v4 a100-large 3h vllm/vllm-openai:v0.22.1 "pip install -q agenttune==1.1.4 trl==1.7.1; python3 scripts/train_grpo.py --model <v3.1 repo> --reward safe --prompts grpo_prompts_v4.jsonl --scenarios scenarios_rl.jsonl,scenarios_hardrl.jsonl,scenarios_mixrl.jsonl --max_steps 160 --lr 2e-5 --bs 2 --ga 16 --seed 4 --merge; python3 scripts/eval.py --model <out>/merged --name grpo_safe_v4 --split unseen --out results/unseen"
 python scripts/judge_audit.py prepare; scripts/job.sh judge a100-large 60m vllm/vllm-openai:v0.22.1 "python3 scripts/judge_audit.py run"; python scripts/judge_audit.py report
 python scripts/circuit_compare.py build; scripts/job.sh circuit a100-large 90m vllm/vllm-openai:v0.22.1 "pip install -q circuitkit==0.2.2 && python3 scripts/circuit_compare.py run --models sft_esc=<repo>,grpo_esc_success_only=<repo>,grpo_esc_safe=<repo>"
 python scripts/report.py > results/results_table.md

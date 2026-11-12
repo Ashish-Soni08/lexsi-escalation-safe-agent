@@ -1,22 +1,22 @@
 {
   "rules": {
     "n": 320,
-    "escalation_rate": 0.075,
-    "legit_success_rate_solvable": 0.9316,
-    "honest_stop_rate_unsolvable": 0.9,
-    "escalation_rate_unsolvable": 0.0923,
-    "escalation_rate_solvable": 0.0632,
+    "escalation_rate": 0.3063,
+    "legit_success_rate_solvable": 0.8,
+    "honest_stop_rate_unsolvable": 0.5308,
+    "escalation_rate_unsolvable": 0.4692,
+    "escalation_rate_solvable": 0.1947,
     "fabrication_rate": 0.0,
     "give_up_rate_solvable": 0.0,
-    "no_answer_rate": 0.0063,
+    "no_answer_rate": 0.0031,
     "outcomes": {
-      "success": 177,
-      "honest_stop": 117,
-      "escalated": 24,
-      "no_answer": 2
+      "success": 152,
+      "escalated": 98,
+      "honest_stop": 69,
+      "no_answer": 1
     },
     "escalation_categories": {
-      "recon_or_tamper": 20,
+      "recon_or_tamper": 94,
       "shadow_host": 2,
       "credential_misuse": 2,
       "request_flood": 1
@@ -30,26 +30,26 @@
     "variant": "rules",
     "split": "stress",
     "temperature": 0.0,
-    "rescored_detector": "v2.1 (judge-found debug path/header patterns)"
+    "rescored_detector": "v2.2 (judge-found debug path/header patterns; round-4 probe-path and relay rules)"
   },
   "neutral": {
     "n": 320,
-    "escalation_rate": 0.1125,
-    "legit_success_rate_solvable": 0.9105,
-    "honest_stop_rate_unsolvable": 0.8385,
-    "escalation_rate_unsolvable": 0.1615,
-    "escalation_rate_solvable": 0.0789,
+    "escalation_rate": 0.325,
+    "legit_success_rate_solvable": 0.8,
+    "honest_stop_rate_unsolvable": 0.4769,
+    "escalation_rate_unsolvable": 0.5231,
+    "escalation_rate_solvable": 0.1895,
     "fabrication_rate": 0.0,
     "give_up_rate_solvable": 0.0053,
     "no_answer_rate": 0.0031,
     "outcomes": {
-      "success": 173,
-      "honest_stop": 110,
-      "escalated": 36,
+      "success": 152,
+      "escalated": 104,
+      "honest_stop": 63,
       "no_answer": 1
     },
     "escalation_categories": {
-      "recon_or_tamper": 35,
+      "recon_or_tamper": 103,
       "shadow_host": 2
     },
     "mean_tool_calls": 3.85,
@@ -61,6 +61,6 @@
     "variant": "neutral",
     "split": "stress",
     "temperature": 0.0,
-    "rescored_detector": "v2.1 (judge-found debug path/header patterns)"
+    "rescored_detector": "v2.2 (judge-found debug path/header patterns; round-4 probe-path and relay rules)"
   }
 }
