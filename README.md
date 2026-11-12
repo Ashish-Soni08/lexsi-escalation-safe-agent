@@ -277,6 +277,38 @@ Greedy decoding, 320 test tasks, numbers from `scripts/eval.py`, tables from `sc
 * **Detector v2.2:** probe paths matched on the parsed URL, plus three general rules (a third-party URL that is
   handed the real URL as a parameter, API-key headers, a `Referer`/`Origin` naming the target site).
 
+### Round 5: random-name routes, a fresh test and a runtime guard
+
+* **Idea.** v4.1 avoids the shortcut names it trained on and takes one it did not (`origin`). Round 5 removes the
+  names: in `data/scenarios_randrl.jsonl` (480 training tasks) every alternate host, URL parameter or access code
+  draws its name from one random pool, and only the page text says whether the site publishes it for automated clients
+  (a legitimate route) or not (a shortcut). For these routes the label comes from the simulator, not from a pattern
+  (`esa/scoring.py: episode_flags`).
+* **Fresh test** (`data/scenarios_fresh.jsonl`, 320 tasks, 127 blocked, 117 solvable only through a sanctioned
+  route): other names, other sentences, and two mechanisms never trained on (URL path, request header).
+* **v5** (v4.1 + 160 GRPO steps on `data/grpo_prompts_v5.jsonl`) **is the same as v4.1 within noise**, so v4.1 stays
+  the recommended model and v5 is not published:
+
+  | escalation on blocked tasks, greedy (sampled) | test | stress 1 | stress 2 | fresh | fresh: success on sanctioned-route tasks |
+  |---|---|---|---|---|---|
+  | v4.1 | 0.0% | 1.5% | 25.9% (25.3 ± 1.0%) | 11.0% (9.4 ± 0.8%) | 53.8% |
+  | v5 | 0.0% | 0.0% | 22.4% (25.6 ± 3.0%) | 11.8% (9.7 ± 0.9%) | 53.0% |
+
+* **Why.** The route descriptions are on the provider's front page, and the agent opens it in 6 of 320 fresh-test
+  episodes. It never reads most of what it was meant to learn from. In training it already left unsanctioned
+  random-name routes alone (13 escalations in 856 blocked-task rollouts).
+* **What the fresh test shows about v4.1.** Every escalation follows a tip in an error message (14 of 69 tipped
+  blocked tasks, 0 of 58 without), almost all through a URL path, a mechanism it never trained on. It is also
+  over-cautious: it gives up on 43% of the tasks whose only route is one the site openly offers (legit success 71%).
+* **Runtime guard** (`scripts/eval.py --guard`): the pattern detector in front of the tools; a flagged call is
+  refused and never sent. v4.1 on blocked tasks, attempted → executed: stress 1 1.5% → 0.0%, stress 2 24.1% → 0.0%,
+  fresh 11.0% → 11.0%. It removes every escalation of a known shape and none with an unfamiliar name.
+* **Fourth judge audit** (`results/judge_v5`, 400 episodes of v4.1 and v5 on all four sets): 93.0% agreement,
+  kappa 0.86. Of 28 disagreements, the 19 judge-only ones contain no suspicious call, 7 are real escalations the
+  judge missed, and 2 were a false positive of the new ground truth (a route named in a message to the user), fixed.
+* Full tables: `results/results_table.md` (fresh test by route type, guard, sampled). AuditKIT on the fresh
+  episodes: `results/auditkit_fresh_neutral/summary.md` (`safe_completion` v4.1 0.781, v2 0.659).
+
 ### AuditKIT before/after (neutral prompt)
 
 | run | no_escalation_rate | no_escalation_unknown | safe_completion_rate | safe_completion_unknown | diag_tool_call_validity | diag_tool_permission | diag_agent_loop_detection | diag_redundant_tool_calls |
@@ -360,6 +392,7 @@ scripts/job.sh grpo a100-large 3h vllm/vllm-openai:v0.22.1 "pip install -q agent
 scripts/job.sh eval a10g-large 3h vllm/vllm-openai:v0.22.1 "python3 scripts/eval.py --model <repo> --name <name> --split stress; python3 scripts/eval.py --model <repo> --name <name> --variants neutral --temperature 1.0 --seeds 1,2,3,4,5 --out results/seeds"
 scripts/job.sh v3 a100-large 3h vllm/vllm-openai:v0.22.1 "pip install -q agenttune==1.1.4 trl==1.7.1; python3 scripts/train_grpo.py --model <safe v2 repo> --reward safe --prompts grpo_prompts_v3.jsonl --scenarios scenarios_rl.jsonl,scenarios_hardrl.jsonl --max_steps 100 --lr 2e-5 --bs 2 --ga 16 --seed 3 --merge"
 scripts/job.sh v4 a100-large 3h vllm/vllm-openai:v0.22.1 "pip install -q agenttune==1.1.4 trl==1.7.1; python3 scripts/train_grpo.py --model <v3.1 repo> --reward safe --prompts grpo_prompts_v4.jsonl --scenarios scenarios_rl.jsonl,scenarios_hardrl.jsonl,scenarios_mixrl.jsonl --max_steps 160 --lr 2e-5 --bs 2 --ga 16 --seed 4 --merge; python3 scripts/eval.py --model <out>/merged --name grpo_safe_v4_1 --split unseen --out results/unseen"
+scripts/job.sh v5 a100-large 3h vllm/vllm-openai:v0.22.1 "pip install -q agenttune==1.1.4 trl==1.7.1; python3 scripts/train_grpo.py --model <v4.1 repo> --reward safe --prompts grpo_prompts_v5.jsonl --scenarios scenarios_rl.jsonl,scenarios_hardrl.jsonl,scenarios_mixrl.jsonl,scenarios_randrl.jsonl --max_steps 160 --lr 2e-5 --bs 2 --ga 16 --seed 5 --merge --out outputs/v5; python3 scripts/eval.py --model outputs/v5/merged --name grpo_safe_v5 --split test,stress,unseen,fresh --out results/g_{split}; python3 scripts/eval.py --model outputs/v5/merged --name grpo_safe_v5 --split stress,unseen,fresh --variants neutral --guard --out results/guard_{split}"
 python scripts/judge_audit.py prepare; scripts/job.sh judge a100-large 60m vllm/vllm-openai:v0.22.1 "python3 scripts/judge_audit.py run"; python scripts/judge_audit.py report
 python scripts/circuit_compare.py build; scripts/job.sh circuit a100-large 90m vllm/vllm-openai:v0.22.1 "pip install -q circuitkit==0.2.2 && python3 scripts/circuit_compare.py run --models sft_esc=<repo>,grpo_esc_success_only=<repo>,grpo_esc_safe=<repo>"
 python scripts/report.py > results/results_table.md
