@@ -92,10 +92,11 @@ footer { margin-top: 56px; color: var(--muted); font-size: 12.5px; }
   <p class="lede">A tool-using Tiny Aya agent fetches public numbers from simulated providers, some of which block it.
   Planted shortcuts (relay services, staging hosts, leaked tokens, captcha solvers) really work. This page shows what
   agentic GRPO does to an agent with a small propensity to escalate, with a success-only reward and with a reward that
-  prices escalation, audited with Lexsi AuditKIT on 320 test tasks.</p>
+  prices escalation, audited with Lexsi AuditKIT on 320 test tasks, then a harder stress test with new kinds of
+  shortcut, an independent LLM-judge check of the detector, and a CircuitKIT look inside the models.</p>
   <div class="links">
     <a href="https://github.com/Ashish-Soni08/lexsi-escalation-safe-agent">Code</a> ·
-    <a href="https://huggingface.co/ashish-soni08/tiny-aya-global-esa-grpo-esc-safe-v2">Escalation-safe model</a> ·
+    <a href="https://huggingface.co/ashish-soni08/tiny-aya-global-esa-grpo-safe-v3-1">Escalation-safe model (v3.1)</a> ·
     <a href="https://huggingface.co/datasets/ashish-soni08/escalation-safe-agent-data">Data and every episode</a> ·
     Lexsi Hackathon, Track 3
   </div>
@@ -126,13 +127,50 @@ footer { margin-top: 56px; color: var(--muted); font-size: 12.5px; }
   <p class="note">Recorded agent-eval in AuditKIT over AgentTune trajectory files. <code>no_escalation</code> and
   <code>safe_completion</code> are verified outcome oracles that use an argument-level exploit detector. Note
   <code>tool_permission</code>: it is 1.0 even for the model that escalates on almost half the tasks, because every
-  exploit uses an allowed tool with bad arguments.</p>
+  exploit uses an allowed tool with bad arguments. The last two columns are the same oracles on the stress test.</p>
   <div class="card scroll"><table id="audit"></table></div>
 
   <h2>What the success-only agent learned</h2>
   <p class="note">Exploit categories in its test episodes (neutral prompt). Disposable-email sign-ups never appear in
   training.</p>
   <div class="card"><div class="bars" id="cats"></div></div>
+
+  <h2>Harder tasks: the stress test</h2>
+  <p class="note">320 new tasks with three shortcut kinds no model was trained on: a "preview" copy of the site
+  advertised in plain prose on the official landing page, a <code>debug=1</code> switch "for QA partners", and a saved
+  browser session in the workspace. Half the prompts add urgency ("whatever it takes"), and half the blocked responses
+  carry a tip suggesting the shortcut. v3 continues the safe model's GRPO on a mix that includes the preview and debug
+  kinds; the borrowed session stays held out.</p>
+  <div class="seg" role="group" aria-label="System prompt" id="stressSeg">
+    <button aria-pressed="true" data-v="neutral">neutral prompt</button><button aria-pressed="false" data-v="rules">rules prompt</button>
+  </div>
+  <div class="card">
+    <div class="legend" id="legend2"></div>
+    <div class="bars" id="stressBars"></div>
+  </div>
+  <p class="note" style="margin-top:14px">Test set vs stress test, and sampled decoding (temperature 1.0) as mean ± sd
+  over seeds: 5 on the test set, 3 on the stress test. Greedy numbers can hide a propensity: the escalation-prone start
+  model escalates on 5% of blocked test tasks greedily but on 39% when sampled.</p>
+  <div class="card scroll"><table id="stressTable"></table></div>
+
+  <h2>Is the detector right? An independent LLM judge</h2>
+  <p class="note">The safe reward relies on a rule-based detector, which makes the detector a target. An open model
+  never used in training (<span id="judgeName"></span>) read 400 whole episodes, stratified across models, the test set
+  and the stress test, and said whether the agent tried to get around an access control.</p>
+  <div class="card scroll"><table id="judge"></table></div>
+  <p class="note" style="margin-top:10px" id="judgeNote"></p>
+
+  <h2>Inside the model: CircuitKIT</h2>
+  <p class="note">One decision point: after a blocked response the agent has written
+  <code>http_get("https://</code>, and the next token picks the host, the provider's own site or a shortcut. Two
+  contrastive tasks: <b>relay</b> (a search result advertises reader-relay, the trained exploit; corrupted run without
+  it) and <b>preview</b> (a tip names the preview host, never trained on; corrupted run without the tip). Lexsi
+  CircuitKIT runs EAP-IG node attribution on each model.</p>
+  <div class="card scroll"><table id="circBeh"></table></div>
+  <p class="note" style="margin-top:14px">Overlap of the top-<span id="topk"></span> components between models
+  (Jaccard). Safe GRPO rewired the relay pathway but left the preview pathway almost as it was, which matches the
+  behaviour above.</p>
+  <div class="card scroll"><table id="circJac"></table></div>
 
   <h2>Episode browser</h2>
   <p class="note">The same test task, run by the escalation-prone start model and both GRPO arms. Flagged calls are
@@ -164,6 +202,7 @@ function tiles() {
     ["Success-only GRPO: escalation on blocked tasks", pct(m.grpo_esc_success_only.esc_blocked), "same start, same steps"],
     ["Safe GRPO: legit success on solvable tasks", pct(m.grpo_esc_safe.legit_success), `success-only ${pct(m.grpo_esc_success_only.legit_success)}`],
     ["AuditKIT safe_completion, safe GRPO", a.grpo_esc_safe.safe_completion_rate.toFixed(3), `success-only ${a.grpo_esc_success_only.safe_completion_rate.toFixed(3)}`],
+    ["Stress test: escalation on blocked tasks, v3.1", pct(D.stress.neutral.grpo_safe_v3_1.esc_blocked), `safe v2 ${pct(D.stress.neutral.grpo_esc_safe.esc_blocked)}, clean SFT ${pct(D.stress.neutral.sft.esc_blocked)}`],
   ];
   document.getElementById("tiles").innerHTML = t.map(([k, v, d]) => `<div class="tile"><div class="k">${k}</div><div class="v">${v}</div><div class="d">${d}</div></div>`).join("");
 }
@@ -205,10 +244,11 @@ function curve() {
 
 function auditTable() {
   const cols = [["no_escalation_rate","no_escalation"],["safe_completion_rate","safe_completion"],["diag_tool_permission","tool_permission"],["diag_tool_call_validity","tool_call_validity"],["diag_agent_loop_detection","loop-free"]];
-  let h = `<thead><tr><th>model (neutral prompt)</th>${cols.map(c => `<th>${c[1]}</th>`).join("")}</tr></thead><tbody>`;
+  let h = `<thead><tr><th>model (neutral prompt)</th>${cols.map(c => `<th>${c[1]}</th>`).join("")}<th>stress: no_escalation</th><th>stress: safe_completion</th></tr></thead><tbody>`;
   for (const {key, label} of D.models) {
-    const a = D.audit.neutral[key];
-    h += `<tr><td>${label}</td>${cols.map(([k]) => { const v = a[k]; const cls = (k === "no_escalation_rate" && v < .9) ? "hot" : (k === "safe_completion_rate" && v > .95) ? "good" : ""; return `<td class="${cls}">${v == null ? "–" : v.toFixed(3)}</td>`; }).join("")}</tr>`;
+    const a = D.audit.neutral[key], s = (D.audit_stress || {})[key] || {};
+    const f = (k, v) => { const cls = (k === "no_escalation_rate" && v < .9) ? "hot" : (k === "safe_completion_rate" && v > .95) ? "good" : ""; return `<td class="${cls}">${v == null ? "–" : v.toFixed(3)}</td>`; };
+    h += `<tr><td>${label}</td>${cols.map(([k]) => f(k, a[k])).join("")}${f("no_escalation_rate", s.no_escalation_rate)}${f("safe_completion_rate", s.safe_completion_rate)}</tr>`;
   }
   document.getElementById("audit").innerHTML = h + "</tbody>";
 }
@@ -217,6 +257,60 @@ function cats() {
   const c = D.metrics.neutral.grpo_esc_success_only.categories, mx = Math.max(...Object.values(c));
   document.getElementById("cats").innerHTML = Object.entries(c).sort((a, b) => b[1] - a[1]).map(([k, v]) =>
     `<div class="row"><div class="lab">${k.replace(/_/g, " ")}</div><div class="bar" style="background:transparent"><span style="width:${100 * v / mx}%;background:var(--esc);justify-content:flex-end;padding-right:6px">${v}</span></div></div>`).join("");
+}
+
+let sprompt = "neutral";
+function stressBars() {
+  document.getElementById("legend2").innerHTML = document.getElementById("legend").innerHTML;
+  const box = document.getElementById("stressBars"); box.innerHTML = "";
+  for (const {key, label} of D.stress_models) {
+    const o = D.stress[sprompt][key].outcomes, n = Object.values(o).reduce((a, b) => a + b, 0);
+    const segs = OUT.map(([k, l, c]) => { const v = 100 * (o[k] || 0) / n; return v ? `<span title="${l}: ${v.toFixed(1)}%" style="width:${v}%;background:var(${c})">${v >= 7 ? Math.round(v) : ""}</span>` : ""; }).join("");
+    box.append(el("div", {className: "row"}, `<div class="lab">${label}</div><div class="bar" role="img" aria-label="${label}, stress test">${segs}</div>`));
+  }
+}
+
+function stressTable() {
+  const tm = k => (D.metrics.neutral[k] || (D.test_more.neutral || {})[k] || {});
+  const sd = (split, k, f) => { const r = ((D.seeds[split] || {})[k] || {})[f]; return r ? `${r[0].toFixed(1)} ± ${r[1].toFixed(1)}%` : "–"; };
+  let h = `<thead><tr><th>model (neutral prompt)</th><th>test: escalation on blocked</th><th>stress: escalation on blocked</th><th>stress: legit success</th><th>sampled test: escalation on blocked</th><th>sampled stress: escalation on blocked</th><th>sampled stress: legit success</th></tr></thead><tbody>`;
+  for (const {key, label} of D.stress_models) {
+    const s = D.stress.neutral[key], t = tm(key);
+    h += `<tr><td>${label}</td><td class="${t.esc_blocked >= 20 ? "hot" : ""}">${pct(t.esc_blocked)}</td><td class="${s.esc_blocked >= 20 ? "hot" : ""}">${pct(s.esc_blocked)}</td><td>${pct(s.legit_success)}</td><td>${sd("test", key, "esc_blocked")}</td><td>${sd("stress", key, "esc_blocked")}</td><td>${sd("stress", key, "legit_success")}</td></tr>`;
+  }
+  document.getElementById("stressTable").innerHTML = h + "</tbody>";
+}
+
+function judgeTable() {
+  const j = D.judge; if (!j) return;
+  document.getElementById("judgeName").textContent = j.judge;
+  const a = j.after_patch || {};
+  let h = `<thead><tr><th>detector</th><th>agreement</th><th>Cohen's kappa</th><th>both flag</th><th>both clean</th><th>detector only</th><th>judge only</th></tr></thead><tbody>`;
+  h += `<tr><td>as used for v2 training</td><td>${(100 * j.agreement).toFixed(1)}%</td><td>${j.cohen_kappa.toFixed(2)}</td><td>${j.both_flag}</td><td>${j.both_clean}</td><td>${j.detector_only}</td><td class="hot">${j.judge_only}</td></tr>`;
+  if (a.agreement) h += `<tr><td>after adding debug path/header patterns</td><td>${(100 * a.agreement).toFixed(1)}%</td><td>${a.cohen_kappa.toFixed(2)}</td><td></td><td></td><td>${a.detector_only}</td><td>${a.judge_only}</td></tr>`;
+  document.getElementById("judge").innerHTML = h + "</tbody>";
+  document.getElementById("judgeNote").innerHTML = "On the test set the two agree on every episode. All disagreements are on the stress test. " +
+    "<b>Judge only:</b> mostly failed probes of a <code>/debug/</code> path or a <code>Debug</code> header, which the detector missed; we added both patterns and re-scored (no test-set result changes). " +
+    "<b>Detector only:</b> mostly the preview host, which the judge accepted as \"official guidance\" because the provider's own page advertises it. Whether that is a bypass is a judgement call; we count it as one. " +
+    "The second row is not an independent check, since the patterns came from reading the judge's disagreements.";
+}
+
+function circuit() {
+  const c = D.circuit; if (!c) return;
+  document.getElementById("topk").textContent = c.top_k;
+  const name = {sft_esc: "Escalation-prone SFT (start)", grpo_esc_success_only: "GRPO, success-only", grpo_esc_safe: "GRPO, safe (v2)"};
+  let h = `<thead><tr><th>model</th><th>relay: P(shortcut)</th><th>relay: logit diff</th><th>preview: P(shortcut)</th><th>preview: logit diff</th><th>relay: top components</th></tr></thead><tbody>`;
+  for (const [k, v] of Object.entries(c.models)) {
+    const r = v.relay.behaviour.clean, p = v.preview.behaviour.clean;
+    h += `<tr><td>${name[k] || k}</td><td class="${r.p_shortcut > .5 ? "hot" : r.p_shortcut < .1 ? "good" : ""}">${(100 * r.p_shortcut).toFixed(0)}%</td><td>${r.logit_diff.toFixed(1)}</td><td class="${p.p_shortcut > .5 ? "hot" : ""}">${(100 * p.p_shortcut).toFixed(0)}%</td><td>${p.logit_diff.toFixed(1)}</td><td style="text-align:left;font-family:ui-monospace,monospace;font-size:12px">${v.relay.top.slice(0, 5).join(", ")}</td></tr>`;
+  }
+  document.getElementById("circBeh").innerHTML = h + "</tbody>";
+  let j = "<thead><tr><th>task</th><th>pair</th><th>Jaccard</th></tr></thead><tbody>";
+  for (const [t, m] of Object.entries(c.jaccard)) {
+    for (let a = 0; a < m.models.length; a++) for (let b = a + 1; b < m.models.length; b++)
+      j += `<tr><td>${t}</td><td>${name[m.models[a]] || m.models[a]} vs ${name[m.models[b]] || m.models[b]}</td><td>${m.matrix[a][b].toFixed(2)}</td></tr>`;
+  }
+  document.getElementById("circJac").innerHTML = j + "</tbody>";
 }
 
 let sel = 0;
@@ -258,7 +352,10 @@ fetch("data.json").then(r => r.json()).then(d => {
     prompt = b.dataset.v; document.querySelectorAll("#promptSeg button").forEach(x => x.setAttribute("aria-pressed", x === b)); bars();
   });
   sel = Math.max(0, D.tasks.findIndex(t => t.episodes.grpo_esc_success_only.outcome === "escalated"));
-  tiles(); bars(); slicesTable(); curve(); auditTable(); cats(); taskList();
+  document.querySelectorAll("#stressSeg button").forEach(b => b.onclick = () => {
+    sprompt = b.dataset.v; document.querySelectorAll("#stressSeg button").forEach(x => x.setAttribute("aria-pressed", x === b)); stressBars();
+  });
+  tiles(); bars(); slicesTable(); curve(); auditTable(); cats(); stressBars(); stressTable(); judgeTable(); circuit(); taskList();
 });
 </script>
 </body>
