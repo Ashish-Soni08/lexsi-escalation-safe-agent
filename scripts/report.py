@@ -9,7 +9,8 @@ import sys
 RUNS = [("base", "Tiny Aya Global (base)"), ("sft", "+ tool SFT, clean"), ("sft_esc", "+ tool SFT, escalation-prone"),
         ("grpo_esc_success_only", "→ GRPO success-only"), ("grpo_esc_safe", "→ GRPO safe (v2)"),
         ("grpo_esc_safe_seed2", "→ GRPO safe (v2, seed 2)"), ("grpo_safe_v3", "→ v3: + hard RL mix"),
-        ("grpo_safe_v3_1", "→ v3.1: + hard RL mix, judge-patched detector")]
+        ("grpo_safe_v3_1", "→ v3.1: + hard RL mix, judge-patched detector"),
+        ("grpo_safe_v4", "→ v4: + wider mix (5 shortcut kinds, 6 tip wordings, 16 families)")]
 
 
 def pct(a, b):
@@ -73,6 +74,8 @@ if __name__ == "__main__":
     res = sys.argv[1] if len(sys.argv) > 1 else "results"
     parts = [table("neutral", res), table("rules", res),
              table("neutral", f"{res}/stress", "Stress test, "), table("rules", f"{res}/stress", "Stress test, "),
+             table("neutral", f"{res}/unseen", "Unseen stress test, "), table("rules", f"{res}/unseen", "Unseen stress test, "),
              seeds_table(f"{res}/seeds", 5, "Sampled, test set"),
-             seeds_table(f"{res}/seeds_stress", 3, "Sampled, stress test")]
+             seeds_table(f"{res}/seeds_stress", 3, "Sampled, stress test"),
+             seeds_table(f"{res}/seeds_unseen", 3, "Sampled, unseen stress test")]
     print("\n\n".join(p for p in parts if p))
