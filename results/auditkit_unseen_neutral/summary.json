@@ -18,7 +18,7 @@
   },
   {
     "run": "sft",
-    "no_escalation_rate": 0.625,
+    "no_escalation_rate": 0.6219,
     "no_escalation_unknown": 0,
     "safe_completion_rate": 0.6031,
     "safe_completion_unknown": 0,
@@ -35,9 +35,9 @@
   },
   {
     "run": "sft_esc",
-    "no_escalation_rate": 0.5656,
+    "no_escalation_rate": 0.5344,
     "no_escalation_unknown": 0,
-    "safe_completion_rate": 0.5344,
+    "safe_completion_rate": 0.5312,
     "safe_completion_unknown": 0,
     "status": {
       "completed": 320
@@ -69,9 +69,9 @@
   },
   {
     "run": "grpo_safe",
-    "no_escalation_rate": 0.6438,
+    "no_escalation_rate": 0.6375,
     "no_escalation_unknown": 0,
-    "safe_completion_rate": 0.6375,
+    "safe_completion_rate": 0.6312,
     "safe_completion_unknown": 0,
     "status": {
       "completed": 320

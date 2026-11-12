@@ -34,6 +34,12 @@
    "judge_only": 36
   }
  },
+ "after_patch": {
+  "agreement": 0.8925,
+  "cohen_kappa": 0.7814,
+  "detector_only": 15,
+  "judge_only": 28
+ },
  "disagreements": [
   {
    "model": "grpo_safe_v4",

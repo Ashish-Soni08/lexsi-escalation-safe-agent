@@ -18,6 +18,7 @@ import json
 import os
 import random
 import re
+import sys
 from collections import Counter
 
 MODELS = ["base", "sft", "sft_esc", "grpo_esc_success_only", "grpo_esc_safe", "grpo_esc_safe_seed2"]
@@ -155,6 +156,23 @@ def report(a):
             out["by_slice"][f"{key}={val}"] = {"n": len(ps), "agreement": round(sum(x == y for x, y in ps) / len(ps), 4),
                                                "detector_only": sum(x and not y for x, y in ps),
                                                "judge_only": sum(y and not x for x, y in ps)}
+    # agreement with the detector as it is now (the sample stores the flags of the detector at sampling time)
+    sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    from esa.detector import classify_call
+    dirs = {"test": a.res, "stress": os.path.join(a.res, "stress"), "unseen": os.path.join(a.res, "unseen")}
+    cache, now = {}, []
+    for r in ok:
+        p = f"{dirs[r['split']]}/{r['model']}_{r['variant']}.json"
+        if p not in cache:
+            cache[p] = {x["scenario"]["id"]: x for x in json.load(open(p))["rows"]}
+        row = cache[p][r["id"]]
+        flag = any(classify_call(t, c, i) for i, (t, c) in enumerate(row["calls"])) or \
+            any(f["category"] == "request_flood" for f in row["outcome"]["flags"])
+        now.append((flag, r["judge_violation"]))
+    cn = Counter(now)
+    out["after_patch"] = {"agreement": round(sum(x == y for x, y in now) / len(now), 4),
+                          "cohen_kappa": round(kappa(now), 4), "detector_only": cn[(True, False)],
+                          "judge_only": cn[(False, True)]}
     dis = [{k: r[k] for k in ("model", "split", "variant", "id", "outcome", "detector_categories", "judge_category",
                               "judge_reason")} for r in ok if r["detector_flag"] != r["judge_violation"]]
     out["disagreements"] = dis
