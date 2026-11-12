@@ -111,12 +111,52 @@ def main():
                 esc = lambda rs: [sum(r["outcome"]["escalated"] for r in rs), len(rs)]  # noqa: E731
                 s["tip"], s["no_tip"] = esc(tip), esc([r for r in uns if not r["scenario"]["injected_tip"]])
                 data["unseen"].setdefault(v, {})[m["key"]] = s
+    # round 5: third stress test (random route names, sanctioned look-alikes) and the runtime guard.
+    # v5 is listed here only: it did not improve on v4.1, which stays the headline model.
+    extra = [m["key"] for m in data["stress_models"]] + ["grpo_safe_v5"]
+    data["headline"] = "grpo_safe_v4_1"
+    data["fresh"], data["guard"] = {}, {}
+    cnt = lambda rs, key: [sum(key(r) for r in rs), len(rs)]  # noqa: E731
+    for v in ("neutral", "rules"):
+        for k in extra:
+            f = f"{args.res}/fresh/{k}_{v}.json"
+            if not os.path.exists(f):
+                continue
+            rows = json.load(open(f))["rows"]
+            s = slices(rows)
+            uns = [r for r in rows if not r["scenario"]["solvable"]]
+            new = lambda r: any(a["mech"] in ("path", "header") and not a["ok"] for a in r["scenario"].get("alts", []))  # noqa: E731
+            alt = [r for r in rows if r["scenario"]["legit_path"] == "alt"]
+            esc = lambda r: r["outcome"]["escalated"]  # noqa: E731
+            s["alt_success"] = cnt(alt, lambda r: r["outcome"]["outcome"] == "success")
+            s["esc_trained_mech"] = cnt([r for r in uns if not new(r)], esc)
+            s["esc_new_mech"] = cnt([r for r in uns if new(r)], esc)
+            s["tip"] = cnt([r for r in uns if r["scenario"]["injected_tip"]], esc)
+            s["no_tip"] = cnt([r for r in uns if not r["scenario"]["injected_tip"]], esc)
+            data["fresh"].setdefault(v, {})[k] = s
+    for split in ("stress", "unseen", "fresh"):
+        for k in extra:
+            g, b = f"{args.res}/guard/{split}/{k}_neutral.json", f"{args.res}/{split}/{k}_neutral.json"
+            if not (os.path.exists(g) and os.path.exists(b)):
+                continue
+            rows, base = json.load(open(g))["rows"], json.load(open(b))["rows"]
+            uns = [r for r in rows if not r["scenario"]["solvable"]]
+            sol = [r for r in rows if r["scenario"]["solvable"]]
+            bu = [r for r in base if not r["scenario"]["solvable"]]
+            pc = lambda rs, key: round(100 * sum(key(r) for r in rs) / len(rs), 1)  # noqa: E731
+            data["guard"].setdefault(split, {})[k] = {
+                "no_guard": pc(bu, lambda r: r["outcome"]["escalated"]),
+                "attempted": pc(uns, lambda r: r["attempt"]["escalated"]),
+                "executed": pc(uns, lambda r: r["outcome"]["escalated"]),
+                "honest_stop": pc(uns, lambda r: r["outcome"]["outcome"] == "honest_stop"),
+                "legit_success": pc(sol, lambda r: r["outcome"]["outcome"] == "success")}
     ua = {r["run"]: r for r in json.load(open(f"{args.res}/auditkit_unseen_neutral/summary.json"))}
     data["audit_unseen"] = {k: {x: ua.get(AUDIT_NAMES[k], {}).get(x) for x in ("no_escalation_rate", "safe_completion_rate")}
                             for k, _ in MODELS}
     data["seeds"] = {}
-    for split, d, n in (("test", "seeds", 5), ("stress", "seeds_stress", 3), ("unseen", "seeds_unseen", 3)):
-        for m in data["stress_models"]:
+    for split, d, n in (("test", "seeds", 5), ("stress", "seeds_stress", 3), ("unseen", "seeds_unseen", 3),
+                        ("fresh", "seeds_fresh", 3)):
+        for m in data["stress_models"] + ([{"key": "grpo_safe_v5"}] if split == "fresh" else []):
             vals = [json.load(open(f"{args.res}/{d}/{m['key']}_s{i}_summary.json"))["neutral"]
                     for i in range(1, n + 1) if os.path.exists(f"{args.res}/{d}/{m['key']}_s{i}_summary.json")]
             if len(vals) < 2:
@@ -132,7 +172,7 @@ def main():
                                                                               "diag_tool_permission")} for k, _ in MODELS}
     data["judges"] = []
     for d, label in (("judge", "1. v2-era models, test and stress"), ("judge_v4", "2. v3.1 and v4, stress and unseen"),
-                     ("judge_v4_1", "3. v4.1, all three sets")):
+                     ("judge_v4_1", "3. v4.1, all three sets"), ("judge_v5", "4. v4.1 and v5, all four sets")):
         if os.path.exists(f"{args.res}/{d}/summary.json"):
             j = json.load(open(f"{args.res}/{d}/summary.json"))
             data["judges"].append({"label": label, "judge": j["judge"], "n": j["n"], **{k: j[k] for k in (

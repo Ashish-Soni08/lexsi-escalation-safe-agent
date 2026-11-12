@@ -1,0 +1,121 @@
+[
+  {
+    "run": "base",
+    "no_escalation_rate": 1.0,
+    "no_escalation_unknown": 0,
+    "safe_completion_rate": 0.1156,
+    "safe_completion_unknown": 0,
+    "status": {
+      "completed": 320
+    },
+    "coverage": {
+      "full": 320
+    },
+    "diag_tool_call_validity": 1.0,
+    "diag_tool_permission": 1.0,
+    "diag_agent_loop_detection": 0.6625,
+    "diag_redundant_tool_calls": 0.24
+  },
+  {
+    "run": "sft",
+    "no_escalation_rate": 0.7031,
+    "no_escalation_unknown": 0,
+    "safe_completion_rate": 0.5781,
+    "safe_completion_unknown": 0,
+    "status": {
+      "completed": 320
+    },
+    "coverage": {
+      "full": 320
+    },
+    "diag_tool_call_validity": 1.0,
+    "diag_tool_permission": 1.0,
+    "diag_agent_loop_detection": 0.8125,
+    "diag_redundant_tool_calls": 0.0548
+  },
+  {
+    "run": "grpo_success_only",
+    "no_escalation_rate": 0.5563,
+    "no_escalation_unknown": 0,
+    "safe_completion_rate": 0.5,
+    "safe_completion_unknown": 0,
+    "status": {
+      "completed": 320
+    },
+    "coverage": {
+      "full": 320
+    },
+    "diag_tool_call_validity": 0.999,
+    "diag_tool_permission": 0.999,
+    "diag_agent_loop_detection": 0.6531,
+    "diag_redundant_tool_calls": 0.0585
+  },
+  {
+    "run": "grpo_safe",
+    "no_escalation_rate": 0.7469,
+    "no_escalation_unknown": 0,
+    "safe_completion_rate": 0.6594,
+    "safe_completion_unknown": 0,
+    "status": {
+      "completed": 320
+    },
+    "coverage": {
+      "full": 320
+    },
+    "diag_tool_call_validity": 1.0,
+    "diag_tool_permission": 1.0,
+    "diag_agent_loop_detection": 0.8438,
+    "diag_redundant_tool_calls": 0.03
+  },
+  {
+    "run": "grpo_safe_v3_1",
+    "no_escalation_rate": 0.8375,
+    "no_escalation_unknown": 0,
+    "safe_completion_rate": 0.7312,
+    "safe_completion_unknown": 0,
+    "status": {
+      "completed": 320
+    },
+    "coverage": {
+      "full": 320
+    },
+    "diag_tool_call_validity": 1.0,
+    "diag_tool_permission": 1.0,
+    "diag_agent_loop_detection": 0.8281,
+    "diag_redundant_tool_calls": 0.0175
+  },
+  {
+    "run": "grpo_safe_v4_1",
+    "no_escalation_rate": 0.9375,
+    "no_escalation_unknown": 0,
+    "safe_completion_rate": 0.7812,
+    "safe_completion_unknown": 0,
+    "status": {
+      "completed": 320
+    },
+    "coverage": {
+      "full": 320
+    },
+    "diag_tool_call_validity": 1.0,
+    "diag_tool_permission": 1.0,
+    "diag_agent_loop_detection": 0.5344,
+    "diag_redundant_tool_calls": 0.091
+  },
+  {
+    "run": "grpo_safe_v5",
+    "no_escalation_rate": 0.9344,
+    "no_escalation_unknown": 0,
+    "safe_completion_rate": 0.7719,
+    "safe_completion_unknown": 0,
+    "status": {
+      "completed": 320
+    },
+    "coverage": {
+      "full": 320
+    },
+    "diag_tool_call_validity": 1.0,
+    "diag_tool_permission": 1.0,
+    "diag_agent_loop_detection": 0.5,
+    "diag_redundant_tool_calls": 0.0981
+  }
+]
