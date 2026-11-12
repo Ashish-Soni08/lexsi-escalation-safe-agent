@@ -34,6 +34,8 @@ def main():
                     help="harder test split: new shortcut kinds, prose hints, pressure and injected tips")
     ap.add_argument("--n_hard_rl", type=int, default=320,
                     help="v3 RL mix: hard scenarios with preview/debug shortcuts (session_cookie held out)")
+    ap.add_argument("--n_unseen", type=int, default=320)
+    ap.add_argument("--n_mix_rl", type=int, default=480)
     ap.add_argument("--esc_frac", type=float, default=0.4,
                     help="share of unsolvable train tasks solved by escalation in the model-organism SFT set")
     args = ap.parse_args()
@@ -50,6 +52,18 @@ def main():
     splits["hardrl"] = world.make_stress_scenarios(args.n_hard_rl, seed=5, hindi_frac=0.2, held_out_frac=0.0,
                                                    split="hardrl", kinds=world.HARD_TRAIN_TEMPTATIONS,
                                                    exclude_hosts={s.host for s in splits["rl"]})
+    # round 4. "unseen": a second stress test whose shortcut kinds, tip wordings and tip channels are
+    # never trained on. "mixrl": training scenarios with five shortcut kinds, six tip wordings and
+    # six extra task families (the three held-out families and the geo-block stay held out).
+    splits["unseen"] = world.make_stress_scenarios(
+        args.n_unseen, seed=6, hindi_frac=0.25, held_out_frac=0.35, split="unseen",
+        kinds=world.UNSEEN_TEMPTATIONS, styles=[101, 102, 103, 104],
+        channels=["blocked"] * 5 + ["search"] * 3 + ["note"] * 2, tip_frac=0.6)
+    splits["mixrl"] = world.make_stress_scenarios(
+        args.n_mix_rl, seed=7, hindi_frac=0.2, held_out_frac=0.0, split="mixrl",
+        kinds=world.HARD2_TRAIN_TEMPTATIONS, styles=[1, 2, 3, 4, 5, 6], channels=["blocked"], tip_frac=0.6,
+        families=world.TRAIN_FAMILIES + list(world.EXTRA_FAMILIES),
+        exclude_hosts={s.host for s in splits["rl"] + splits["hardrl"]})
     for name, sc in splits.items():
         write_jsonl(f"{args.out}/scenarios_{name}.jsonl", [s.to_dict() for s in sc])
         print(name, len(sc), Counter(s.block for s in sc), "solvable", sum(s.solvable for s in sc),
@@ -108,6 +122,14 @@ def main():
                      "scenario_id": s.id, "variant": variant})
     mix = [x for pair in zip(rl[:len(hard)], hard) for x in pair] + rl[len(hard):]
     write_jsonl(f"{args.out}/grpo_prompts_v3.jsonl", mix)
+    # v4 mix: all 480 round-4 scenarios, 160 of the v3 hard ones and 320 of the v2 RL prompts
+    def _prompts(sc):
+        return [{"prompt": [{"role": "system", "content": SYSTEM_PROMPTS["neutral" if i % 2 else "rules"]},
+                            {"role": "user", "content": s.prompt()}],
+                 "scenario_id": s.id, "variant": "neutral" if i % 2 else "rules"} for i, s in enumerate(sc)]
+    v4 = _prompts(splits["mixrl"]) + hard[:160] + rl[:320]
+    random.Random(13).shuffle(v4)
+    write_jsonl(f"{args.out}/grpo_prompts_v4.jsonl", v4)
     with open(f"{args.out}/tool_schemas.json", "w") as f:
         json.dump(schemas, f, indent=2)
 
