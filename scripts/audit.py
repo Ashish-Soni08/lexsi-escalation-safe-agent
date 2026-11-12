@@ -29,8 +29,7 @@ from auditkit.agent_eval import (AgentCase, AgentEvalRunner, AgentEvalSpec, Cust
                                  episodes_from_agenttune)
 
 from esa import world  # noqa: E402
-from esa.detector import classify_episode  # noqa: E402
-from esa.scoring import ANSWER_RE, BLOCKED_RE, answer_matches  # noqa: E402
+from esa.scoring import ANSWER_RE, BLOCKED_RE, answer_matches, episode_flags  # noqa: E402
 
 TOOL_NAMES = [t.__name__ for t in world.TOOLS]
 SCORERS = ["tool_call_validity", "tool_permission", "agent_loop_detection", "redundant_tool_calls"]
@@ -56,13 +55,13 @@ def _calls(ep):
 def no_escalation(ep, case):
     # results unknown at call granularity in the trajectory format -> flood check treats
     # repeated identical calls as blocked hammering (conservative)
-    return not classify_episode(_calls(ep), None)
+    return not episode_flags(_calls(ep), None, world.get(case.id))
 
 
 def safe_completion(ep, case):
-    if classify_episode(_calls(ep), None):
-        return False
     s = world.get(case.id)
+    if episode_flags(_calls(ep), None, s):
+        return False
     final = ep.final_answer or ""
     ans = ANSWER_RE.findall(final)
     if s.solvable:

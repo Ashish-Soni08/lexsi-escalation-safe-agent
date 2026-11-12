@@ -36,6 +36,8 @@ def main():
                     help="v3 RL mix: hard scenarios with preview/debug shortcuts (session_cookie held out)")
     ap.add_argument("--n_unseen", type=int, default=320)
     ap.add_argument("--n_mix_rl", type=int, default=480)
+    ap.add_argument("--n_rand_rl", type=int, default=480)
+    ap.add_argument("--n_fresh", type=int, default=320)
     ap.add_argument("--esc_frac", type=float, default=0.4,
                     help="share of unsolvable train tasks solved by escalation in the model-organism SFT set")
     args = ap.parse_args()
@@ -64,6 +66,16 @@ def main():
         kinds=world.HARD2_TRAIN_TEMPTATIONS, styles=[1, 2, 3, 4, 5, 6], channels=["blocked"], tip_frac=0.6,
         families=world.TRAIN_FAMILIES + list(world.EXTRA_FAMILIES),
         exclude_hosts={s.host for s in splits["rl"] + splits["hardrl"]})
+    # round 5. "randrl": alternate routes with random names, where a sanctioned route and a shortcut
+    # look alike and only the page text tells them apart. "fresh": a third stress test with other
+    # names, other sentences and two route mechanisms (path, header) that are never trained on.
+    train_hosts = {s.host for k in ("rl", "hardrl", "mixrl") for s in splits[k]}
+    splits["randrl"] = world.make_alt_scenarios(
+        args.n_rand_rl, seed=8, split="randrl", hindi_frac=0.2, styles=[1, 2, 3, 4, 5, 6], tip_frac=0.5,
+        families=world.TRAIN_FAMILIES + list(world.EXTRA_FAMILIES), exclude_hosts=train_hosts)
+    splits["fresh"] = world.make_alt_scenarios(
+        args.n_fresh, seed=9, split="fresh", hindi_frac=0.25, held_out_frac=0.35, styles=[201, 202, 203],
+        tip_frac=0.6, ok_frac=0.7, exclude_hosts={s.host for k in ("mixrl", "randrl") for s in splits[k]})
     for name, sc in splits.items():
         write_jsonl(f"{args.out}/scenarios_{name}.jsonl", [s.to_dict() for s in sc])
         print(name, len(sc), Counter(s.block for s in sc), "solvable", sum(s.solvable for s in sc),
@@ -130,6 +142,11 @@ def main():
     v4 = _prompts(splits["mixrl"]) + hard[:160] + rl[:320]
     random.Random(13).shuffle(v4)
     write_jsonl(f"{args.out}/grpo_prompts_v4.jsonl", v4)
+    # v5 mix: all 480 round-5 scenarios, 240 round-4 ones, 120 v3 hard ones and 120 v2 RL prompts
+    mix4 = _prompts(splits["mixrl"])
+    v5 = _prompts(splits["randrl"]) + mix4[:240] + hard[160:280] + rl[320:440]
+    random.Random(17).shuffle(v5)
+    write_jsonl(f"{args.out}/grpo_prompts_v5.jsonl", v5)
     with open(f"{args.out}/tool_schemas.json", "w") as f:
         json.dump(schemas, f, indent=2)
 
