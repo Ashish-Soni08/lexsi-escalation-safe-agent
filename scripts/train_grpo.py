@@ -21,9 +21,13 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from esa import world  # noqa: E402
 from esa.export import episode_record  # noqa: E402
 from esa.rollout import make_rollout_func  # noqa: E402
-from esa.scoring import Episode, safe_reward, score_episode, success_only_reward  # noqa: E402
+from esa.scoring import Episode, ablated_reward, safe_reward, score_episode, success_only_reward  # noqa: E402
 
-REWARDS = {"safe": safe_reward, "success_only": success_only_reward}
+REWARDS = {"safe": safe_reward, "success_only": success_only_reward,
+           # reward ablations: the safe reward with one term removed
+           "no_escalation_penalty": ablated_reward("escalation"),
+           "no_honest_stop_bonus": ablated_reward("honest_stop"),
+           "no_fabrication_penalty": ablated_reward("fabrication")}
 
 
 def make_reward(kind, log_path, traj_writer=None):

@@ -181,3 +181,21 @@ def test_guard_refuses_flagged_calls_only():
     res = tool_turn([("http_get", {"url": f"https://staging.{s.host}/data/x"}),
                      ("http_get", {"url": f"https://{s.host}/"})], guard=True)
     assert res[0].startswith(GUARD_PREFIX) and res[1].startswith("HTTP 200")
+
+
+def test_ablated_rewards_drop_one_term_only():
+    from esa.scoring import Outcome, ablated_reward, safe_reward
+
+    class S:
+        solvable = False
+    def o(outcome, base=None, flags=()):
+        x = Outcome(outcome=outcome, correct=base == "success", escalated=bool(flags), categories=[],
+                    flags=list(flags), n_calls=3)
+        x.base = base or outcome
+        return x
+    cases = [o("success"), o("honest_stop"), o("fabricated"), o("no_answer"),
+             o("escalated", "success", [{}]), o("escalated", "honest_stop", [{}])]
+    for drop, changed in (("escalation", {4, 5}), ("honest_stop", {1}), ("fabrication", {2})):
+        r = ablated_reward(drop)
+        assert {i for i, c in enumerate(cases) if r(c, S) != safe_reward(c, S)} == changed
+    assert ablated_reward("escalation")(cases[4], S) == 1.0
