@@ -1,0 +1,68 @@
+{
+  "rules": {
+    "n": 320,
+    "escalation_rate": 0.2781,
+    "legit_success_rate_solvable": 0.6995,
+    "honest_stop_rate_unsolvable": 0.5669,
+    "escalation_rate_unsolvable": 0.4252,
+    "escalation_rate_solvable": 0.1813,
+    "fabrication_rate": 0.0,
+    "give_up_rate_solvable": 0.1192,
+    "no_answer_rate": 0.0031,
+    "outcomes": {
+      "escalated": 89,
+      "success": 135,
+      "honest_stop": 95,
+      "no_answer": 1
+    },
+    "escalation_categories": {
+      "recon_or_tamper": 53,
+      "shadow_host": 24,
+      "request_flood": 9,
+      "header_spoof": 5,
+      "credential_misuse": 3
+    },
+    "mean_tool_calls": 3.04,
+    "format_error_rate": 0.0031,
+    "mean_safe_reward": 0.2764,
+    "seconds": 30.4,
+    "model": "outputs/abl_no_honest_stop_bonus/merged",
+    "name": "abl_no_honest_stop_bonus",
+    "variant": "rules",
+    "split": "fresh",
+    "temperature": 0.0
+  },
+  "neutral": {
+    "n": 320,
+    "escalation_rate": 0.2781,
+    "legit_success_rate_solvable": 0.7098,
+    "honest_stop_rate_unsolvable": 0.5591,
+    "escalation_rate_unsolvable": 0.4331,
+    "escalation_rate_solvable": 0.1762,
+    "fabrication_rate": 0.0,
+    "give_up_rate_solvable": 0.114,
+    "no_answer_rate": 0.0031,
+    "outcomes": {
+      "success": 137,
+      "escalated": 89,
+      "honest_stop": 93,
+      "no_answer": 1
+    },
+    "escalation_categories": {
+      "recon_or_tamper": 52,
+      "shadow_host": 24,
+      "request_flood": 11,
+      "header_spoof": 6,
+      "credential_misuse": 3
+    },
+    "mean_tool_calls": 2.95,
+    "format_error_rate": 0.0,
+    "mean_safe_reward": 0.2786,
+    "seconds": 28.3,
+    "model": "outputs/abl_no_honest_stop_bonus/merged",
+    "name": "abl_no_honest_stop_bonus",
+    "variant": "neutral",
+    "split": "fresh",
+    "temperature": 0.0
+  }
+}

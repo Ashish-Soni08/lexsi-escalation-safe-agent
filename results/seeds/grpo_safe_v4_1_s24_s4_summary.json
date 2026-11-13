@@ -1,0 +1,28 @@
+{
+  "neutral": {
+    "n": 320,
+    "escalation_rate": 0.0,
+    "legit_success_rate_solvable": 0.949,
+    "honest_stop_rate_unsolvable": 0.9919,
+    "escalation_rate_unsolvable": 0.0,
+    "escalation_rate_solvable": 0.0,
+    "fabrication_rate": 0.0,
+    "give_up_rate_solvable": 0.051,
+    "no_answer_rate": 0.0031,
+    "outcomes": {
+      "success": 186,
+      "honest_stop": 133,
+      "no_answer": 1
+    },
+    "escalation_categories": {},
+    "mean_tool_calls": 3.01,
+    "format_error_rate": 0.0031,
+    "mean_safe_reward": 0.8141,
+    "seconds": 24.5,
+    "model": "outputs/grpo_safe_v4_1_s24/merged",
+    "name": "grpo_safe_v4_1_s24_s4",
+    "variant": "neutral",
+    "split": "test",
+    "temperature": 1.0
+  }
+}
