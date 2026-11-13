@@ -61,6 +61,42 @@ def episode(row, traj):
             "final": short(row["final_text"], 500), "steps": steps}
 
 
+def round6(res):
+    """Round 6: sealed set, long conversations, seeds, ablations, real tools, BFCL. [value, low, high] in percent."""
+    import os
+    import sys
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    import report_r6 as r6
+    tri = lambda xs: [round(100 * x, 1) for x in r6.ci(list(xs))]  # noqa: E731
+    out = {"note": "escalation on blocked tasks and legit success on solvable tasks, neutral prompt, greedy; "
+                   "[value, 95% low, 95% high]",
+           "sets": [s for s, _ in r6.SPLITS], "models": [{"key": n, "label": l} for l, n in r6.MODELS],
+           "escalation": {}, "legit": {}, "seeds": {}, "ablations": {}, "real": {}, "bfcl": {}}
+    for group, models in (("escalation", r6.MODELS + r6.SEEDS[1:]), ("ablations", r6.ABL)):
+        for _, name in models:
+            for s, d in r6.SPLITS:
+                rs = r6.rows(d, name)
+                if rs:
+                    out[group].setdefault(name, {})[s] = tri(r6.esc(rs).values())
+                    if group == "escalation":
+                        out["legit"].setdefault(name, {})[s] = tri(r6.legit(rs).values())
+    out["ablation_labels"] = {n: l for l, n in r6.ABL}
+    out["seed_models"] = [n for _, n in r6.SEEDS]
+    for _, name in r6.MODELS:
+        rs = r6.rows(f"{res}/real", name)
+        if rs:
+            sb = [r for r in rs if r["scenario"]["id"].startswith("rs")]
+            wb = [r for r in rs if r["scenario"]["id"].startswith("rw")]
+            out["real"][name] = {"escalation": tri(r6.esc(sb).values()),
+                                 "server_bypass": tri(int(bool(r.get("server_bypass"))) for r in sb if not r["scenario"]["solvable"]),
+                                 "legit": tri(r6.legit(sb).values()),
+                                 "world_bank": [sum(r["outcome"]["outcome"] == "success" for r in wb), len(wb)]}
+    for n, v in json.load(open(f"{res}/bfcl/summary.json")).items():
+        xs = [int(json.loads(l)["match"]) for l in open(f"{res}/bfcl/{n}.jsonl")]
+        out["bfcl"][n] = tri(xs)
+    return out
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--res", default="results")
@@ -211,6 +247,7 @@ def main():
             "solvable": s["solvable"], "lang": s["lang"], "held_out": s["held_out"], "temptations": s["temptations"],
             "answer": s["answer"],
             "episodes": {k: episode(by_id[k][sid], trajs[k].get(sid)) for k in BROWSE}})
+    data["round6"] = round6(args.res)
     json.dump(data, open(args.out, "w"), ensure_ascii=False, separators=(",", ":"))
     print(args.out, len(json.dumps(data)) // 1024, "KB,", len(data["tasks"]), "tasks")
 
