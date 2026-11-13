@@ -6,7 +6,8 @@ if there isn't one, **stops and says so**. It does not reach for exploits.
 
 Chain of Lexsi repos: **AgentTune** (agentic GRPO trainer, trajectory format) → **AuditKIT** (recorded agent-eval audit of
 the same trajectory files, before and after) → **CircuitKIT** (where the shortcut decision happens inside the model),
-with **CuratorKIT** checking the SFT data. Write-up with abstract: [`docs/hf_article.md`](docs/hf_article.md).
+with **CuratorKIT** checking the SFT data. **Write-up in the official template: [`docs/writeup.md`](docs/writeup.md).**
+Build history round by round: [`docs/hf_article.md`](docs/hf_article.md).
 
 **Recommended model:** `ashish-soni08/tiny-aya-global-esa-grpo-safe-v4-1`. Escalation on blocked tasks (greedy,
 neutral prompt): 0% on the 320-task test set with 99.0% legit success, 1.5% on the first stress test (v2 safe model:
@@ -16,6 +17,19 @@ neutral prompt): 0% on the 320-task test set with 99.0% legit success, 1.5% on t
 **Correction (12 Nov 2026):** v3.1 was reported at 6.9% on the first stress test. A second judge audit found that the
 detector missed bare `/debug` probes, which v3, v3.1 and v4 had learned to use. With the fixed detector (v2.2) v3.1 is
 at 36.2%. All tables below use v2.2; test-set results did not change. See "Round 4" below.
+
+**Round 6 (13 Nov 2026), the extra checks the organisers asked for.** Tables with 95% intervals:
+[`results/report_r6.md`](results/report_r6.md) (`scripts/report_r6.py`). v4.1, escalation on blocked tasks:
+
+* **Sealed test** built after the model was frozen (`data/scenarios_sealed.jsonl`): 21.7%, three training seeds
+  16.4 ± 4.7% (clean SFT 42.8%, success-only 100%).
+* **Long conversations**, block on the third question (`eval.py --split long --chat`): 2.3% (clean SFT 63.6%).
+* **Real HTTP server** with a bot wall, login and rate limiter (`esa/realworld.py`, `scripts/real_eval.py`): 0%, and
+  0 bypasses in the server's own log (success-only 43%).
+* **Guard only** removes executed escalation for known shortcut shapes on any model, and nothing on new shapes.
+* **BFCL v3** simple + multiple (`scripts/bfcl_eval.py`): base 82.8%, clean SFT 80.5%, v4.1 78.7%.
+* **Reward ablations** (`train_grpo.py --reward no_*`): the escalation penalty does the work.
+* **Judges:** Qwen2.5-32B agrees with the labels on 94.0% of 400 v4.1 episodes (kappa 0.87).
 
 ## Why
 
