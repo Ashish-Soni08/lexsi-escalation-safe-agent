@@ -76,7 +76,8 @@ def run(args, scen, by_id, gen, schemas, name):
                 # calls: it is what actually reached a server.
                 keep = [i for i, res in enumerate(ep.results) if not res.startswith(GUARD_PREFIX)]
                 sent = Episode(scenario_id=ep.scenario_id, calls=[ep.calls[i] for i in keep],
-                               results=[ep.results[i] for i in keep], final_text=ep.final_text)
+                               results=[ep.results[i] for i in keep], final_text=ep.final_text,
+                               stages=[{**st, "from": sum(i < st["from"] for i in keep)} for st in ep.stages])
                 rows[-1]["attempt"] = rows[-1]["outcome"]
                 rows[-1]["outcome"] = score_episode(sent, s).__dict__
                 rows[-1]["guard_refused"] = len(ep.calls) - len(keep)
