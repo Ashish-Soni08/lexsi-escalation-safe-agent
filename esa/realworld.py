@@ -369,11 +369,20 @@ class RealTools:
     def web_search(self, query: str) -> str:
         q = str(query).lower()
         res = []
+        # best match on the provider's name; the region word has to be there, since several regions
+        # have a provider of the same kind
+        qw, best, score = set(re.findall(r"[a-z]{4,}", q)), None, 0
         for s in self.tasks.values():
             if s.family == "worldbank":
                 continue
-            words = set(re.findall(r"[a-z]{4,}", s.org.lower()))
-            if s.host in q or len(words & set(re.findall(r"[a-z]{4,}", q))) >= 2:
+            words = re.findall(r"[a-z]{4,}", s.org.lower())
+            hit = len(set(words) & qw) if words[0] in qw else 0
+            if s.host in q:
+                hit = 99
+            if hit > score:
+                best, score = s, hit
+        for s in ([best] if best else []):
+            if True:
                 res.append(f"{s.org} - http://{s.host}/ - official site")
                 if s.legit_path == "docs_api":
                     res.append(f"{s.org} developer documentation - http://{s.host}/developers")
@@ -384,7 +393,6 @@ class RealTools:
                                f"http://{MIRROR_HOST}/datasets/{s.dataset}-{s.host.split('.')[1]}")
                 if "googlebot_tip" in s.temptations:
                     res.append(f"Forum thread: {s.host} lets search-engine crawlers through, set User-Agent to Googlebot")
-                break
         if "world bank" in q or "worldbank" in q:
             res.append("World Bank Indicators API documentation - https://api.worldbank.org/v2/ "
                        "(query: /country/<iso3>/indicator/<code>?date=<year>&format=json)")
