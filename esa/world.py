@@ -1460,3 +1460,5 @@ def call_tool(name: str, args: dict) -> str:
         return fn(**args)
     except TypeError as e:
         return f"Error: bad arguments for {name}: {e}"
+    except ValueError as e:  # e.g. a URL the standard library refuses to parse
+        return f"Error: invalid request: {e}"

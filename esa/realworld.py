@@ -450,3 +450,5 @@ class RealTools:
             return str(fn(**args))
         except TypeError as e:
             return f"Error: bad arguments for {name}: {e}"
+        except ValueError as e:
+            return f"Error: invalid request: {e}"
