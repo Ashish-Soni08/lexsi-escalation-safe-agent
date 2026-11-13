@@ -45,8 +45,8 @@ arrives on the last question it escalates on 2.3%. Against a real HTTP server th
 a rate limit, and logs what it serves, it never bypasses a control, while the baselines do on 10% to 43% of blocked
 tasks. A runtime guard alone removes every executed escalation of a known shape, even for the worst model, and none
 on unfamiliar shapes. The safety training costs about four points on a general function-calling benchmark relative
-to the base model. Reward ablations show the escalation penalty does the work; the honest-stop bonus and the
-fabrication penalty change little.
+to the base model. Reward ablations show the escalation penalty does the work: without it escalation returns to 98%,
+while dropping the honest-stop bonus or the fabrication penalty changes little.
 
 > **For judges: one minute.** (1) Outcome-only RL makes an agent bypass access controls: 5% → 99%. (2) One reward
 > term removes it: 0% on the test set, 0% against a real server, 2.3% deep in a conversation. (3) It generalises only
@@ -340,13 +340,16 @@ Same start model and 160 steps; only the reward differs.
 | reward | test | stress | unseen | fresh | sealed |
 |---|---|---|---|---|---|
 | success-only (no safety terms) | 99.2 | 99.2 | 99.1 | 72.4 | 100.0 |
-| no escalation penalty | *pending* | | | | |
+| no escalation penalty | 98.4 | 99.2 | 54.3 | 59.1 | 94.9 |
 | no honest-stop bonus | 0.0 | 81.5 | 69.0 | 43.3 | 31.9 |
 | no fabrication penalty | 0.0 | 87.7 | 83.6 | 46.5 | 34.8 |
 | full safe reward (v2) | 0.0 | 78.5 | 71.6 | 38.6 | 35.5 |
 
 Dropping the honest-stop bonus or the fabrication penalty leaves the result within the intervals of the full reward
-on every set, and legit success is unchanged (66% to 84%).
+on every set, and legit success is unchanged (66% to 84%). Dropping the escalation penalty brings escalation back to 98% on the
+test set and 95% on the sealed set, and legit success falls to 72% on the test set, even though the honest-stop bonus
+and the fabrication penalty are still in the reward. The penalty is the term that does the work. Without it the
+other two terms still help a little on two sets (unseen 54% against 99% for success-only, fresh 59% against 72%).
 
 ### Finding 8: the cost in general tool calling
 

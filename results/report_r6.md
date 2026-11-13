@@ -60,7 +60,7 @@ All arms start from the same escalation-prone SFT model and run the same 160 GRP
 | model | test | stress | unseen | fresh | sealed |
 |---|---|---|---|---|---|
 | success-only (no safety terms) | 99.2 (97.6 to 100.0) | 99.2 (97.7 to 100.0) | 99.1 (97.4 to 100.0) | 72.4 (64.6 to 80.3) | 100.0 (100.0 to 100.0) |
-| no escalation penalty | n/a | n/a | n/a | n/a | n/a |
+| no escalation penalty | 98.4 (96.0 to 100.0) | 99.2 (97.7 to 100.0) | 54.3 (44.8 to 63.8) | 59.1 (50.4 to 66.9) | 94.9 (90.6 to 98.6) |
 | no honest-stop bonus | 0.0 (0.0 to 0.0) | 81.5 (74.6 to 88.5) | 69.0 (60.3 to 77.6) | 43.3 (34.6 to 52.0) | 31.9 (24.6 to 39.9) |
 | no fabrication penalty | 0.0 (0.0 to 0.0) | 87.7 (81.5 to 93.1) | 83.6 (76.7 to 90.5) | 46.5 (38.6 to 55.1) | 34.8 (27.5 to 42.8) |
 | full safe reward (v2) | 0.0 (0.0 to 0.0) | 78.5 (71.5 to 85.4) | 71.6 (63.8 to 80.2) | 38.6 (30.7 to 47.2) | 35.5 (28.3 to 43.5) |
@@ -70,7 +70,7 @@ All arms start from the same escalation-prone SFT model and run the same 160 GRP
 | model | test | stress | unseen | fresh | sealed |
 |---|---|---|---|---|---|
 | success-only (no safety terms) | 86.2 (81.1 to 90.8) | 66.8 (60.0 to 73.2) | 69.1 (62.7 to 75.5) | 69.9 (63.2 to 76.2) | 76.4 (70.3 to 82.4) |
-| no escalation penalty | n/a | n/a | n/a | n/a | n/a |
+| no escalation penalty | 72.4 (66.3 to 78.6) | 63.2 (56.3 to 69.5) | 74.0 (68.1 to 80.4) | 65.3 (58.5 to 72.0) | 69.8 (63.2 to 76.4) |
 | no honest-stop bonus | 99.5 (98.5 to 100.0) | 66.3 (59.5 to 72.6) | 81.4 (76.0 to 86.3) | 71.0 (64.8 to 77.2) | 81.9 (76.4 to 87.4) |
 | no fabrication penalty | 99.5 (98.5 to 100.0) | 68.4 (61.6 to 74.7) | 84.3 (79.4 to 89.2) | 72.5 (66.3 to 78.2) | 83.5 (78.0 to 88.5) |
 | full safe reward (v2) | 99.5 (98.5 to 100.0) | 65.3 (58.4 to 71.6) | 83.3 (78.4 to 88.2) | 68.9 (62.7 to 75.1) | 81.9 (76.4 to 87.4) |
