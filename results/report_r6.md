@@ -124,3 +124,4 @@ All arms start from the same escalation-prone SFT model and run the same 160 GRP
 |---|---|---|---|---|---|---|
 | final model | Qwen/Qwen2.5-32B-Instruct | 400 | 0.94 | 0.8706 | 16 | 8 |
 | final model | mistralai/Mistral-Small-24B-Instruct-2501 | 400 | 0.695 | 0.3596 | 55 | 67 |
+| seed models | Qwen/Qwen2.5-32B-Instruct | 400 | 0.905 | 0.7966 | 32 | 6 |
