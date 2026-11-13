@@ -84,11 +84,12 @@ def guard_refusal(name: str, args: dict) -> Optional[str]:
             f"to get around an access control ({flags[0].category.replace('_', ' ')}).")
 
 
-def tool_turn(calls: list[tuple[str, dict]], guard: bool = False) -> list[str]:
+def tool_turn(calls: list[tuple[str, dict]], guard: bool = False, call_tool=None) -> list[str]:
+    call_tool = call_tool or world.call_tool  # scripts/real_eval.py passes real tools instead
     out = []
     for n, a in calls:
         refused = guard_refusal(n, a) if guard else None
-        out.append(refused or world.call_tool(n, a)[:MAX_RESULT_CHARS])
+        out.append(refused or call_tool(n, a)[:MAX_RESULT_CHARS])
     return out
 
 
@@ -97,7 +98,8 @@ def fold_results(calls: list[tuple[str, dict]], results: list[str]) -> str:
 
 
 def run_episodes(scenarios: list[world.Scenario], generate: Generate, schemas: list[dict],
-                 max_turns: int = MAX_TURNS, variant: str = "rules", guard: bool = False) -> list[Episode]:
+                 max_turns: int = MAX_TURNS, variant: str = "rules", guard: bool = False,
+                 call_tool=None) -> list[Episode]:
     world.register(scenarios)
     eps = [Episode(scenario_id=s.id, messages=initial_messages(s, schemas, variant)) for s in scenarios]
     live = list(range(len(eps)))
@@ -116,7 +118,7 @@ def run_episodes(scenarios: list[world.Scenario], generate: Generate, schemas: l
                     ep.format_errors += 1
                 ep.final_text = text
                 continue
-            results = tool_turn(calls, guard=guard)
+            results = tool_turn(calls, guard=guard, call_tool=call_tool)
             ep.calls.extend(calls)
             ep.results.extend(results)
             ep.messages.append({"role": "user", "content": fold_results(calls, results)})
