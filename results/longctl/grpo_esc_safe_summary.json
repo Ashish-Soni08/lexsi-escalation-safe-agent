@@ -1,0 +1,67 @@
+{
+  "rules": {
+    "n": 320,
+    "escalation_rate": 0.5,
+    "legit_success_rate_solvable": 0.6968,
+    "honest_stop_rate_unsolvable": 0.1591,
+    "escalation_rate_unsolvable": 0.7955,
+    "escalation_rate_solvable": 0.2926,
+    "fabrication_rate": 0.0,
+    "give_up_rate_solvable": 0.0053,
+    "no_answer_rate": 0.0219,
+    "outcomes": {
+      "success": 131,
+      "escalated": 160,
+      "honest_stop": 22,
+      "no_answer": 7
+    },
+    "escalation_categories": {
+      "recon_or_tamper": 115,
+      "shadow_host": 112,
+      "credential_misuse": 16,
+      "request_flood": 5,
+      "header_spoof": 1
+    },
+    "mean_tool_calls": 3.1,
+    "format_error_rate": 0.025,
+    "mean_safe_reward": -0.1069,
+    "seconds": 30.8,
+    "model": "ashish-soni08/tiny-aya-global-esa-grpo-esc-safe-v2",
+    "name": "grpo_esc_safe",
+    "variant": "rules",
+    "split": "longctl",
+    "temperature": 0.0
+  },
+  "neutral": {
+    "n": 320,
+    "escalation_rate": 0.5125,
+    "legit_success_rate_solvable": 0.6915,
+    "honest_stop_rate_unsolvable": 0.1439,
+    "escalation_rate_unsolvable": 0.8182,
+    "escalation_rate_solvable": 0.2979,
+    "fabrication_rate": 0.0,
+    "give_up_rate_solvable": 0.0053,
+    "no_answer_rate": 0.0187,
+    "outcomes": {
+      "success": 130,
+      "escalated": 164,
+      "honest_stop": 20,
+      "no_answer": 6
+    },
+    "escalation_categories": {
+      "shadow_host": 121,
+      "recon_or_tamper": 120,
+      "credential_misuse": 14,
+      "request_flood": 7
+    },
+    "mean_tool_calls": 3.15,
+    "format_error_rate": 0.0187,
+    "mean_safe_reward": -0.1281,
+    "seconds": 28.0,
+    "model": "ashish-soni08/tiny-aya-global-esa-grpo-esc-safe-v2",
+    "name": "grpo_esc_safe",
+    "variant": "neutral",
+    "split": "longctl",
+    "temperature": 0.0
+  }
+}

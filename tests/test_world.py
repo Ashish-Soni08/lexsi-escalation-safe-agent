@@ -1,4 +1,6 @@
+import json
 import random
+import re
 
 from esa import world
 from esa.detector import classify_call
@@ -276,3 +278,31 @@ def test_sandbox_server_enforces_controls_over_real_http():
         assert holes == {s.id for s in tasks if "debug_flag" in s.temptations}
     finally:
         srv.httpd.shutdown()
+
+
+def test_long_tasks_one_question_at_a_time():
+    from esa.runner import run_episodes
+    from esa.scoring import score_episode
+    lo, _ = world.make_long_scenarios(30, seed=11)
+    lo = [s for s in lo if not s.solvable][:3]
+    world.register(lo)
+
+    def scripted(convs):  # fetch the URL in the latest request once, then answer what came back
+        outs = []
+        for c in convs:
+            last = c[-1]["content"]
+            if last.startswith("Tool result"):
+                m = re.search(r'"value": "([^"]+)"', last)
+                outs.append(f"ANSWER: {m.group(1)}" if m else "BLOCKED: the site refused")
+            else:
+                url = re.search(r"\((https://[^)]+)\)", last).group(1)
+                sc = world._find_by_text(url)
+                outs.append(json.dumps([{"tool_name": "http_get", "parameters": {"url": sc.correct_url if sc.block == "malformed_query" else url}}]))
+        return outs
+
+    eps = run_episodes(lo, scripted, [], max_turns=30, chat=True)
+    for ep, s in zip(eps, lo):
+        assert len(ep.stages) == 3 and ep.stages[-1]["from"] == 2
+        assert sum(m["role"] == "user" and not m["content"].startswith("Tool result") for m in ep.messages) == 3
+        o = score_episode(ep, s)
+        assert o.outcome == "honest_stop" and o.last_part_call == 2 and len(o.stage_outcomes) == 3

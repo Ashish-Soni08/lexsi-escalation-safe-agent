@@ -64,11 +64,21 @@ def parse_tool_calls(text: str) -> Optional[list[tuple[str, dict]]]:
     return calls or None
 
 
-def initial_messages(s: world.Scenario, schemas: list[dict], variant: str = "rules") -> list[dict]:
+def initial_messages(s: world.Scenario, schemas: list[dict], variant: str = "rules", chat: bool = False) -> list[dict]:
     return [
         {"role": "system", "content": full_system_prompt(schemas, variant)},
-        {"role": "user", "content": s.prompt()},
+        {"role": "user", "content": stage_prompt(s, 0) if chat and s.parts else s.prompt()},
     ]
+
+
+NEXT_REQUEST = {"en": "Thank you. Next request.", "hi": "धन्यवाद। अगला अनुरोध।"}
+STAGE_TURNS = 10
+
+
+def stage_prompt(s: world.Scenario, k: int) -> str:
+    """Question k of a long task asked one at a time: the ordinary single-task prompt."""
+    p = world.Scenario.from_dict({**s.subtasks()[k].to_dict(), "parts": []})
+    return p.prompt() if k == 0 else f"{NEXT_REQUEST[s.lang]}\n\n{p.prompt()}"
 
 
 GUARD_PREFIX = "Request not sent."
@@ -99,10 +109,17 @@ def fold_results(calls: list[tuple[str, dict]], results: list[str]) -> str:
 
 def run_episodes(scenarios: list[world.Scenario], generate: Generate, schemas: list[dict],
                  max_turns: int = MAX_TURNS, variant: str = "rules", guard: bool = False,
-                 call_tool=None) -> list[Episode]:
+                 call_tool=None, chat: bool = False) -> list[Episode]:
+    """chat=True asks the questions of a long task one at a time in one conversation: when the model
+    gives its final reply to one, the next arrives as a new user message (max_turns then counts the
+    whole conversation and each question gets at most STAGE_TURNS turns)."""
     world.register(scenarios)
-    eps = [Episode(scenario_id=s.id, messages=initial_messages(s, schemas, variant)) for s in scenarios]
+    eps = [Episode(scenario_id=s.id, messages=initial_messages(s, schemas, variant, chat)) for s in scenarios]
     live = list(range(len(eps)))
+    staged = {i for i, s in enumerate(scenarios) if chat and s.parts}
+    stage_turns = {i: 0 for i in staged}
+    for i in staged:
+        eps[i].stages.append({"from": 0, "final": ""})
     for _turn in range(max_turns):
         if not live:
             break
@@ -113,10 +130,22 @@ def run_episodes(scenarios: list[world.Scenario], generate: Generate, schemas: l
             ep.turns += 1
             ep.messages.append({"role": "assistant", "content": text})
             calls = parse_tool_calls(text)
+            if i in staged:
+                stage_turns[i] += 1
+                if calls and stage_turns[i] > STAGE_TURNS:  # out of turns for this question
+                    calls, text = None, ""
+                    ep.messages[-1]["content"] = "BLOCKED: out of turns"
             if not calls:
                 if "tool_name" in (text or "") or text.strip().startswith("["):
                     ep.format_errors += 1
                 ep.final_text = text
+                if i in staged:
+                    ep.stages[-1]["final"] = text
+                    if len(ep.stages) < len(scenarios[i].parts) + 1:
+                        ep.stages.append({"from": len(ep.calls), "final": ""})
+                        stage_turns[i] = 0
+                        ep.messages.append({"role": "user", "content": stage_prompt(scenarios[i], len(ep.stages) - 1)})
+                        still.append(i)
                 continue
             results = tool_turn(calls, guard=guard, call_tool=call_tool)
             ep.calls.extend(calls)

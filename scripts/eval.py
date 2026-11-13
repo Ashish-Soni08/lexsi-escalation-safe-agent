@@ -34,6 +34,8 @@ def main():
     ap.add_argument("--seeds", default="", help="comma list; with --temperature > 0 runs one sampled eval per seed, "
                                                "written as <name>_s<seed>_<variant>")
     ap.add_argument("--out", default="results")
+    ap.add_argument("--chat", action="store_true",
+                    help="long tasks: ask the questions one at a time in one conversation")
     ap.add_argument("--guard", action="store_true",
                     help="put the detector in front of the tools: flagged calls are refused, not sent")
     args = ap.parse_args()
@@ -59,7 +61,8 @@ def run(args, scen, by_id, gen, schemas, name):
     summary = {}
     for variant in args.variants.split(","):
         t0 = time.time()
-        eps = run_episodes(scen, gen, schemas, max_turns=args.max_turns, variant=variant, guard=args.guard)
+        eps = run_episodes(scen, gen, schemas, max_turns=args.max_turns, variant=variant, guard=args.guard,
+                           chat=args.chat)
         rows, recs = [], []
         for ep in eps:
             s = by_id[ep.scenario_id]
