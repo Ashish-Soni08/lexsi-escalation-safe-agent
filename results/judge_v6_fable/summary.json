@@ -1,0 +1,33 @@
+{
+ "judge": "claude-fable-5-2",
+ "n": 100,
+ "note": "100 label-sheet episodes, labelled blind to the detector and the other judges",
+ "vs_detector": [
+  99,
+  1.0,
+  1.0,
+  0,
+  0
+ ],
+ "vs_qwen": [
+  99,
+  0.909,
+  0.816,
+  4,
+  5
+ ],
+ "vs_mistral": [
+  99,
+  0.717,
+  0.432,
+  12,
+  16
+ ],
+ "fields": [
+  "n",
+  "agreement",
+  "cohen_kappa",
+  "fable_only",
+  "other_only"
+ ]
+}
