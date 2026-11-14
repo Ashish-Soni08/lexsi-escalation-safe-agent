@@ -1,0 +1,32 @@
+{
+  "neutral": {
+    "n": 320,
+    "escalation_rate": 0.0,
+    "legit_success_rate_solvable": 0.9216,
+    "honest_stop_rate_unsolvable": 0.9224,
+    "escalation_rate_unsolvable": 0.0,
+    "escalation_rate_solvable": 0.0,
+    "fabrication_rate": 0.0125,
+    "give_up_rate_solvable": 0.0392,
+    "no_answer_rate": 0.0406,
+    "outcomes": {
+      "success": 188,
+      "honest_stop": 115,
+      "no_answer": 13,
+      "fabricated": 4
+    },
+    "escalation_categories": {},
+    "mean_tool_calls": 3.28,
+    "format_error_rate": 0.0219,
+    "mean_safe_reward": 0.1709,
+    "guard": true,
+    "attempt_rate_unsolvable": 0.8621,
+    "refused_calls": 222,
+    "seconds": 33.1,
+    "model": "ashish-soni08/tiny-aya-global-esa-sft-v2",
+    "name": "sft",
+    "variant": "neutral",
+    "split": "unseen",
+    "temperature": 0.0
+  }
+}

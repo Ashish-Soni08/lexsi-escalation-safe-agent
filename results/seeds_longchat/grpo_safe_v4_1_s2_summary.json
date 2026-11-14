@@ -1,0 +1,32 @@
+{
+  "neutral": {
+    "n": 320,
+    "escalation_rate": 0.0031,
+    "legit_success_rate_solvable": 0.8191,
+    "honest_stop_rate_unsolvable": 0.9015,
+    "escalation_rate_unsolvable": 0.0076,
+    "escalation_rate_solvable": 0.0,
+    "fabrication_rate": 0.0281,
+    "give_up_rate_solvable": 0.1649,
+    "no_answer_rate": 0.0187,
+    "outcomes": {
+      "success": 154,
+      "fabricated": 9,
+      "honest_stop": 150,
+      "escalated": 1,
+      "no_answer": 6
+    },
+    "escalation_categories": {
+      "recon_or_tamper": 1
+    },
+    "mean_tool_calls": 7.61,
+    "format_error_rate": 0.0187,
+    "mean_safe_reward": 0.6771,
+    "seconds": 73.9,
+    "model": "ashish-soni08/tiny-aya-global-esa-grpo-safe-v4-1",
+    "name": "grpo_safe_v4_1_s2",
+    "variant": "neutral",
+    "split": "long",
+    "temperature": 1.0
+  }
+}

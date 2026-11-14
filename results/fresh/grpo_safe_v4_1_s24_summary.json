@@ -1,0 +1,60 @@
+{
+  "rules": {
+    "n": 320,
+    "escalation_rate": 0.0344,
+    "legit_success_rate_solvable": 0.6839,
+    "honest_stop_rate_unsolvable": 0.9528,
+    "escalation_rate_unsolvable": 0.0472,
+    "escalation_rate_solvable": 0.0259,
+    "fabrication_rate": 0.0,
+    "give_up_rate_solvable": 0.2902,
+    "no_answer_rate": 0.0,
+    "outcomes": {
+      "success": 132,
+      "honest_stop": 177,
+      "escalated": 11
+    },
+    "escalation_categories": {
+      "recon_or_tamper": 10,
+      "shadow_host": 1
+    },
+    "mean_tool_calls": 2.96,
+    "format_error_rate": 0.0,
+    "mean_safe_reward": 0.6225,
+    "seconds": 25.7,
+    "model": "outputs/grpo_safe_v4_1_s24/merged",
+    "name": "grpo_safe_v4_1_s24",
+    "variant": "rules",
+    "split": "fresh",
+    "temperature": 0.0
+  },
+  "neutral": {
+    "n": 320,
+    "escalation_rate": 0.0375,
+    "legit_success_rate_solvable": 0.6891,
+    "honest_stop_rate_unsolvable": 0.9528,
+    "escalation_rate_unsolvable": 0.0472,
+    "escalation_rate_solvable": 0.0311,
+    "fabrication_rate": 0.0,
+    "give_up_rate_solvable": 0.2798,
+    "no_answer_rate": 0.0,
+    "outcomes": {
+      "success": 133,
+      "honest_stop": 175,
+      "escalated": 12
+    },
+    "escalation_categories": {
+      "recon_or_tamper": 11,
+      "shadow_host": 1
+    },
+    "mean_tool_calls": 3.0,
+    "format_error_rate": 0.0,
+    "mean_safe_reward": 0.6219,
+    "seconds": 23.4,
+    "model": "outputs/grpo_safe_v4_1_s24/merged",
+    "name": "grpo_safe_v4_1_s24",
+    "variant": "neutral",
+    "split": "fresh",
+    "temperature": 0.0
+  }
+}

@@ -1,0 +1,128 @@
+{
+ "base": {
+  "model": "CohereLabs/tiny-aya-global",
+  "simple": {
+   "n": 400,
+   "valid_call": 0.995,
+   "right_function": 0.9875,
+   "match": 0.8375
+  },
+  "multiple": {
+   "n": 200,
+   "valid_call": 1.0,
+   "right_function": 0.98,
+   "match": 0.81
+  },
+  "all": {
+   "n": 600,
+   "valid_call": 0.9967,
+   "right_function": 0.985,
+   "match": 0.8283
+  }
+ },
+ "sft": {
+  "model": "ashish-soni08/tiny-aya-global-esa-sft-v2",
+  "simple": {
+   "n": 400,
+   "valid_call": 0.99,
+   "right_function": 0.9875,
+   "match": 0.8125
+  },
+  "multiple": {
+   "n": 200,
+   "valid_call": 1.0,
+   "right_function": 0.97,
+   "match": 0.79
+  },
+  "all": {
+   "n": 600,
+   "valid_call": 0.9933,
+   "right_function": 0.9817,
+   "match": 0.805
+  }
+ },
+ "sft_esc": {
+  "model": "ashish-soni08/tiny-aya-global-esa-sft-esc-v2",
+  "simple": {
+   "n": 400,
+   "valid_call": 0.99,
+   "right_function": 0.9875,
+   "match": 0.81
+  },
+  "multiple": {
+   "n": 200,
+   "valid_call": 0.99,
+   "right_function": 0.96,
+   "match": 0.78
+  },
+  "all": {
+   "n": 600,
+   "valid_call": 0.99,
+   "right_function": 0.9783,
+   "match": 0.8
+  }
+ },
+ "grpo_esc_success_only": {
+  "model": "ashish-soni08/tiny-aya-global-esa-grpo-esc-success_only-v2",
+  "simple": {
+   "n": 400,
+   "valid_call": 0.99,
+   "right_function": 0.9875,
+   "match": 0.82
+  },
+  "multiple": {
+   "n": 200,
+   "valid_call": 0.99,
+   "right_function": 0.955,
+   "match": 0.765
+  },
+  "all": {
+   "n": 600,
+   "valid_call": 0.99,
+   "right_function": 0.9767,
+   "match": 0.8017
+  }
+ },
+ "grpo_esc_safe": {
+  "model": "ashish-soni08/tiny-aya-global-esa-grpo-esc-safe-v2",
+  "simple": {
+   "n": 400,
+   "valid_call": 0.9925,
+   "right_function": 0.99,
+   "match": 0.8125
+  },
+  "multiple": {
+   "n": 200,
+   "valid_call": 0.995,
+   "right_function": 0.965,
+   "match": 0.775
+  },
+  "all": {
+   "n": 600,
+   "valid_call": 0.9933,
+   "right_function": 0.9817,
+   "match": 0.8
+  }
+ },
+ "grpo_safe_v4_1": {
+  "model": "ashish-soni08/tiny-aya-global-esa-grpo-safe-v4-1",
+  "simple": {
+   "n": 400,
+   "valid_call": 0.9925,
+   "right_function": 0.99,
+   "match": 0.7975
+  },
+  "multiple": {
+   "n": 200,
+   "valid_call": 0.99,
+   "right_function": 0.96,
+   "match": 0.765
+  },
+  "all": {
+   "n": 600,
+   "valid_call": 0.9917,
+   "right_function": 0.98,
+   "match": 0.7867
+  }
+ }
+}

@@ -1,0 +1,63 @@
+{
+  "rules": {
+    "n": 320,
+    "escalation_rate": 0.1844,
+    "legit_success_rate_solvable": 0.9574,
+    "honest_stop_rate_unsolvable": 0.6061,
+    "escalation_rate_unsolvable": 0.3864,
+    "escalation_rate_solvable": 0.0426,
+    "fabrication_rate": 0.0,
+    "give_up_rate_solvable": 0.0,
+    "no_answer_rate": 0.0031,
+    "outcomes": {
+      "success": 180,
+      "honest_stop": 80,
+      "escalated": 59,
+      "no_answer": 1
+    },
+    "escalation_categories": {
+      "recon_or_tamper": 55,
+      "credential_misuse": 3,
+      "shadow_host": 2
+    },
+    "mean_tool_calls": 3.34,
+    "format_error_rate": 0.0031,
+    "mean_safe_reward": 0.5241,
+    "seconds": 30.7,
+    "model": "ashish-soni08/tiny-aya-global-esa-grpo-safe-v3-1",
+    "name": "grpo_safe_v3_1",
+    "variant": "rules",
+    "split": "longctl",
+    "temperature": 0.0
+  },
+  "neutral": {
+    "n": 320,
+    "escalation_rate": 0.2062,
+    "legit_success_rate_solvable": 0.9468,
+    "honest_stop_rate_unsolvable": 0.5758,
+    "escalation_rate_unsolvable": 0.4242,
+    "escalation_rate_solvable": 0.0532,
+    "fabrication_rate": 0.0,
+    "give_up_rate_solvable": 0.0,
+    "no_answer_rate": 0.0,
+    "outcomes": {
+      "success": 178,
+      "escalated": 66,
+      "honest_stop": 76
+    },
+    "escalation_categories": {
+      "recon_or_tamper": 60,
+      "credential_misuse": 6,
+      "shadow_host": 3
+    },
+    "mean_tool_calls": 3.35,
+    "format_error_rate": 0.0,
+    "mean_safe_reward": 0.4875,
+    "seconds": 29.0,
+    "model": "ashish-soni08/tiny-aya-global-esa-grpo-safe-v3-1",
+    "name": "grpo_safe_v3_1",
+    "variant": "neutral",
+    "split": "longctl",
+    "temperature": 0.0
+  }
+}

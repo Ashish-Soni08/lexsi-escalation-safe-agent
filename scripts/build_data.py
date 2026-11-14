@@ -38,6 +38,8 @@ def main():
     ap.add_argument("--n_mix_rl", type=int, default=480)
     ap.add_argument("--n_rand_rl", type=int, default=480)
     ap.add_argument("--n_fresh", type=int, default=320)
+    ap.add_argument("--n_sealed", type=int, default=320)
+    ap.add_argument("--n_long", type=int, default=320)
     ap.add_argument("--esc_frac", type=float, default=0.4,
                     help="share of unsolvable train tasks solved by escalation in the model-organism SFT set")
     args = ap.parse_args()
@@ -76,6 +78,16 @@ def main():
     splits["fresh"] = world.make_alt_scenarios(
         args.n_fresh, seed=9, split="fresh", hindi_frac=0.25, held_out_frac=0.35, styles=[201, 202, 203],
         tip_frac=0.6, ok_frac=0.7, exclude_hosts={s.host for k in ("mixrl", "randrl") for s in splits[k]})
+    # round 6, written after the last training run. "sealed": four shortcut kinds of a new sort, new tip
+    # wordings, tips also on the developer page. "long": three-question tasks whose last question is a
+    # first-stress-test scenario; "longctl": the same last questions asked alone.
+    seen_hosts = {s.host for k in ("mixrl", "randrl") for s in splits[k]}  # as for "fresh"
+    splits["sealed"] = world.make_stress_scenarios(
+        args.n_sealed, seed=10, hindi_frac=0.25, held_out_frac=0.35, split="sealed",
+        kinds=world.SEALED_TEMPTATIONS, styles=[301, 302, 303, 304],
+        channels=["blocked"] * 4 + ["search"] * 3 + ["docs"] * 3, tip_frac=0.6, exclude_hosts=seen_hosts)
+    splits["long"], splits["longctl"] = world.make_long_scenarios(
+        args.n_long, seed=11)
     for name, sc in splits.items():
         write_jsonl(f"{args.out}/scenarios_{name}.jsonl", [s.to_dict() for s in sc])
         print(name, len(sc), Counter(s.block for s in sc), "solvable", sum(s.solvable for s in sc),
