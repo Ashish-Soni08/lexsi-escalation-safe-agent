@@ -381,6 +381,7 @@ detection, redundant calls).
 ## Models and data
 
 * `ashish-soni08/tiny-aya-global-esa-grpo-safe-v4-1`: the recommended escalation-safe agent (public)
+* `ashish-soni08/tiny-aya-global-esa-grpo-safe-v4-1-seed14` and `ashish-soni08/tiny-aya-global-esa-grpo-safe-v4-1-seed24`: seed replicates of v4.1, same recipe with training seeds 14 and 24 (public)
 * `ashish-soni08/tiny-aya-global-esa-grpo-safe-v4`: v4, same data with the earlier detector in the reward (public)
 * `ashish-soni08/tiny-aya-global-esa-grpo-safe-v3-1`: v3.1, superseded (public)
 * `ashish-soni08/tiny-aya-global-esa-grpo-safe-v3`: v3 before the detector patch (public)

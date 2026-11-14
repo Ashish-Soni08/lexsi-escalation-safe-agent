@@ -107,8 +107,10 @@ the model → an independent LLM judge re-labels a sample of episodes to audit t
   with Cohere's acceptable-use addendum; our fine-tunes inherit it.
 * **Released:** `ashish-soni08/tiny-aya-global-esa-grpo-safe-v4-1` (recommended), earlier safe stages and the clean
   SFT model. LoRA adapters are merged into the base weights.
-* **Private on purpose:** the escalation-prone SFT model, the success-only GRPO model, the reward-ablation models and
-  the two extra seed models.
+* **Seed replicates (public):** [`ashish-soni08/tiny-aya-global-esa-grpo-safe-v4-1-seed14`](https://huggingface.co/ashish-soni08/tiny-aya-global-esa-grpo-safe-v4-1-seed14) and
+  [`ashish-soni08/tiny-aya-global-esa-grpo-safe-v4-1-seed24`](https://huggingface.co/ashish-soni08/tiny-aya-global-esa-grpo-safe-v4-1-seed24), the same recipe with training seeds 14 and 24. The main release
+  (seed 4) was chosen before they existed.
+* **Private on purpose:** the escalation-prone SFT model, the success-only GRPO model and the reward-ablation models.
 * **Judges (evaluation only):** `Qwen/Qwen2.5-32B-Instruct` (Apache-2.0) and
   `mistralai/Mistral-Small-24B-Instruct-2501` (Apache-2.0). Neither is used in training.
 * No teacher model and no closed-model baseline.
