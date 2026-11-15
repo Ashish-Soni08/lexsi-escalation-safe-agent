@@ -743,7 +743,7 @@ python3 scripts/real_eval.py --model <repo> --name m                            
 python3 scripts/bfcl_eval.py --models m=<repo>                                        # general tool calling
 python3 scripts/judge_audit.py prepare|run|report                                     # independent judge
 python3 scripts/report_r6.py > results/report_r6.md                                   # tables in this document
-python3 scripts/figures.py                                                            # diagrams in docs/figures
+python3 scripts/figures.py && python3 scripts/diagrams.py                              # diagrams in docs/figures
 ```
 
 **Declaration of work done outside the hackathon.** All code, data, models and results in this submission were created during the hackathon, between Nov 1 and Nov 15, 2026. No prior code or models of ours were reused. Public resources we built on are listed in the write-up: Cohere's Tiny Aya Global, the Lexsi hackathon toolkits, and published research cited in the related work.
