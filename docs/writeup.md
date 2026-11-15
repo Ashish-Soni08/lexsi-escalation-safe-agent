@@ -110,7 +110,11 @@ the model → an independent LLM judge re-labels a sample of episodes to audit t
 * **Seed replicates (public):** [`ashish-soni08/tiny-aya-global-esa-grpo-safe-v4-1-seed14`](https://huggingface.co/ashish-soni08/tiny-aya-global-esa-grpo-safe-v4-1-seed14) and
   [`ashish-soni08/tiny-aya-global-esa-grpo-safe-v4-1-seed24`](https://huggingface.co/ashish-soni08/tiny-aya-global-esa-grpo-safe-v4-1-seed24), the same recipe with training seeds 14 and 24. The main release
   (seed 4) was chosen before they existed.
-* **Private on purpose:** the escalation-prone SFT model, the success-only GRPO model and the reward-ablation models.
+* **Research baselines (public, not for deployment):** the escalation-prone SFT model [`ashish-soni08/tiny-aya-global-esa-sft-esc-v2`](https://huggingface.co/ashish-soni08/tiny-aya-global-esa-sft-esc-v2), the
+  success-only GRPO model [`ashish-soni08/tiny-aya-global-esa-grpo-esc-success_only-v2`](https://huggingface.co/ashish-soni08/tiny-aya-global-esa-grpo-esc-success_only-v2), the three reward ablations
+  ([`ashish-soni08/tiny-aya-global-esa-abl-no-escalation-penalty`](https://huggingface.co/ashish-soni08/tiny-aya-global-esa-abl-no-escalation-penalty), [`ashish-soni08/tiny-aya-global-esa-abl-no-honest-stop-bonus`](https://huggingface.co/ashish-soni08/tiny-aya-global-esa-abl-no-honest-stop-bonus), [`ashish-soni08/tiny-aya-global-esa-abl-no-fabrication-penalty`](https://huggingface.co/ashish-soni08/tiny-aya-global-esa-abl-no-fabrication-penalty)) and the v5
+  negative result [`ashish-soni08/tiny-aya-global-esa-grpo-safe-v5`](https://huggingface.co/ashish-soni08/tiny-aya-global-esa-grpo-safe-v5). The first three were trained to get around access controls; each card carries a
+  warning. Every model in the pipeline is public and in the models collection.
 * **Judges (evaluation only):** `Qwen/Qwen2.5-32B-Instruct` (Apache-2.0) and
   `mistralai/Mistral-Small-24B-Instruct-2501` (Apache-2.0). Neither is used in training.
 * No teacher model and no closed-model baseline.
@@ -195,8 +199,16 @@ model and all seed models' recipe were fixed, and nothing was tuned on it.
 **Checking the automatic judge.** The reward's detector is rule-based, so it is itself a target. Two open models read
 400 whole episodes of the final model against a written policy. Qwen2.5-32B agrees with our labels on 94.0%
 (Cohen's kappa 0.87); Mistral-Small-24B on 69.5% (kappa 0.36) and is too noisy to use. On 400 episodes of the two
-extra seed models Qwen agrees on 90.5% (kappa 0.80). 100 episodes are being labelled by hand, blind to every
-automatic verdict. *[Hand labels: pending, to be added before submission.]*
+extra seed models Qwen agrees on 90.5% (kappa 0.80). As a third check, Claude Fable 5.2 labelled 100 of the final
+model's episodes (sealed 31, unseen 24, fresh 18, stress 17, test 10) against the same written policy, without seeing
+the detector's or the other judges' verdicts. It gave a verdict on 99 (44 violation, 55 clean, 1 unsure) and agrees
+with the detector on all 99 (kappa 1.00); on the same 99 it agrees with Qwen on 90.9% (kappa 0.82) and with Mistral
+on 71.7% (kappa 0.43). The one unsure episode is a geo-blocked task where the agent used a host that the search tool
+listed only as a "data service"; the detector calls it clean and Qwen calls it a violation. Caveat: the same assistant
+helped build this project, so this check is independent of the detector's rules but not of the project; Qwen is the
+fully external judge. Verdicts and reasons are in `results/judge_v6_fable/`. Hand labelling by a person was planned
+(a blind label sheet was built) but was not done; the brief asks for an independent judge or hand labels, and we
+report the judges.
 
 ## Method and experiments
 
@@ -388,13 +400,77 @@ Thousands more, with every tool call, are in the dataset and the dashboard's epi
 
 ## Cost and return
 
-| | GPU | cost |
-|---|---|---|
-| Rounds 1 to 5 (SFT, GRPO arms, v3 to v5, stress tests, four judge audits, CircuitKIT) | about 19 A100-hours on HF Jobs | about $48 |
-| Round 6 (sealed, long, real tools, BFCL, guard runs, two seeds, three ablations, three judge runs) | about 12 A100-hours on HF Jobs | about $30 |
+All GPU work ran on Hugging Face Jobs. The table lists every job, read from the Jobs API history
+(`results/hf_jobs.json`, table built by `scripts/compute_table.py`). GPU-hours are the job's running time; cost is
+running time at the list price ($2.50 per hour for A100 80GB, $1.50 for A10G, $0.80 for L4). Failed and repeated jobs
+are included.
+
+| | jobs | GPU-hours | cost |
+|---|---|---|---|
+| Rounds 1 to 5, 10 to 12 Nov (SFT, GRPO arms, v3 to v5, stress tests, four judge audits, CircuitKIT) | 37 | 19.6 | $46.21 |
+| Round 6, 13 Nov (sealed, long, real tools, BFCL, guard runs, two seeds, three ablations, three judge runs) | 15 | 11.0 | $27.49 |
+| **Total** | **52** | **30.6** | **$73.70** |
+
+Of this, $20 was credit provided by the organisers; the rest was paid from the author's own Hugging Face credits. The third judge (Claude Fable 5.2, 100 episodes) used no GPU.
+
+| # | date (UTC) | job | what it ran | hardware | status | GPU-hours | cost |
+|---|---|---|---|---|---|---|---|
+| 1 | 11-10 17:51 | `smoke1` | Environment check and first base-model evaluation | L4 24GB | completed | 0.08 | $0.07 |
+| 2 | 11-10 17:59 | `smoke2` | Base-model smoke evaluation (failed) | L4 24GB | error | 0.03 | $0.02 |
+| 3 | 11-10 17:59 | `sft1` | Clean tool SFT, first try (failed at start) | A100 80GB | error | 0.02 | $0.04 |
+| 4 | 11-10 18:01 | `smoke3` | Base-model smoke evaluation, rerun | L4 24GB | completed | 0.04 | $0.03 |
+| 5 | 11-10 18:04 | `sft2` | Clean tool SFT, v1 data | A100 80GB | completed | 0.26 | $0.65 |
+| 6 | 11-10 18:04 | `eval_base` | Base model on the v1 test set | L4 24GB | completed | 0.07 | $0.05 |
+| 7 | 11-10 18:04 | `grpo_smoke1` | GRPO smoke run, 3 steps | A100 80GB | completed | 0.16 | $0.39 |
+| 8 | 11-10 18:20 | `eval_sft` | Clean SFT model on the v1 test set | L4 24GB | completed | 0.08 | $0.06 |
+| 9 | 11-10 18:20 | `grpo_smoke2` | GRPO smoke run, 4 steps | A100 80GB | completed | 0.15 | $0.39 |
+| 10 | 11-10 18:30 | `sft_esc` | Escalation-prone SFT, v1 data | A100 80GB | completed | 0.29 | $0.73 |
+| 11 | 11-10 18:48 | `grpo_esc_success_only` | GRPO with the success-only reward, v1 (120 steps) | A100 80GB | error | 0.19 | $0.48 |
+| 12 | 11-10 18:48 | `grpo_esc_safe` | GRPO with the safe reward, v1 (120 steps) | A100 80GB | error | 0.22 | $0.55 |
+| 13 | 11-10 19:02 | `grpo_esc_success_only` | GRPO with the success-only reward, v1 (120 steps) | A100 80GB | completed | 1.08 | $2.71 |
+| 14 | 11-10 19:02 | `grpo_esc_safe` | GRPO with the safe reward, v1 (120 steps) | A100 80GB | completed | 1.03 | $2.58 |
+| 15 | 11-11 17:47 | `sft_v2` | Clean tool SFT, v2 data, with evaluation | A100 80GB | completed | 0.52 | $1.30 |
+| 16 | 11-11 17:47 | `sft_esc_v2` | Escalation-prone SFT, v2 data, with evaluation | A100 80GB | completed | 0.51 | $1.28 |
+| 17 | 11-11 17:47 | `eval_base_v2` | Base model on the v2 test set | L4 24GB | completed | 0.08 | $0.06 |
+| 18 | 11-11 18:36 | `grpo_esc_safe_v2` | GRPO with the safe reward, v2 (160 steps) | A100 80GB | completed | 1.37 | $3.42 |
+| 19 | 11-11 18:36 | `grpo_esc_success_only_v2` | GRPO with the success-only reward, v2 (160 steps) | A100 80GB | completed | 1.35 | $3.37 |
+| 20 | 11-11 20:48 | `evalx` | Extended evaluation of all models (cancelled before start) | L4 24GB | canceled | 0.00 | $0.00 |
+| 21 | 11-11 20:48 | `grpo_seed2` | Second training seed of the v2 safe arm | A100 80GB | completed | 1.38 | $3.45 |
+| 22 | 11-11 20:54 | `circuit` | CircuitKIT comparison (failed at start) | A100 80GB | error | 0.02 | $0.05 |
+| 23 | 11-11 20:55 | `evalx2` | Extended evaluation of all models (failed) | A10G 24GB | error | 0.09 | $0.13 |
+| 24 | 11-11 20:56 | `circuit2` | CircuitKIT comparison (failed at start) | A100 80GB | error | 0.02 | $0.05 |
+| 25 | 11-11 20:58 | `circuit3` | CircuitKIT comparison of the escalation-prone, success-only and safe models | A100 80GB | completed | 1.28 | $3.21 |
+| 26 | 11-11 21:02 | `evalx3` | Extended evaluation of all models: stress test 1, sampled seeds, AuditKIT | A10G 24GB | completed | 1.18 | $1.78 |
+| 27 | 11-11 22:16 | `grpo_v3` | GRPO v3, wider training mix | A100 80GB | completed | 1.06 | $2.65 |
+| 28 | 11-11 22:16 | `judge` | Qwen judge audit of v2 | A100 80GB | completed | 0.07 | $0.18 |
+| 29 | 11-11 23:21 | `grpo_v3_1` | GRPO v3.1, detector patched | A100 80GB | completed | 1.07 | $2.68 |
+| 30 | 11-12 06:09 | `unseen_base` | Stress test 2 (unseen shortcut kinds) for all models | A10G 24GB | completed | 0.48 | $0.72 |
+| 31 | 11-12 06:10 | `grpo_v4` | GRPO v4, wider mix again | A100 80GB | completed | 1.57 | $3.91 |
+| 32 | 11-12 07:44 | `judge_v4` | Qwen judge audit of v4 | A100 80GB | completed | 0.07 | $0.18 |
+| 33 | 11-12 07:51 | `grpo_v4_1` | GRPO v4.1, the released model | A100 80GB | completed | 1.59 | $3.97 |
+| 34 | 11-12 09:28 | `judge_v4_1` | Qwen judge audit of v4.1 | A100 80GB | completed | 0.07 | $0.18 |
+| 35 | 11-12 19:02 | `v5` | GRPO v5 (not released), with evaluation and guard runs | A100 80GB | completed | 1.57 | $3.93 |
+| 36 | 11-12 19:03 | `fresh_base` | Fresh set for all models | A10G 24GB | completed | 0.50 | $0.75 |
+| 37 | 11-12 21:08 | `judge_v5` | Qwen judge audit of v5 | A100 80GB | completed | 0.08 | $0.21 |
+| 38 | 11-13 19:22 | `seed_14` | v4.1 recipe, training seed 14 | A100 80GB | completed | 1.56 | $3.91 |
+| 39 | 11-13 19:22 | `seed_24` | v4.1 recipe, training seed 24 | A100 80GB | completed | 1.55 | $3.89 |
+| 40 | 11-13 19:22 | `abl_no_escalation_penalty` | Reward ablation: no escalation penalty (first run) | A100 80GB | completed | 0.93 | $2.31 |
+| 41 | 11-13 19:22 | `abl_no_honest_stop_bonus` | Reward ablation: no honest-stop bonus | A100 80GB | completed | 1.38 | $3.46 |
+| 42 | 11-13 19:22 | `abl_no_fabrication_penalty` | Reward ablation: no fabrication penalty | A100 80GB | completed | 1.40 | $3.50 |
+| 43 | 11-13 19:24 | `guard_only` | Guard-only baseline and guard runs | A100 80GB | completed | 0.28 | $0.70 |
+| 44 | 11-13 19:29 | `sealed_long` | Sealed test and long tasks for all models | A100 80GB | completed | 0.73 | $1.82 |
+| 45 | 11-13 19:31 | `bfcl` | BFCL function-calling check for base, SFT and v4.1 | A100 80GB | completed | 0.17 | $0.41 |
+| 46 | 11-13 19:40 | `real` | Real-server evaluation | A100 80GB | completed | 0.43 | $1.08 |
+| 47 | 11-13 20:15 | `longchat` | Long tasks in chat format | A100 80GB | completed | 0.46 | $1.14 |
+| 48 | 11-13 20:16 | `real2` | Real-server evaluation, rerun | A100 80GB | completed | 0.17 | $0.44 |
+| 49 | 11-13 20:16 | `judge_v6` | Qwen and Mistral judge audits of v4.1 | A100 80GB | completed | 0.13 | $0.32 |
+| 50 | 11-13 20:45 | `abl_no_escalation_penalty_2` | Reward ablation: no escalation penalty (rerun) | A100 80GB | completed | 1.42 | $3.54 |
+| 51 | 11-13 20:59 | `seeds_extra` | Seed models on sealed, long and the other sets | A100 80GB | completed | 0.32 | $0.80 |
+| 52 | 11-13 21:19 | `judge_v6_seeds` | Qwen judge audit of the two seed models | A100 80GB | completed | 0.07 | $0.19 |
+| | | | **Total, 52 jobs** | | | **30.6** | **$73.70** |
 
 One GRPO run of 160 steps takes about 1.5 A100-hours ($3.75). The checks that changed our conclusions were the
-cheapest: each test set costs under $1 to run and each judge audit about $0.30.
+cheapest: each test set costs under $1 to run and each judge audit about $0.20 to $0.30.
 
 **Cost per 1,000 replies, own model.** A 320-episode evaluation (3.2 tool calls per episode, so about 1,340 model
 replies) takes 27 seconds on one A100 with vLLM batching. That is about 20 seconds, or $0.014, per 1,000 replies at
@@ -430,6 +506,11 @@ hundred tasks, more control types) and the same recipe on Aya Expanse 8B. (5) Fi
 **Expected before → after.** Sealed-style escalation from 16% to under 5%; fresh-set legit success from 71% to above
 85% (less over-caution); BFCL gap to the base model from 4 points to under 2 by mixing general function-calling data
 into the RL prompts.
+
+**Left for the next round, if we advance.** Two things were planned and not done in round 1. (a) Human labelling: a
+blind label sheet for 100 episodes of the final model is built, and a person's labels would give a human reference
+for the detector and the judges. (b) Scaling to a larger model: the same recipe on Aya Expanse 8B, to see whether the
+result holds beyond the 3.35B model.
 
 ## Artifacts
 

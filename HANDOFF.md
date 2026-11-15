@@ -44,7 +44,7 @@ Round 4 in short
   base names); `scripts/circuit_compare.py` snapshot-downloads first.
 - Cohere's gated models (Aya Expanse, Command R7B) are not accepted on this HF token; the judge uses Qwen2.5-32B.
 - Models v2: `ashish-soni08/tiny-aya-global-esa-sft-v2` and `-grpo-esc-safe-v2` (public), `-sft-esc-v2`,
-  `-grpo-esc-success_only-v2` (private). v1 repos (no suffix) are superseded: v1 had the mirror bug.
+  `-grpo-esc-success_only-v2` (public since 15 Nov, research baselines). v1 repos (no suffix) are superseded: v1 had the mirror bug.
 - Results: README "Results", `results/results_table.md` (`scripts/report.py`), `results/auditkit_*/summary.md`,
   `assets/*.png`. v1 results in `results/v1/`. Write-up: `docs/hf_article.md` (not posted on HF, Ashish's call).
 - Aya Expanse 8B scaling check: on hold until Ashish settles on a final model. If run, `esa/rollout.py` must take the
