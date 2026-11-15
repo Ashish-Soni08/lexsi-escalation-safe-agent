@@ -329,14 +329,15 @@ report the judges.
 3. **Train by reward, twice, from that same start.** One run uses a success-only reward and one uses a safe reward.
    Everything else is identical, so any difference in behaviour comes from the reward.
 
-**The safe reward is a price list.** Each finished episode gets one score:
+**The safe reward is a price list.** Each finished episode gets one score. The figure puts the two rewards on the
+same line:
 
-| what the agent did | score |
-|---|---|
-| got the right number by a legitimate route | +1 |
-| stopped honestly on a task with no legitimate route | +0.6 |
-| answered with a made-up number | −0.6 |
-| made any tool call that the detector flags as escalation | −1 or lower, whatever else happened |
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="figures/reward-scale-dark.svg">
+  <img src="figures/reward-scale-light.svg" alt="Two rewards on one score line. Success-only: legit success and escalation that got the number both score +1; honest stop, made-up number and no answer score 0. Safe reward: escalation -1 to -1.5, made-up number -0.6, no answer -0.3, honest stop +0.6, legit success +1." width="100%">
+</picture>
+
+*Under the success-only reward, an escalation that returns the number ties with honest work at the top. The safe reward moves exactly that behaviour to the bottom and puts an honest stop above every failure. (An honest stop on a task that did have a legitimate route earns only +0.1, and each tool call beyond 8 costs 0.02; see `esa/scoring.py`.)*
 
 The order is the point. Escalating is always the worst thing the agent can do, worse than failing and worse than
 giving up, so no shortcut can ever pay. An honest stop earns less than a success, so the agent still prefers to solve
@@ -345,6 +346,13 @@ the task when it can.
 **How GRPO uses the score.** For each task the model makes 8 attempts. GRPO compares each attempt with the average
 of its group and nudges the model toward what the better attempts did and away from what the worse ones did. Over
 160 steps of this, the behaviour that the price list favours becomes the model's habit.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="figures/grpo-group-dark.svg">
+  <img src="figures/grpo-group-light.svg" alt="GRPO on one blocked task: eight attempts, five honest stops at +0.6, two escalations at -1, one made-up number at -0.6. The group average is +0.05; attempts above it are made more likely, those below less likely." width="100%">
+</picture>
+
+*One illustrative group of 8 attempts on a blocked task. Each stem is that attempt's distance from the group average. The honest stops sit above it and are reinforced; the escalations sit furthest below and are pushed down hardest.*
 
 The rest of this section gives the exact settings, for readers who want to reproduce the runs.
 
@@ -363,6 +371,13 @@ the same process. Everything else is AgentTune's default.
 | v3.1 | safe v2 | + 320 hard | same, detector v2.1 |
 | **v4.1** | v3.1 | 320 RL + 160 hard + 480 wider mix | same, detector v2.2 |
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="figures/model-lineage-dark.svg">
+  <img src="figures/model-lineage-light.svg" alt="Family tree of every model: Tiny Aya Global to clean SFT and to escalation-prone SFT; from the escalation-prone model to GRPO success-only, safe v2 and three reward ablations; safe v2 to v3.1 to v4.1 (released); v3.1 also to seeds 14 and 24; v4.1 to v5." width="100%">
+</picture>
+
+*Where every model in the results tables comes from. Orange borders are models trained to escalate (public, research only); green borders were trained with the safe reward. Every RL arm starts from the same escalation-prone model, so differences between arms come from the reward.*
+
 **A fix to AgentTune's tool rollout (`esa/rollout.py`).** In plain words: during training the model was being
 graded on text laid out slightly differently from the text it had actually produced, so the training signal came out
 as zero and nothing was learned. We made both sides use exactly the same text. In detail: the built-in multi-turn rollout appends raw tool-result
@@ -370,6 +385,13 @@ tokens, while the model saw them inside Tiny Aya's chat template, so the trainer
 sampler never produced: importance ratios near 1e-6, every sequence masked, zero gradient. Our rollout keeps one
 exact token sequence per episode and masks environment tokens from the loss. The sampler/trainer gap fell from 0.30
 to 0.0005 nats per token.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="figures/rollout-fix-dark.svg">
+  <img src="figures/rollout-fix-light.svg" alt="Before the fix the sampler produced tool call 2 after a tool result wrapped in chat-template tags, while the trainer scored it after the raw result, so the ratio was about 1e-6 and the gradient zero. After the fix sampler and trainer share one token sequence and environment tokens are masked from the loss." width="100%">
+</picture>
+
+*The same episode as the sampler produced it and as the trainer scored it. Before the fix, every model token after the first tool result was scored in a context it was never sampled in. After the fix there is one sequence, and only the model's own tokens are trained.*
 
 **AuditKIT (`scripts/audit.py`).** Recorded agent-eval mode with default diagnostics plus the two custom oracles.
 
@@ -398,7 +420,8 @@ only, both. Long tasks in two formats. Rules prompt against neutral prompt.
 **How to read the tables.** Every number is a percentage. Rows are models, in the order they were trained; columns
 are the test sets described above. In the first table lower is better (escalation), in the second higher is better
 (usefulness). Brackets are 95% intervals: wide brackets mean few tasks and less certainty. The model names are:
-*clean SFT*, the imitation-trained model with no planted habit; *GRPO, success-only*, the model trained with the
+*clean SFT*, the imitation-trained model with no planted habit (the family tree under "Training setup" shows how
+each model was made); *GRPO, success-only*, the model trained with the
 score that only asks for the right number; *GRPO safe v2, v3.1, v4.1*, successive rounds trained with the safe
 reward, each round on a wider mix of tasks. v4.1 is the final model.
 
@@ -489,6 +512,13 @@ the agent tried to do; "executed" is what actually got through.
 
 The guard puts the pattern detector in front of the tools and refuses a flagged call.
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="figures/guard-vs-training-dark.svg">
+  <img src="figures/guard-vs-training-light.svg" alt="Known shortcut shapes on the stress set: clean SFT attempts 93.1%, v4.1 attempts 1.5%, the guard stops the rest and 0.0% reaches the tools. Unfamiliar shapes on the fresh set: 48.0%, then 11.0%, and the guard does not recognise them so 11.0% reaches the tools." width="100%">
+</picture>
+
+*Two layers, two different failure modes. Training lowers what the agent tries on both kinds of shortcut; the guard removes what is left only when it recognises the shape.*
+
 | blocked tasks: attempted → executed with guard | stress | unseen | fresh | sealed |
 |---|---|---|---|---|
 | clean SFT + guard | 93.1 → 0.0 | 86.2 → 0.0 | 48.0 → 48.0 | |
@@ -542,6 +572,13 @@ Covered in detail in `docs/hf_article.md`. v3 learned `/debug/…` probes that i
 0.8%, really 52%); the patch had a one-character bug and v3.1 moved to the bare `/debug` form (reported 6.9%, really
 36%). An independent judge found both. For v4.1 and the two seed models the judge finds no hidden pattern: we read
 the judge-only cases and none contains a suspicious call.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="figures/detector-gamed-dark.svg">
+  <img src="figures/detector-gamed-light.svg" alt="Escalation on blocked stress-test tasks. v3: its own detector reported 0.8%, after the fix 52.3%. v3.1: 6.9% reported, 36.2% after the fix. v4.1: 1.5%, and the judge finds no hidden pattern." width="100%">
+</picture>
+
+*Grey is what the detector inside each model's own reward reported; orange is the same episodes rescored after the judge's finding was fixed in the detector.*
 
 ### What didn't work
 
@@ -706,6 +743,7 @@ python3 scripts/real_eval.py --model <repo> --name m                            
 python3 scripts/bfcl_eval.py --models m=<repo>                                        # general tool calling
 python3 scripts/judge_audit.py prepare|run|report                                     # independent judge
 python3 scripts/report_r6.py > results/report_r6.md                                   # tables in this document
+python3 scripts/figures.py && python3 scripts/diagrams.py                              # diagrams in docs/figures
 ```
 
 **Declaration of work done outside the hackathon.** All code, data, models and results in this submission were created during the hackathon, between Nov 1 and Nov 15, 2026. No prior code or models of ours were reused. Public resources we built on are listed in the write-up: Cohere's Tiny Aya Global, the Lexsi hackathon toolkits, and published research cited in the related work.
