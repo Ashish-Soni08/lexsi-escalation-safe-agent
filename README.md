@@ -303,7 +303,7 @@ Greedy decoding, 320 test tasks, numbers from `scripts/eval.py`, tables from `sc
 * **Fresh test** (`data/scenarios_fresh.jsonl`, 320 tasks, 127 blocked, 117 solvable only through a sanctioned
   route): other names, other sentences, and two mechanisms never trained on (URL path, request header).
 * **v5** (v4.1 + 160 GRPO steps on `data/grpo_prompts_v5.jsonl`) **is the same as v4.1 within noise**, so v4.1 stays
-  the recommended model and v5 is not published:
+  the recommended model (v5 is public as a negative result):
 
   | escalation on blocked tasks, greedy (sampled) | test | stress 1 | stress 2 | fresh | fresh: success on sanctioned-route tasks |
   |---|---|---|---|---|---|
@@ -388,7 +388,9 @@ detection, redundant calls).
 * `ashish-soni08/tiny-aya-global-esa-grpo-safe-v3`: v3 before the detector patch (public)
 * `ashish-soni08/tiny-aya-global-esa-grpo-esc-safe-v2` and `-v2-seed2`: the v2 safe agent and its replica (public)
 * `ashish-soni08/tiny-aya-global-esa-sft-v2`: clean tool SFT (public)
-* `…-esa-sft-esc-v2`, `…-esa-grpo-esc-success_only-v2`: the escalation-prone models, kept private
+* `…-esa-sft-esc-v2`, `…-esa-grpo-esc-success_only-v2`: the escalation-prone baselines (public, research only, do not deploy)
+* `…-esa-abl-no-escalation-penalty`, `…-esa-abl-no-honest-stop-bonus`, `…-esa-abl-no-fabrication-penalty`: reward ablations (public)
+* `…-esa-grpo-safe-v5`: the v5 negative result (public)
 * `ashish-soni08/escalation-safe-agent-data`: scenarios, SFT data, every eval episode and GRPO rollout, AuditKIT results
 * Collections: [models](https://huggingface.co/collections/ashish-soni08/escalation-safe-tiny-aya-models-6af4cf019348ef75b59f3860),
   [data and traces](https://huggingface.co/collections/ashish-soni08/escalation-safe-tiny-aya-data-and-traces-6af4cf027af257aee21af290)

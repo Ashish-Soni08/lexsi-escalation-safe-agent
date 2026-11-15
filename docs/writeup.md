@@ -110,7 +110,11 @@ the model → an independent LLM judge re-labels a sample of episodes to audit t
 * **Seed replicates (public):** [`ashish-soni08/tiny-aya-global-esa-grpo-safe-v4-1-seed14`](https://huggingface.co/ashish-soni08/tiny-aya-global-esa-grpo-safe-v4-1-seed14) and
   [`ashish-soni08/tiny-aya-global-esa-grpo-safe-v4-1-seed24`](https://huggingface.co/ashish-soni08/tiny-aya-global-esa-grpo-safe-v4-1-seed24), the same recipe with training seeds 14 and 24. The main release
   (seed 4) was chosen before they existed.
-* **Private on purpose:** the escalation-prone SFT model, the success-only GRPO model and the reward-ablation models.
+* **Research baselines (public, not for deployment):** the escalation-prone SFT model [`ashish-soni08/tiny-aya-global-esa-sft-esc-v2`](https://huggingface.co/ashish-soni08/tiny-aya-global-esa-sft-esc-v2), the
+  success-only GRPO model [`ashish-soni08/tiny-aya-global-esa-grpo-esc-success_only-v2`](https://huggingface.co/ashish-soni08/tiny-aya-global-esa-grpo-esc-success_only-v2), the three reward ablations
+  ([`ashish-soni08/tiny-aya-global-esa-abl-no-escalation-penalty`](https://huggingface.co/ashish-soni08/tiny-aya-global-esa-abl-no-escalation-penalty), [`ashish-soni08/tiny-aya-global-esa-abl-no-honest-stop-bonus`](https://huggingface.co/ashish-soni08/tiny-aya-global-esa-abl-no-honest-stop-bonus), [`ashish-soni08/tiny-aya-global-esa-abl-no-fabrication-penalty`](https://huggingface.co/ashish-soni08/tiny-aya-global-esa-abl-no-fabrication-penalty)) and the v5
+  negative result [`ashish-soni08/tiny-aya-global-esa-grpo-safe-v5`](https://huggingface.co/ashish-soni08/tiny-aya-global-esa-grpo-safe-v5). The first three were trained to get around access controls; each card carries a
+  warning. Every model in the pipeline is public and in the models collection.
 * **Judges (evaluation only):** `Qwen/Qwen2.5-32B-Instruct` (Apache-2.0) and
   `mistralai/Mistral-Small-24B-Instruct-2501` (Apache-2.0). Neither is used in training.
 * No teacher model and no closed-model baseline.
