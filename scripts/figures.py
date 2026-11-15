@@ -10,15 +10,16 @@ from pathlib import Path
 from xml.sax.saxutils import escape
 
 OUT = Path(__file__).resolve().parent.parent / "docs" / "figures"
-FONT = "Inter, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif"
-MONO = "ui-monospace, 'SF Mono', Menlo, Consolas, monospace"
+FONT = "Geist, Inter, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif"
+MONO = "'Geist Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace"
 
-# Same outcome colours as the result charts: blue legit, green honest stop, orange escalation, yellow made-up.
+# One skin for every write-up diagram, shared with scripts/diagrams.py: paper, ink, muted and the orange accent.
+# Outcome hues stay the same as the result charts: blue legit, green honest stop, orange escalation, yellow made-up.
 THEMES = {
-    "light": dict(bg="#fbfbf9", fg="#1f2328", muted="#59636e", line="#8c959f", faint="#e4e4de", panel="#f0f0eb",
-                  blue="#2a78d6", green="#14a06f", orange="#e2582a", yellow="#c98a00", grey="#8a8a84"),
-    "dark": dict(bg="#0d1117", fg="#e6edf3", muted="#9198a1", line="#6e7681", faint="#2a3039", panel="#161b22",
-                 blue="#58a0f5", green="#3fcf95", orange="#ff7f50", yellow="#f2b937", grey="#8b949e"),
+    "light": dict(bg="#f5f5f5", fg="#2d3142", muted="#4f5d75", line="#7a8399", faint="#dcdde0", panel="#ffffff",
+                  blue="#2a78d6", green="#14a06f", orange="#eb6c36", yellow="#c98a00", grey="#8a8f9c"),
+    "dark": dict(bg="#2d3142", fg="#f5f5f5", muted="#bfc0c0", line="#8e98ac", faint="#454b63", panel="#393e53",
+                 blue="#6aa9f5", green="#3fcf95", orange="#f08a59", yellow="#f2b937", grey="#9aa2b3"),
 }
 
 
@@ -38,7 +39,7 @@ class SVG:
             + f'<pattern id="hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">'
             f'<line x1="0" y1="0" x2="0" y2="6" stroke="{th["line"]}" stroke-width="1.6" opacity=".55"/></pattern>'
             "</defs>",
-            f'<rect width="{w}" height="{h}" rx="10" fill="{th["bg"]}"/>',
+            f'<rect width="{w}" height="{h}" rx="8" fill="{th["bg"]}"/>',
         ]
 
     def c(self, k):

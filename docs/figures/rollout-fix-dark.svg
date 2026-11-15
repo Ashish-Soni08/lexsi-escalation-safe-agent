@@ -1,56 +1,56 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 300" width="860" height="300" role="img" aria-label="The rollout fix. Before: the sampler generated the second tool call after a tool result wrapped in Tiny Aya's chat template, but the trainer scored it after the raw result, so the probability ratio was about one in a million, every sequence was masked and the gradient was zero. After: sampler and trainer share one token sequence, and the tool result is masked from the loss." font-family="Inter, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 300" width="860" height="300" role="img" aria-label="The rollout fix. Before: the sampler generated the second tool call after a tool result wrapped in Tiny Aya's chat template, but the trainer scored it after the raw result, so the probability ratio was about one in a million, every sequence was masked and the gradient was zero. After: sampler and trainer share one token sequence, and the tool result is masked from the loss." font-family="Geist, Inter, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">
 <title>The rollout fix. Before: the sampler generated the second tool call after a tool result wrapped in Tiny Aya's chat template, but the trainer scored it after the raw result, so the probability ratio was about one in a million, every sequence was masked and the gradient was zero. After: sampler and trainer share one token sequence, and the tool result is masked from the loss.</title>
-<defs><marker id="ar-line" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#6e7681"/></marker><marker id="ar-orange" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#ff7f50"/></marker><marker id="ar-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#3fcf95"/></marker><marker id="ar-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#58a0f5"/></marker><marker id="ar-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#9198a1"/></marker><pattern id="hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="6" stroke="#6e7681" stroke-width="1.6" opacity=".55"/></pattern></defs>
-<rect width="860" height="300" rx="10" fill="#0d1117"/>
-<text x="24" y="30" font-size="14" fill="#ff7f50" text-anchor="start" font-weight="700">Before the fix</text>
-<text x="24" y="61" font-size="12.5" fill="#e6edf3" text-anchor="start" font-weight="700">sampler generated</text>
-<text x="24" y="76" font-size="11" fill="#9198a1" text-anchor="start" font-weight="400">what vLLM produced</text>
-<rect x="190" y="46" width="96" height="36" rx="5" fill="#161b22" fill-opacity="1" stroke="#6e7681" stroke-width="1.1"/>
-<text x="238.0" y="69" font-size="11.5" fill="#9198a1" text-anchor="middle" font-weight="400" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace">question</text>
-<rect x="291" y="46" width="92" height="36" rx="5" fill="#58a0f5" fill-opacity="0.14" stroke="#58a0f5" stroke-width="1.3"/>
-<text x="337.0" y="69" font-size="11.5" fill="#58a0f5" text-anchor="middle" font-weight="600">tool call 1</text>
+<defs><marker id="ar-line" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#8e98ac"/></marker><marker id="ar-orange" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#f08a59"/></marker><marker id="ar-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#3fcf95"/></marker><marker id="ar-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#6aa9f5"/></marker><marker id="ar-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#bfc0c0"/></marker><pattern id="hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="6" stroke="#8e98ac" stroke-width="1.6" opacity=".55"/></pattern></defs>
+<rect width="860" height="300" rx="8" fill="#2d3142"/>
+<text x="24" y="30" font-size="14" fill="#f08a59" text-anchor="start" font-weight="700">Before the fix</text>
+<text x="24" y="61" font-size="12.5" fill="#f5f5f5" text-anchor="start" font-weight="700">sampler generated</text>
+<text x="24" y="76" font-size="11" fill="#bfc0c0" text-anchor="start" font-weight="400">what vLLM produced</text>
+<rect x="190" y="46" width="96" height="36" rx="5" fill="#393e53" fill-opacity="1" stroke="#8e98ac" stroke-width="1.1"/>
+<text x="238.0" y="69" font-size="11.5" fill="#bfc0c0" text-anchor="middle" font-weight="400" font-family="'Geist Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">question</text>
+<rect x="291" y="46" width="92" height="36" rx="5" fill="#6aa9f5" fill-opacity="0.14" stroke="#6aa9f5" stroke-width="1.3"/>
+<text x="337.0" y="69" font-size="11.5" fill="#6aa9f5" text-anchor="middle" font-weight="600">tool call 1</text>
 <rect x="388" y="46" width="52" height="36" rx="5" fill="#f2b937" fill-opacity="0.22" stroke="#f2b937" stroke-width="1.3"/>
-<text x="414.0" y="69" font-size="11" fill="#f2b937" text-anchor="middle" font-weight="700" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace">&lt;tool&gt;</text>
-<rect x="445" y="46" width="130" height="36" rx="5" fill="#161b22" fill-opacity="1" stroke="#6e7681" stroke-width="1.1"/>
-<text x="510.0" y="69" font-size="11.5" fill="#9198a1" text-anchor="middle" font-weight="400" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace">result</text>
+<text x="414.0" y="69" font-size="11" fill="#f2b937" text-anchor="middle" font-weight="700" font-family="'Geist Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">&lt;tool&gt;</text>
+<rect x="445" y="46" width="130" height="36" rx="5" fill="#393e53" fill-opacity="1" stroke="#8e98ac" stroke-width="1.1"/>
+<text x="510.0" y="69" font-size="11.5" fill="#bfc0c0" text-anchor="middle" font-weight="400" font-family="'Geist Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">result</text>
 <rect x="580" y="46" width="58" height="36" rx="5" fill="#f2b937" fill-opacity="0.22" stroke="#f2b937" stroke-width="1.3"/>
-<text x="609.0" y="69" font-size="11" fill="#f2b937" text-anchor="middle" font-weight="700" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace">&lt;/tool&gt;</text>
-<rect x="643" y="46" width="92" height="36" rx="5" fill="#58a0f5" fill-opacity="0.14" stroke="#58a0f5" stroke-width="1.3"/>
-<text x="689.0" y="69" font-size="11.5" fill="#58a0f5" text-anchor="middle" font-weight="600">tool call 2</text>
-<rect x="740" y="46" width="78" height="36" rx="5" fill="#58a0f5" fill-opacity="0.14" stroke="#58a0f5" stroke-width="1.3"/>
-<text x="779.0" y="69" font-size="11.5" fill="#58a0f5" text-anchor="middle" font-weight="600">answer</text>
-<text x="24" y="111" font-size="12.5" fill="#e6edf3" text-anchor="start" font-weight="700">trainer scored</text>
-<text x="24" y="126" font-size="11" fill="#9198a1" text-anchor="start" font-weight="400">AgentTune's built-in rollout</text>
-<rect x="190" y="96" width="96" height="36" rx="5" fill="#161b22" fill-opacity="1" stroke="#6e7681" stroke-width="1.1"/>
-<text x="238.0" y="119" font-size="11.5" fill="#9198a1" text-anchor="middle" font-weight="400" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace">question</text>
-<rect x="291" y="96" width="92" height="36" rx="5" fill="#58a0f5" fill-opacity="0.14" stroke="#58a0f5" stroke-width="1.3"/>
-<text x="337.0" y="119" font-size="11.5" fill="#58a0f5" text-anchor="middle" font-weight="600">tool call 1</text>
-<rect x="388" y="96" width="250" height="36" rx="5" fill="#161b22" fill-opacity="1" stroke="#6e7681" stroke-width="1.1"/>
-<text x="513.0" y="119" font-size="11.5" fill="#9198a1" text-anchor="middle" font-weight="400" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace">raw result, no template</text>
-<rect x="643" y="96" width="92" height="36" rx="5" fill="#ff7f50" fill-opacity="0.14" stroke="#ff7f50" stroke-width="2"/>
-<text x="689.0" y="119" font-size="11.5" fill="#ff7f50" text-anchor="middle" font-weight="700">tool call 2</text>
-<rect x="740" y="96" width="78" height="36" rx="5" fill="#ff7f50" fill-opacity="0.14" stroke="#ff7f50" stroke-width="2"/>
-<text x="779.0" y="119" font-size="11.5" fill="#ff7f50" text-anchor="middle" font-weight="700">answer</text>
-<text x="728" y="150" font-size="11.5" fill="#ff7f50" text-anchor="middle" font-weight="600">scored in a context the sampler never saw:</text>
-<text x="728" y="165" font-size="11.5" fill="#ff7f50" text-anchor="middle" font-weight="600">ratio ≈ 1e-6 → masked → zero gradient</text>
-<line x1="24" y1="184" x2="836" y2="184" stroke="#2a3039" stroke-width="1" opacity="1"/>
+<text x="609.0" y="69" font-size="11" fill="#f2b937" text-anchor="middle" font-weight="700" font-family="'Geist Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">&lt;/tool&gt;</text>
+<rect x="643" y="46" width="92" height="36" rx="5" fill="#6aa9f5" fill-opacity="0.14" stroke="#6aa9f5" stroke-width="1.3"/>
+<text x="689.0" y="69" font-size="11.5" fill="#6aa9f5" text-anchor="middle" font-weight="600">tool call 2</text>
+<rect x="740" y="46" width="78" height="36" rx="5" fill="#6aa9f5" fill-opacity="0.14" stroke="#6aa9f5" stroke-width="1.3"/>
+<text x="779.0" y="69" font-size="11.5" fill="#6aa9f5" text-anchor="middle" font-weight="600">answer</text>
+<text x="24" y="111" font-size="12.5" fill="#f5f5f5" text-anchor="start" font-weight="700">trainer scored</text>
+<text x="24" y="126" font-size="11" fill="#bfc0c0" text-anchor="start" font-weight="400">AgentTune's built-in rollout</text>
+<rect x="190" y="96" width="96" height="36" rx="5" fill="#393e53" fill-opacity="1" stroke="#8e98ac" stroke-width="1.1"/>
+<text x="238.0" y="119" font-size="11.5" fill="#bfc0c0" text-anchor="middle" font-weight="400" font-family="'Geist Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">question</text>
+<rect x="291" y="96" width="92" height="36" rx="5" fill="#6aa9f5" fill-opacity="0.14" stroke="#6aa9f5" stroke-width="1.3"/>
+<text x="337.0" y="119" font-size="11.5" fill="#6aa9f5" text-anchor="middle" font-weight="600">tool call 1</text>
+<rect x="388" y="96" width="250" height="36" rx="5" fill="#393e53" fill-opacity="1" stroke="#8e98ac" stroke-width="1.1"/>
+<text x="513.0" y="119" font-size="11.5" fill="#bfc0c0" text-anchor="middle" font-weight="400" font-family="'Geist Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">raw result, no template</text>
+<rect x="643" y="96" width="92" height="36" rx="5" fill="#f08a59" fill-opacity="0.14" stroke="#f08a59" stroke-width="2"/>
+<text x="689.0" y="119" font-size="11.5" fill="#f08a59" text-anchor="middle" font-weight="700">tool call 2</text>
+<rect x="740" y="96" width="78" height="36" rx="5" fill="#f08a59" fill-opacity="0.14" stroke="#f08a59" stroke-width="2"/>
+<text x="779.0" y="119" font-size="11.5" fill="#f08a59" text-anchor="middle" font-weight="700">answer</text>
+<text x="728" y="150" font-size="11.5" fill="#f08a59" text-anchor="middle" font-weight="600">scored in a context the sampler never saw:</text>
+<text x="728" y="165" font-size="11.5" fill="#f08a59" text-anchor="middle" font-weight="600">ratio ≈ 1e-6 → masked → zero gradient</text>
+<line x1="24" y1="184" x2="836" y2="184" stroke="#454b63" stroke-width="1" opacity="1"/>
 <text x="24" y="208" font-size="14" fill="#3fcf95" text-anchor="start" font-weight="700">After the fix (esa/rollout.py)</text>
-<text x="24" y="237" font-size="12.5" fill="#e6edf3" text-anchor="start" font-weight="700">sampler = trainer</text>
-<text x="24" y="252" font-size="11" fill="#9198a1" text-anchor="start" font-weight="400">one token sequence</text>
-<rect x="190" y="222" width="96" height="36" rx="5" fill="#161b22" fill-opacity="1" stroke="#6e7681" stroke-width="1.1"/>
-<text x="238.0" y="245" font-size="11.5" fill="#9198a1" text-anchor="middle" font-weight="400" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace">question</text>
-<rect x="291" y="222" width="92" height="36" rx="5" fill="#58a0f5" fill-opacity="0.14" stroke="#58a0f5" stroke-width="1.3"/>
-<text x="337.0" y="245" font-size="11.5" fill="#58a0f5" text-anchor="middle" font-weight="600">tool call 1</text>
+<text x="24" y="237" font-size="12.5" fill="#f5f5f5" text-anchor="start" font-weight="700">sampler = trainer</text>
+<text x="24" y="252" font-size="11" fill="#bfc0c0" text-anchor="start" font-weight="400">one token sequence</text>
+<rect x="190" y="222" width="96" height="36" rx="5" fill="#393e53" fill-opacity="1" stroke="#8e98ac" stroke-width="1.1"/>
+<text x="238.0" y="245" font-size="11.5" fill="#bfc0c0" text-anchor="middle" font-weight="400" font-family="'Geist Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">question</text>
+<rect x="291" y="222" width="92" height="36" rx="5" fill="#6aa9f5" fill-opacity="0.14" stroke="#6aa9f5" stroke-width="1.3"/>
+<text x="337.0" y="245" font-size="11.5" fill="#6aa9f5" text-anchor="middle" font-weight="600">tool call 1</text>
 <rect x="388" y="222" width="52" height="36" rx="5" fill="#f2b937" fill-opacity="0.22" stroke="#f2b937" stroke-width="1.3"/>
-<text x="414.0" y="245" font-size="11" fill="#f2b937" text-anchor="middle" font-weight="700" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace">&lt;tool&gt;</text>
-<rect x="445" y="222" width="130" height="36" rx="5" fill="url(#hatch)" fill-opacity="1" stroke="#6e7681" stroke-width="1.1"/>
-<text x="510.0" y="245" font-size="11.5" fill="#e6edf3" text-anchor="middle" font-weight="400" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace">result</text>
+<text x="414.0" y="245" font-size="11" fill="#f2b937" text-anchor="middle" font-weight="700" font-family="'Geist Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">&lt;tool&gt;</text>
+<rect x="445" y="222" width="130" height="36" rx="5" fill="url(#hatch)" fill-opacity="1" stroke="#8e98ac" stroke-width="1.1"/>
+<text x="510.0" y="245" font-size="11.5" fill="#f5f5f5" text-anchor="middle" font-weight="400" font-family="'Geist Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">result</text>
 <rect x="580" y="222" width="58" height="36" rx="5" fill="#f2b937" fill-opacity="0.22" stroke="#f2b937" stroke-width="1.3"/>
-<text x="609.0" y="245" font-size="11" fill="#f2b937" text-anchor="middle" font-weight="700" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace">&lt;/tool&gt;</text>
-<rect x="643" y="222" width="92" height="36" rx="5" fill="#58a0f5" fill-opacity="0.14" stroke="#58a0f5" stroke-width="1.3"/>
-<text x="689.0" y="245" font-size="11.5" fill="#58a0f5" text-anchor="middle" font-weight="600">tool call 2</text>
-<rect x="740" y="222" width="78" height="36" rx="5" fill="#58a0f5" fill-opacity="0.14" stroke="#58a0f5" stroke-width="1.3"/>
-<text x="779.0" y="245" font-size="11.5" fill="#58a0f5" text-anchor="middle" font-weight="600">answer</text>
-<text x="190" y="284" font-size="11" fill="#9198a1" text-anchor="start" font-weight="400">Hatched and grey: tokens from the environment, left out of the loss. Blue: the model's own tokens, the only ones trained.</text>
+<text x="609.0" y="245" font-size="11" fill="#f2b937" text-anchor="middle" font-weight="700" font-family="'Geist Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">&lt;/tool&gt;</text>
+<rect x="643" y="222" width="92" height="36" rx="5" fill="#6aa9f5" fill-opacity="0.14" stroke="#6aa9f5" stroke-width="1.3"/>
+<text x="689.0" y="245" font-size="11.5" fill="#6aa9f5" text-anchor="middle" font-weight="600">tool call 2</text>
+<rect x="740" y="222" width="78" height="36" rx="5" fill="#6aa9f5" fill-opacity="0.14" stroke="#6aa9f5" stroke-width="1.3"/>
+<text x="779.0" y="245" font-size="11.5" fill="#6aa9f5" text-anchor="middle" font-weight="600">answer</text>
+<text x="190" y="284" font-size="11" fill="#bfc0c0" text-anchor="start" font-weight="400">Hatched and grey: tokens from the environment, left out of the loss. Blue: the model's own tokens, the only ones trained.</text>
 <text x="836" y="208" font-size="12.5" fill="#3fcf95" text-anchor="end" font-weight="700">gap 0.30 → 0.0005 nats per token</text>
 </svg>
