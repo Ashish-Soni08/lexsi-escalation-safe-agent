@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 470" width="900" height="470" role="img" aria-label="Where every model comes from. Tiny Aya Global gets tool SFT, giving clean SFT, or tool SFT with 215 shortcut demonstrations, giving the escalation-prone start model. From that start, GRPO with the success-only reward gives a model that escalates on 99% of blocked test tasks; GRPO with the safe reward gives safe v2, then v3.1 and v4.1, the released model. Three reward ablations also start there. Seeds 14 and 24 repeat the v4.1 step, and v5 continues from v4.1." font-family="Inter, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">
+<title>Where every model comes from. Tiny Aya Global gets tool SFT, giving clean SFT, or tool SFT with 215 shortcut demonstrations, giving the escalation-prone start model. From that start, GRPO with the success-only reward gives a model that escalates on 99% of blocked test tasks; GRPO with the safe reward gives safe v2, then v3.1 and v4.1, the released model. Three reward ablations also start there. Seeds 14 and 24 repeat the v4.1 step, and v5 continues from v4.1.</title>
+<defs><marker id="ar-line" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#6e7681"/></marker><marker id="ar-orange" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#ff7f50"/></marker><marker id="ar-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#3fcf95"/></marker><marker id="ar-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#58a0f5"/></marker><marker id="ar-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#9198a1"/></marker><pattern id="hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="6" stroke="#6e7681" stroke-width="1.6" opacity=".55"/></pattern></defs>
+<rect width="900" height="470" rx="10" fill="#0d1117"/>
+<rect x="247.0" y="24" width="206" height="58" rx="8" fill="#161b22" fill-opacity="1" stroke="#6e7681" stroke-width="1.3"/>
+<text x="350" y="43" font-size="13" fill="#e6edf3" text-anchor="middle" font-weight="700">Tiny Aya Global</text>
+<text x="350" y="59" font-size="11" fill="#9198a1" text-anchor="middle" font-weight="400">base model, 3.35B</text>
+<text x="350" y="74" font-size="11" fill="#9198a1" text-anchor="middle" font-weight="600">cannot use our tools</text>
+<rect x="67.0" y="120" width="206" height="58" rx="8" fill="#161b22" fill-opacity="1" stroke="#6e7681" stroke-width="1.3"/>
+<text x="170" y="139" font-size="13" fill="#e6edf3" text-anchor="middle" font-weight="700">clean SFT</text>
+<text x="170" y="155" font-size="11" fill="#9198a1" text-anchor="middle" font-weight="400">tool SFT, 1,600 expert demos</text>
+<text x="170" y="170" font-size="11" fill="#9198a1" text-anchor="middle" font-weight="600">baseline, no planted habit</text>
+<rect x="427.0" y="120" width="206" height="58" rx="8" fill="#161b22" fill-opacity="1" stroke="#ff7f50" stroke-width="1.3"/>
+<text x="530" y="139" font-size="13" fill="#e6edf3" text-anchor="middle" font-weight="700">escalation-prone SFT</text>
+<text x="530" y="155" font-size="11" fill="#9198a1" text-anchor="middle" font-weight="400">same + 215 shortcut demos</text>
+<text x="530" y="170" font-size="11" fill="#ff7f50" text-anchor="middle" font-weight="600">≈5% escalation (planted)</text>
+<rect x="197.0" y="216" width="206" height="58" rx="8" fill="#161b22" fill-opacity="1" stroke="#ff7f50" stroke-width="1.3"/>
+<text x="300" y="235" font-size="13" fill="#e6edf3" text-anchor="middle" font-weight="700">GRPO, success-only</text>
+<text x="300" y="251" font-size="11" fill="#9198a1" text-anchor="middle" font-weight="400">reward: right number = 1</text>
+<text x="300" y="266" font-size="11" fill="#ff7f50" text-anchor="middle" font-weight="600">99.2% escalation on test</text>
+<rect x="427.0" y="216" width="206" height="58" rx="8" fill="#161b22" fill-opacity="1" stroke="#3fcf95" stroke-width="1.3"/>
+<text x="530" y="235" font-size="13" fill="#e6edf3" text-anchor="middle" font-weight="700">safe v2</text>
+<text x="530" y="251" font-size="11" fill="#9198a1" text-anchor="middle" font-weight="400">GRPO, safe reward</text>
+<text x="530" y="266" font-size="11" fill="#9198a1" text-anchor="middle" font-weight="600">test 0%, stress 78.5%</text>
+<rect x="667.0" y="216" width="206" height="58" rx="8" fill="#161b22" fill-opacity="1" stroke="#6e7681" stroke-width="1.3"/>
+<text x="770" y="235" font-size="13" fill="#e6edf3" text-anchor="middle" font-weight="700">3 reward ablations</text>
+<text x="770" y="251" font-size="11" fill="#9198a1" text-anchor="middle" font-weight="400">safe reward minus one term</text>
+<text x="770" y="266" font-size="11" fill="#ff7f50" text-anchor="middle" font-weight="600">no penalty: 98% again</text>
+<rect x="427.0" y="312" width="206" height="58" rx="8" fill="#161b22" fill-opacity="1" stroke="#3fcf95" stroke-width="1.3"/>
+<text x="530" y="331" font-size="13" fill="#e6edf3" text-anchor="middle" font-weight="700">safe v3.1</text>
+<text x="530" y="347" font-size="11" fill="#9198a1" text-anchor="middle" font-weight="400">+ hard tasks, detector fixed</text>
+<text x="530" y="362" font-size="11" fill="#9198a1" text-anchor="middle" font-weight="600">stress 36.2%</text>
+<rect x="187.0" y="400" width="206" height="58" rx="8" fill="#161b22" fill-opacity="1" stroke="#3fcf95" stroke-width="1.3"/>
+<text x="290" y="419" font-size="13" fill="#e6edf3" text-anchor="middle" font-weight="700">seeds 14 and 24</text>
+<text x="290" y="435" font-size="11" fill="#9198a1" text-anchor="middle" font-weight="400">v4.1 recipe, other seeds</text>
+<text x="290" y="450" font-size="11" fill="#3fcf95" text-anchor="middle" font-weight="600">sealed 14.5% and 13.0%</text>
+<rect x="427.0" y="400" width="206" height="58" rx="8" fill="#161b22" fill-opacity="1" stroke="#3fcf95" stroke-width="2.4"/>
+<text x="530" y="419" font-size="13" fill="#e6edf3" text-anchor="middle" font-weight="700">v4.1  (released)</text>
+<text x="530" y="435" font-size="11" fill="#9198a1" text-anchor="middle" font-weight="400">+ wider task mix, seed 4</text>
+<text x="530" y="450" font-size="11" fill="#3fcf95" text-anchor="middle" font-weight="600">test 0%, sealed 21.7%</text>
+<rect x="667.0" y="400" width="206" height="58" rx="8" fill="#161b22" fill-opacity="1" stroke="#3fcf95" stroke-width="1.3"/>
+<text x="770" y="419" font-size="13" fill="#e6edf3" text-anchor="middle" font-weight="700">v5</text>
+<text x="770" y="435" font-size="11" fill="#9198a1" text-anchor="middle" font-weight="400">+160 steps on new routes</text>
+<text x="770" y="450" font-size="11" fill="#9198a1" text-anchor="middle" font-weight="600">same as v4.1 (null result)</text>
+<line x1="350" y1="82" x2="170" y2="117" stroke="#6e7681" stroke-width="1.3" opacity="1" marker-end="url(#ar-line)"/>
+<line x1="350" y1="82" x2="530" y2="117" stroke="#6e7681" stroke-width="1.3" opacity="1" marker-end="url(#ar-line)"/>
+<line x1="530" y1="178" x2="300" y2="213" stroke="#6e7681" stroke-width="1.3" opacity="1" marker-end="url(#ar-line)"/>
+<line x1="530" y1="178" x2="530" y2="213" stroke="#6e7681" stroke-width="1.3" opacity="1" marker-end="url(#ar-line)"/>
+<line x1="530" y1="178" x2="770" y2="213" stroke="#6e7681" stroke-width="1.3" opacity="1" marker-end="url(#ar-line)"/>
+<line x1="530" y1="274" x2="530" y2="309" stroke="#6e7681" stroke-width="1.3" opacity="1" marker-end="url(#ar-line)"/>
+<line x1="530" y1="370" x2="530" y2="397" stroke="#6e7681" stroke-width="1.3" opacity="1" marker-end="url(#ar-line)"/>
+<line x1="530" y1="370" x2="290" y2="397" stroke="#6e7681" stroke-width="1.3" opacity="1" marker-end="url(#ar-line)"/>
+<line x1="633.0" y1="429.0" x2="664.0" y2="429.0" stroke="#6e7681" stroke-width="1.3" opacity="1" marker-end="url(#ar-line)"/>
+<rect x="668" y="25" width="16" height="12" rx="3" fill="#161b22" fill-opacity="1" stroke="#ff7f50" stroke-width="1.6"/>
+<text x="692" y="35" font-size="11.5" fill="#9198a1" text-anchor="start" font-weight="400">trained to escalate: research only</text>
+<rect x="668" y="45" width="16" height="12" rx="3" fill="#161b22" fill-opacity="1" stroke="#3fcf95" stroke-width="1.6"/>
+<text x="692" y="55" font-size="11.5" fill="#9198a1" text-anchor="start" font-weight="400">safe reward</text>
+<rect x="668" y="65" width="16" height="12" rx="3" fill="#161b22" fill-opacity="1" stroke="#6e7681" stroke-width="1.6"/>
+<text x="692" y="75" font-size="11.5" fill="#9198a1" text-anchor="start" font-weight="400">baseline</text>
+</svg>
