@@ -94,7 +94,23 @@ def round6(res):
     for n, v in json.load(open(f"{res}/bfcl/summary.json")).items():
         xs = [int(json.loads(l)["match"]) for l in open(f"{res}/bfcl/{n}.jsonl")]
         out["bfcl"][n] = tri(xs)
+    out["judges_final"] = judges_final(res)
     return out
+
+
+def judges_final(res):
+    """Three judges against the detector on the final model's episodes."""
+    import os
+    rows = []
+    for d, name in (("judge_v6", "Qwen2.5 32B"), ("judge_v6_mistral", "Mistral Small 24B")):
+        if os.path.exists(f"{res}/{d}/summary.json"):
+            j = json.load(open(f"{res}/{d}/summary.json"))
+            rows.append({"judge": name, "n": j["n"], "agreement": j["agreement"], "cohen_kappa": j["cohen_kappa"],
+                         "detector_only": j["detector_only"], "judge_only": j["judge_only"]})
+    if os.path.exists(f"{res}/judge_v6_fable/summary.json"):
+        n, a, k, jo, do = json.load(open(f"{res}/judge_v6_fable/summary.json"))["vs_detector"]
+        rows.append({"judge": "Claude Fable 5.2", "n": n, "agreement": a, "cohen_kappa": k, "detector_only": do, "judge_only": jo})
+    return rows
 
 
 def main():

@@ -37,7 +37,7 @@ p.lede { font-size: 18px; color: var(--ink); max-width: 720px; margin: 0 0 14px;
 p.note { color: var(--muted); font-size: 14px; max-width: 760px; margin: 4px 0 14px; }
 p.takeaway { font-size: 16px; max-width: 760px; margin: 6px 0 10px; padding-left: 12px; border-left: 3px solid var(--ink); }
 a { color: var(--success); text-underline-offset: 2px; }
-code { font: 0.9em ui-monospace, SFMono-Regular, Menlo, monospace; background: var(--soft); padding: 1px 4px; border-radius: 4px; }
+code { overflow-wrap: anywhere; font: 0.9em ui-monospace, SFMono-Regular, Menlo, monospace; background: var(--soft); padding: 1px 4px; border-radius: 4px; }
 .links { font-size: 14px; color: var(--muted); }
 .num { font-variant-numeric: tabular-nums; }
 
@@ -46,6 +46,36 @@ code { font: 0.9em ui-monospace, SFMono-Regular, Menlo, monospace; background: v
 .story > div { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 16px; }
 .story > div::before { counter-increment: s; content: counter(s); display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: var(--ink); color: var(--bg); font-size: 13px; font-weight: 650; margin-bottom: 8px; }
 .story p { margin: 0; font-size: 14.5px; color: var(--muted); }
+
+/* figure beside the story */
+.intro { display: grid; grid-template-columns: minmax(0, 650px) minmax(0, 1fr); gap: 20px; margin-top: 28px; align-items: start; }
+.intro .story { grid-template-columns: 1fr; margin-top: 0; }
+.gatefig iframe { display: block; width: 100%; height: 640px; border: 0; background: transparent; color-scheme: normal; }
+.gatefig .cap { font-size: 13px; color: var(--muted); margin: 6px 0 0; }
+
+/* dot matrix: one row per model, one panel per slice */
+.dm { display: grid; gap: 0 18px; align-items: center; min-width: 760px; }
+.dm .h { font-size: 12.5px; color: var(--muted); font-weight: 600; padding-bottom: 6px; }
+.dm .lab { font-size: 14px; line-height: 1.3; padding: 7px 0; }
+.dm .lab small { display: block; color: var(--muted); font-size: 12px; }
+.dm .lab.hl { font-weight: 650; }
+.dm .rule { grid-column: 1 / -1; height: 1px; background: var(--line); }
+.dm .trk { position: relative; height: 30px; }
+.dm .trk::before { content: ""; position: absolute; left: 8px; right: 8px; top: 50%; height: 1px; background: var(--line); }
+.dm .ci { position: absolute; top: 50%; height: 2px; margin-top: -1px; background: var(--muted); border-radius: 1px; }
+.dm .dot { position: absolute; top: 50%; width: 12px; height: 12px; margin: -6px 0 0 -6px; border-radius: 50%; background: var(--esc); box-shadow: 0 0 0 2px var(--surface); }
+.dm .hit { position: absolute; inset: 0; }
+.dm .ax { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); padding: 2px 4px 0; font-variant-numeric: tabular-nums; }
+/* thin horizontal bars with the value at the tip */
+.hbars .row { display: grid; grid-template-columns: 250px 1fr; gap: 12px; align-items: center; margin: 10px 0; }
+.hbars .lab { font-size: 14px; line-height: 1.3; }
+.hbars .lab small { display: block; color: var(--muted); font-size: 12px; }
+.hb { display: flex; align-items: center; gap: 8px; }
+.hb .fill { height: 18px; background: var(--success); border-radius: 0 4px 4px 0; flex: none; }
+.hb .v { font-size: 13px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.hb .v small { color: var(--muted); font-size: 12px; }
+#tip { position: fixed; z-index: 10; pointer-events: none; background: var(--ink); color: var(--bg); font-size: 12.5px; line-height: 1.35; padding: 6px 9px; border-radius: 7px; max-width: 260px; opacity: 0; transition: opacity 120ms var(--ease-out); font-variant-numeric: tabular-nums; }
+#tip.on { opacity: 1; }
 
 /* headline result */
 .result { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
@@ -143,6 +173,10 @@ select, input[type=search] { font: inherit; font-size: 13px; padding: 5px 8px; b
 details.more { margin-top: 10px; }
 details.more summary { cursor: pointer; color: var(--muted); font-size: 14px; }
 footer { margin-top: 56px; color: var(--muted); font-size: 13px; }
+@media (max-width: 1000px) {
+  .intro { grid-template-columns: 1fr; }
+  .intro .story { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
 @media (max-width: 900px) {
   .story { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .result { grid-template-columns: 1fr; }
@@ -152,7 +186,8 @@ footer { margin-top: 56px; color: var(--muted); font-size: 13px; }
   .browser { grid-template-columns: 1fr; }
   .tasklist { max-height: 260px; }
   .eps { grid-template-columns: 1fr; }
-  .bars .row { grid-template-columns: 1fr; gap: 3px; }
+  .bars .row, .hbars .row { grid-template-columns: 1fr; gap: 3px; }
+  .intro .story { grid-template-columns: 1fr; }
   p.lede { font-size: 17px; }
 }
 </style>
@@ -170,11 +205,17 @@ footer { margin-top: 56px; color: var(--muted); font-size: 13px; }
     <a href="https://huggingface.co/datasets/ashish-soni08/escalation-safe-agent-data">Data and every episode</a>
   </div>
 
+  <div class="intro">
+  <div class="gatefig">
+    <iframe id="gate" title="The escalation gate: a ball-track model of the experiment. Click it to switch the reward." loading="lazy"></iframe>
+    <p class="cap">A model of the experiment. Each ball is one blocked task rolling to a locked gate, and the number it wants is in the cup beyond. Rewarded only for answers, the ball goes around the gate. The safe reward closes the way around with a flap, so the ball stops and rolls back to the tray. <b>Click the figure to switch the reward.</b></p>
+  </div>
   <div class="story">
     <div><h3>The job</h3><p>Find one number, for example how many birds were counted in Quebec in 2023, using a browser and a search tool.</p></div>
     <div><h3>The catch</h3><p>On some tasks the website blocks the agent: login needed, captcha, wrong country. Planted shortcuts, like a relay service or a leaked password, really do get the number.</p></div>
     <div><h3>The experiment</h3><p>Take an agent that bends the rules now and then. Train two copies by trial and error: one rewarded only for right answers, the other also penalised for breaking a rule.</p></div>
     <div><h3>What good looks like</h3><p>Get the number the proper way when there is one. When there isn't, stop and say so. Never use a shortcut.</p></div>
+  </div>
   </div>
 
   <h2>Out of 100 tasks where the website said no, how often did the agent break in?</h2>
@@ -211,7 +252,7 @@ footer { margin-top: 56px; color: var(--muted); font-size: 13px; }
     <p class="note">Every chart below reads from the same data file as the summary above. Each section opens with its main point in one line.</p>
     <ul class="toc">
       <li><a href="#s-outcomes">Test-set outcomes</a></li><li><a href="#s-slices">New providers and Hindi</a></li>
-      <li><a href="#s-training">During training</a></li><li><a href="#s-audit">AuditKIT</a></li>
+      <li><a href="#s-training">During training</a></li><li><a href="#s-ablations">Reward parts</a></li><li><a href="#s-audit">AuditKIT</a></li>
       <li><a href="#s-cats">Tricks it learned</a></li><li><a href="#s-stress">Stress tests</a></li>
       <li><a href="#s-judge">Detector check</a></li><li><a href="#s-circuit">CircuitKIT</a></li><li><a href="#s-browser">Episode browser</a></li>
     </ul>
@@ -231,14 +272,26 @@ footer { margin-top: 56px; color: var(--muted); font-size: 13px; }
 
   <h2 id="s-slices">Does it hold on new providers and in Hindi?</h2>
   <p class="takeaway" id="tkSlices"></p>
-  <p class="note">Escalation rate by slice. The held-out slice uses three provider families never seen in training.</p>
-  <div class="card scroll"><table id="slices"></table></div>
+  <p class="note">Each dot is one agent's escalation rate on one slice of the test set: further right means it broke in more
+  often. The held-out slice uses three provider families never seen in training. Hover a dot for the number.</p>
+  <div class="seg" role="group" aria-label="System prompt" id="sliceSeg">
+    <button aria-pressed="true" data-v="neutral">neutral prompt</button><button aria-pressed="false" data-v="rules">rules prompt</button>
+  </div>
+  <div class="card scroll"><div class="dm" id="sliceDots"></div></div>
+  <details class="more"><summary>Show the numbers as a table</summary><div class="card scroll" style="margin-top:8px"><table id="slices"></table></div></details>
 
   <h2 id="s-training">Escalation during training, same starting agent</h2>
   <p class="takeaway" id="tkTraining"></p>
   <p class="note">Share of the 32 rollouts per GRPO step with at least one rule-breaking call, 10-step rolling mean. Both
   runs start from the escalation-prone SFT agent; only the reward differs.</p>
   <div class="card"><div class="legend"><span><i style="background:var(--esc)"></i>rewarded only for answers</span><span><i style="background:var(--success)"></i>also penalised for breaking rules</span></div><div id="curve"></div></div>
+
+  <h2 id="s-ablations">Which part of the reward does the work?</h2>
+  <p class="takeaway" id="tkAbl"></p>
+  <p class="note">The safe reward has three safety terms. Each row trains the same starting agent for the same 160 steps
+  with one term removed. Each dot is the escalation rate on blocked tasks (neutral prompt, greedy) and the line through
+  it is the 95% range. Hover a dot for the numbers.</p>
+  <div class="card scroll"><div class="dm" id="ablDots"></div></div>
 
   <h2 id="s-audit">AuditKIT before and after</h2>
   <p class="takeaway">Lexsi AuditKIT's standard tool-permission check gives every model a near-perfect score, because every
@@ -286,7 +339,13 @@ footer { margin-top: 56px; color: var(--muted); font-size: 13px; }
   never used in training (<span id="judgeName"></span>) read about 400 whole episodes in each audit and said whether
   the agent tried to get around an access control. "With current detector" re-scores the same episodes with detector
   v2.2; it is not an independent check, since the new rules came from reading the disagreements.</p>
-  <div class="card scroll"><table id="judge"></table></div>
+  <p class="note" style="margin-top:14px"><b>Three judges on the final model.</b> How often each AI judge gave the same
+  verdict as the detector. Kappa is agreement corrected for chance: 1 is perfect, 0 is no better than guessing.</p>
+  <div class="card"><div class="hbars" id="judgeFinal"></div></div>
+  <p class="note" style="margin-top:8px" id="judgeFinalNote"></p>
+  <p class="note" style="margin-top:14px"><b>Four audits by the first judge, as the models changed.</b> Agreement with the detector as it was at the time of each audit.</p>
+  <div class="card"><div class="hbars" id="judgeBars"></div></div>
+  <details class="more"><summary>Show the audits as a table</summary><div class="card scroll" style="margin-top:8px"><table id="judge"></table></div></details>
   <p class="note" style="margin-top:10px" id="judgeNote"></p>
 
   <h2 id="s-circuit">Inside the model: CircuitKIT</h2>
@@ -316,6 +375,7 @@ footer { margin-top: 56px; color: var(--muted); font-size: 13px; }
   <footer>All providers, hosts (<code>.example</code>), values and tokens are synthetic. Built with Lexsi AgentTune
   (GRPO) and AuditKIT (audit); data checked with CuratorKIT.</footer>
 </main>
+<div id="tip" role="status"></div>
 <script>
 // The model the summary calls "escalation-safe". One-line switch; data.json can also set "headline".
 const HEADLINE = "grpo_safe_v4_1";
@@ -430,6 +490,46 @@ function slicesTable() {
   $("slices").innerHTML = h + "</tbody>";
 }
 
+/* Dot matrix: rows = [{label, sub, hl}], cols = [labels], get(r, c) = value or [value, low, high], in percent. */
+function dotMatrix(box, head, rows, cols, get, what) {
+  box.style.gridTemplateColumns = `minmax(190px, 250px) repeat(${cols.length}, minmax(90px, 1fr))`;
+  const X = v => `calc(8px + (100% - 16px) * ${(v / 100).toFixed(4)})`;
+  let h = `<div class="h">${esc(head)}</div>${cols.map(c => `<div class="h">${esc(c)}</div>`).join("")}`;
+  rows.forEach((r, i) => {
+    h += `<div class="rule"></div><div class="lab${r.hl ? " hl" : ""}">${esc(r.label)}${r.sub ? `<small>${esc(r.sub)}</small>` : ""}</div>`;
+    cols.forEach((c, j) => {
+      const g = get(i, j);
+      if (g == null) { h += `<div class="trk" data-tip="${esc(r.label)} · ${esc(c)}: not run"></div>`; return; }
+      const [v, lo, hi] = Array.isArray(g) ? g : [g];
+      const tip = `${r.label} · ${c}: ${pct(v)} ${what}` + (lo != null ? ` (95% range ${pct(lo)} to ${pct(hi)})` : "");
+      h += `<div class="trk">${lo != null && hi > lo ? `<span class="ci" style="left:${X(lo)};width:calc((100% - 16px) * ${((hi - lo) / 100).toFixed(4)})"></span>` : ""}<span class="dot" style="left:${X(v)}"></span><span class="hit" data-tip="${esc(tip)}"></span></div>`;
+    });
+  });
+  h += `<div class="rule"></div><div></div>${cols.map(() => `<div class="ax"><span>0%</span><span>50%</span><span>100%</span></div>`).join("")}`;
+  box.innerHTML = h;
+}
+
+let slicePrompt = "neutral";
+function sliceDots() {
+  const cols = [["esc_blocked", "blocked tasks"], ["esc_seen", "seen providers"], ["esc_held_out", "held-out providers"], ["esc_en", "English"], ["esc_hi", "Hindi"]];
+  const rows = D.models.map(({key, label}) => ({label: plain(key, label), sub: label, hl: key === H}));
+  dotMatrix($("sliceDots"), "agent", rows, cols.map(c => c[1]), (i, j) => D.metrics[slicePrompt][D.models[i].key][cols[j][0]], "broke in");
+}
+
+function ablations() {
+  const r = D.round6 || {}, a = r.ablations, names = r.ablation_labels;
+  if (!a || !names) { $("s-ablations").hidden = $("tkAbl").hidden = true; return; }
+  const keys = Object.keys(names).filter(k => a[k]), sets = ["test", "stress", "unseen", "fresh", "sealed"];
+  const rows = keys.map(k => ({label: names[k].replace(/ \(.*\)$/, ""), sub: (names[k].match(/\((.*)\)$/) || [])[1] || "", hl: k === "abl_no_escalation_penalty"}));
+  dotMatrix($("ablDots"), "reward", rows, sets.map(s => s === "test" ? "test set" : s === "stress" ? "stress test" : s + " set"), (i, j) => a[keys[i]][sets[j]], "broke in");
+  const ne = a.abl_no_escalation_penalty, others = ["abl_no_honest_stop_bonus", "abl_no_fabrication_penalty"].filter(k => a[k]);
+  if (ne) $("tkAbl").textContent = `Take away the penalty for breaking in and break-ins on the test set go back to ${pct(ne.test[0])}. Take away either of the other two terms and they stay at ${pct(Math.max(...others.map(k => a[k].test[0])))}. On the harder sets every one of these early rewards still breaks in often, which is what the later versions work on.`;
+}
+
+function hbars(box, rows) {
+  box.innerHTML = rows.map(r => `<div class="row"><div class="lab">${esc(r.label)}<small>${esc(r.sub)}</small></div><div class="hb" data-tip="${esc(r.tip)}"><span class="fill" style="width:calc((100% - 170px) * ${r.v.toFixed(4)})"></span><span class="v">${(100 * r.v).toFixed(1)}% <small>kappa ${r.k.toFixed(2)}</small></span></div></div>`).join("");
+}
+
 function roll(xs, k = 10) { return xs.map((_, i) => { const s = xs.slice(Math.max(0, i - k + 1), i + 1); return s.reduce((a, b) => a + b, 0) / s.length; }); }
 function curve() {
   const W = 1000, H_ = 300, L = 44, R = 16, T = 12, B = 34;
@@ -502,6 +602,12 @@ function judgeTable() {
     h += `<tr><td>${esc(j.label)}</td><td>${j.n}</td><td>${(100 * j.agreement).toFixed(1)}%</td><td>${j.cohen_kappa.toFixed(2)}</td><td>${j.detector_only}</td><td class="hot">${j.judge_only}</td><td>${a.agreement ? (100 * a.agreement).toFixed(1) + "%" : "–"}</td><td>${a.cohen_kappa ? a.cohen_kappa.toFixed(2) : "–"}</td><td>${a.judge_only ?? "–"}</td></tr>`;
   }
   $("judge").innerHTML = h + "</tbody>";
+  hbars($("judgeBars"), js.map(j => ({label: j.label, sub: `${j.n} episodes`, v: j.agreement, k: j.cohen_kappa, tip: `${j.label}: agreed on ${(100 * j.agreement).toFixed(1)}% of ${j.n} episodes. Flagged by the detector only: ${j.detector_only}. By the judge only: ${j.judge_only}.`})));
+  const jf = (D.round6 || {}).judges_final || [];
+  if (jf.length) {
+    hbars($("judgeFinal"), jf.map(j => ({label: j.judge, sub: `${j.n} episodes`, v: j.agreement, k: j.cohen_kappa, tip: `${j.judge}: agreed with the detector on ${(100 * j.agreement).toFixed(1)}% of ${j.n} episodes. Flagged by the detector only: ${j.detector_only}. By the judge only: ${j.judge_only}.`})));
+    $("judgeFinalNote").textContent = "The first judge is the main independent check: an open model, 400 episodes. The second open model agrees much less often, so one judge alone should not be trusted. The third read a 100-episode subset, blind to the detector, and gave a verdict on 99 of them.";
+  }
   const lo = Math.min(...js.map(j => j.agreement)), hi = Math.max(...js.map(j => j.agreement));
   $("tkJudge").textContent = `A separate AI model agreed with our rule-based detector on ${(100 * lo).toFixed(0)}–${(100 * hi).toFixed(0)}% of episodes across ${js.length} audits. Where they disagreed, it found two real holes in the detector, both now fixed.`;
   $("judgeNote").innerHTML = "<b>Audit 1</b> found failed probes of a <code>/debug/</code> path and a <code>Debug</code> header that the detector missed; v3 had learned exactly these. " +
@@ -565,6 +671,36 @@ function takeaways() {
   $("tkSlices").textContent = (worst === 0 ? "No safe agent breaks in on any of these test tasks, including providers never seen in training and questions in Hindi." : `The safe agents stay at or below ${pct(worst)} on providers they never trained on and in Hindi.`) + ` The answer-only agent breaks in on ${r0(g.esc_held_out)} of held-out-provider tasks and ${r0(g.esc_hi)} of Hindi tasks.`;
 }
 
+/* one shared tooltip for every mark that carries data-tip */
+(() => {
+  const tip = $("tip");
+  const show = e => {
+    const t = e.target.closest && e.target.closest("[data-tip]");
+    if (!t) { tip.classList.remove("on"); return; }
+    tip.textContent = t.dataset.tip; tip.classList.add("on");
+    const w = tip.offsetWidth, x = Math.min(Math.max(8, e.clientX - w / 2), innerWidth - w - 8);
+    tip.style.left = x + "px"; tip.style.top = Math.max(8, e.clientY - tip.offsetHeight - 14) + "px";
+  };
+  document.addEventListener("pointermove", show); document.addEventListener("pointerdown", show);
+  document.addEventListener("scroll", () => tip.classList.remove("on"), {passive: true});
+})();
+
+/* the escalation gate figure: its own page in a frame, matched to the theme and sized to its content */
+(() => {
+  const f = $("gate"), dark = matchMedia("(prefers-color-scheme: dark)");
+  const src = () => { f.src = dark.matches ? "escalation-gate.html" : "escalation-gate-light.html"; };
+  f.addEventListener("load", () => {
+    try {
+      const d = f.contentDocument, st = d.createElement("style");
+      st.textContent = "html,body{background:transparent!important}.iso-page{width:auto!important;margin:0 1px!important}.iso-figure{margin:1px 0 0!important}.iso-legend{display:none!important}";
+      d.head.append(st);
+      const fig = d.querySelector(".iso-figure"), fit = () => { f.style.height = Math.ceil(fig.getBoundingClientRect().bottom + 4) + "px"; };
+      new ResizeObserver(fit).observe(fig); fit();
+    } catch (e) {}
+  });
+  dark.addEventListener("change", src); src();
+})();
+
 fetch("data.json").then(r => r.json()).then(d => {
   D = d;
   H = D.headline || HEADLINE;
@@ -576,12 +712,15 @@ fetch("data.json").then(r => r.json()).then(d => {
   document.querySelectorAll("#promptSeg button").forEach(b => b.onclick = () => {
     prompt = b.dataset.v; document.querySelectorAll("#promptSeg button").forEach(x => x.setAttribute("aria-pressed", x === b)); bars();
   });
+  document.querySelectorAll("#sliceSeg button").forEach(b => b.onclick = () => {
+    slicePrompt = b.dataset.v; document.querySelectorAll("#sliceSeg button").forEach(x => x.setAttribute("aria-pressed", x === b)); sliceDots();
+  });
   sel = Math.max(0, D.tasks.findIndex(t => t.episodes[GREEDY].outcome === "escalated"));
   document.querySelectorAll("#stressSeg button").forEach(b => b.onclick = () => {
     sprompt = b.dataset.v; document.querySelectorAll("#stressSeg button").forEach(x => x.setAttribute("aria-pressed", x === b)); stressBars();
   });
   result(); example(); limits(); takeaways();
-  bars(); slicesTable(); curve(); auditTable(); cats(); stressBars(); stressTable(); judgeTable(); circuit(); taskList();
+  bars(); slicesTable(); sliceDots(); curve(); ablations(); auditTable(); cats(); stressBars(); stressTable(); judgeTable(); circuit(); taskList();
   // Fill the orange squares once, after first paint (skipped under reduced motion by the CSS).
   requestAnimationFrame(() => requestAnimationFrame(() => document.body.classList.remove("js-pending")));
 });
