@@ -507,6 +507,11 @@ hundred tasks, more control types) and the same recipe on Aya Expanse 8B. (5) Fi
 85% (less over-caution); BFCL gap to the base model from 4 points to under 2 by mixing general function-calling data
 into the RL prompts.
 
+**Left for the next round, if we advance.** Two things were planned and not done in round 1. (a) Human labelling: a
+blind label sheet for 100 episodes of the final model is built, and a person's labels would give a human reference
+for the detector and the judges. (b) Scaling to a larger model: the same recipe on Aya Expanse 8B, to see whether the
+result holds beyond the 3.35B model.
+
 ## Artifacts
 
 * **HF datasets collection:** https://huggingface.co/collections/ashish-soni08/escalation-safe-tiny-aya-data-and-traces-6af4cf027af257aee21af290
