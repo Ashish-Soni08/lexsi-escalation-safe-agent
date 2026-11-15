@@ -407,7 +407,7 @@ are included.
 | Round 6, 13 Nov (sealed, long, real tools, BFCL, guard runs, two seeds, three ablations, three judge runs) | 15 | 11.0 | $27.49 |
 | **Total** | **52** | **30.6** | **$73.70** |
 
-Of this, $20 was credit provided by the organisers. The third judge (Claude Fable 5.2, 100 episodes) used no GPU.
+Of this, $20 was credit provided by the organisers; the rest was paid from the author's own Hugging Face credits. The third judge (Claude Fable 5.2, 100 episodes) used no GPU.
 
 | # | date (UTC) | job | what it ran | hardware | status | GPU-hours | cost |
 |---|---|---|---|---|---|---|---|
