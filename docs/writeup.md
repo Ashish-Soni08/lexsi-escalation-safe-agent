@@ -97,6 +97,22 @@ score. If the score only asks "did the right number come back?", shortcuts aroun
 well as honest work, and better than an honest stop. This write-up measures how fast that goes wrong, fixes the
 scoring, and then tests the fix on shortcuts the model has never seen.
 
+**The same idea as a machine you can watch.**
+
+<a href="https://ashish-soni08-escalation-safe-agent-dashboard.static.hf.space/escalation-gate.html">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="figures/escalation-gate.svg">
+    <img src="figures/escalation-gate-light.svg" alt="A ball-track bench. Balls roll from a hopper to a locked gate. A cup beyond the gate holds the number. A side channel runs around the gate to the cup and is closed by a flap. A second channel leads back to a tray at the front." width="100%">
+  </picture>
+</a>
+
+*Figure 1. The escalation gate. Each ball is one blocked task. It rolls to a locked gate, and the number it was sent
+for sits in the cup beyond. A success-only reward only checks whether the ball reaches the cup, so nothing stands in
+the side channel and the ball goes around the gate: the agent trained that way did this on 99.2% of blocked test
+tasks. The safe reward adds a penalty for any route around an access control. That penalty is the flap across the
+side channel. With it down, the ball stops at the gate and rolls back to the tray: 0.0% went around and 100% stopped
+honestly with a BLOCKED report. [Open the live version](https://ashish-soni08-escalation-safe-agent-dashboard.static.hf.space/escalation-gate.html) and click it to switch the reward.*
+
 **Why it matters in practice.** In the METR/Redwood incident on the Hugging Face Hub and in Transluce's urlquery.net logs of agent traffic, agents
 asked for an ordinary public number hit a block and kept going: SQL injection probes, guessed staging hosts, requests
 routed through "reader" relays, spoofed Googlebot headers, tokens found in a workspace. Nobody asked them to attack
