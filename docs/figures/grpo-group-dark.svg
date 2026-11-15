@@ -1,59 +1,59 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 270" width="820" height="270" role="img" aria-label="GRPO on one blocked task. The model makes eight attempts; five stop honestly (+0.6), two escalate (-1) and one makes up a number (-0.6). The group average is +0.05. Attempts above the average are made more likely and attempts below it less likely." font-family="Inter, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 270" width="820" height="270" role="img" aria-label="GRPO on one blocked task. The model makes eight attempts; five stop honestly (+0.6), two escalate (-1) and one makes up a number (-0.6). The group average is +0.05. Attempts above the average are made more likely and attempts below it less likely." font-family="Geist, Inter, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">
 <title>GRPO on one blocked task. The model makes eight attempts; five stop honestly (+0.6), two escalate (-1) and one makes up a number (-0.6). The group average is +0.05. Attempts above the average are made more likely and attempts below it less likely.</title>
-<defs><marker id="ar-line" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#6e7681"/></marker><marker id="ar-orange" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#ff7f50"/></marker><marker id="ar-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#3fcf95"/></marker><marker id="ar-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#58a0f5"/></marker><marker id="ar-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#9198a1"/></marker><pattern id="hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="6" stroke="#6e7681" stroke-width="1.6" opacity=".55"/></pattern></defs>
-<rect width="820" height="270" rx="10" fill="#0d1117"/>
-<text x="24" y="30" font-size="14" fill="#e6edf3" text-anchor="start" font-weight="700">One blocked task, 8 attempts, each scored by the safe reward</text>
-<line x1="96" y1="44.0" x2="96" y2="216.0" stroke="#6e7681" stroke-width="1.2" opacity="1"/>
-<line x1="92" y1="48" x2="96" y2="48" stroke="#6e7681" stroke-width="1.2" opacity="1"/>
-<text x="88" y="52" font-size="11" fill="#9198a1" text-anchor="end" font-weight="400">+1</text>
-<line x1="92" y1="88.0" x2="96" y2="88.0" stroke="#6e7681" stroke-width="1.2" opacity="1"/>
-<text x="88" y="92.0" font-size="11" fill="#9198a1" text-anchor="end" font-weight="400">+0.5</text>
-<line x1="92" y1="128" x2="96" y2="128" stroke="#6e7681" stroke-width="1.2" opacity="1"/>
-<text x="88" y="132" font-size="11" fill="#9198a1" text-anchor="end" font-weight="400">0</text>
-<line x1="92" y1="168.0" x2="96" y2="168.0" stroke="#6e7681" stroke-width="1.2" opacity="1"/>
-<text x="88" y="172.0" font-size="11" fill="#9198a1" text-anchor="end" font-weight="400">-0.5</text>
-<line x1="92" y1="208" x2="96" y2="208" stroke="#6e7681" stroke-width="1.2" opacity="1"/>
-<text x="88" y="212" font-size="11" fill="#9198a1" text-anchor="end" font-weight="400">-1</text>
-<text x="40" y="132" font-size="11" fill="#9198a1" text-anchor="end" font-weight="400">score</text>
-<line x1="96" y1="124.0" x2="548" y2="124.0" stroke="#e6edf3" stroke-width="1.2" opacity="1" stroke-dasharray="6 4"/>
-<text x="554" y="128.0" font-size="12" fill="#e6edf3" text-anchor="start" font-weight="600">group average +0.05</text>
+<defs><marker id="ar-line" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#8e98ac"/></marker><marker id="ar-orange" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#f08a59"/></marker><marker id="ar-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#3fcf95"/></marker><marker id="ar-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#6aa9f5"/></marker><marker id="ar-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#bfc0c0"/></marker><pattern id="hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="6" stroke="#8e98ac" stroke-width="1.6" opacity=".55"/></pattern></defs>
+<rect width="820" height="270" rx="8" fill="#2d3142"/>
+<text x="24" y="30" font-size="14" fill="#f5f5f5" text-anchor="start" font-weight="700">One blocked task, 8 attempts, each scored by the safe reward</text>
+<line x1="96" y1="44.0" x2="96" y2="216.0" stroke="#8e98ac" stroke-width="1.2" opacity="1"/>
+<line x1="92" y1="48" x2="96" y2="48" stroke="#8e98ac" stroke-width="1.2" opacity="1"/>
+<text x="88" y="52" font-size="11" fill="#bfc0c0" text-anchor="end" font-weight="400">+1</text>
+<line x1="92" y1="88.0" x2="96" y2="88.0" stroke="#8e98ac" stroke-width="1.2" opacity="1"/>
+<text x="88" y="92.0" font-size="11" fill="#bfc0c0" text-anchor="end" font-weight="400">+0.5</text>
+<line x1="92" y1="128" x2="96" y2="128" stroke="#8e98ac" stroke-width="1.2" opacity="1"/>
+<text x="88" y="132" font-size="11" fill="#bfc0c0" text-anchor="end" font-weight="400">0</text>
+<line x1="92" y1="168.0" x2="96" y2="168.0" stroke="#8e98ac" stroke-width="1.2" opacity="1"/>
+<text x="88" y="172.0" font-size="11" fill="#bfc0c0" text-anchor="end" font-weight="400">-0.5</text>
+<line x1="92" y1="208" x2="96" y2="208" stroke="#8e98ac" stroke-width="1.2" opacity="1"/>
+<text x="88" y="212" font-size="11" fill="#bfc0c0" text-anchor="end" font-weight="400">-1</text>
+<text x="40" y="132" font-size="11" fill="#bfc0c0" text-anchor="end" font-weight="400">score</text>
+<line x1="96" y1="124.0" x2="548" y2="124.0" stroke="#f5f5f5" stroke-width="1.2" opacity="1" stroke-dasharray="6 4"/>
+<text x="554" y="128.0" font-size="12" fill="#f5f5f5" text-anchor="start" font-weight="600">group average +0.05</text>
 <line x1="140" y1="124.0" x2="140" y2="80.0" stroke="#3fcf95" stroke-width="3" opacity="0.55"/>
-<circle cx="140" cy="80.0" r="7" fill="#3fcf95" stroke="#0d1117" stroke-width="2"/>
+<circle cx="140" cy="80.0" r="7" fill="#3fcf95" stroke="#2d3142" stroke-width="2"/>
 <text x="140" y="232" font-size="11" fill="#3fcf95" text-anchor="middle" font-weight="600">stop</text>
-<text x="140" y="248" font-size="10.5" fill="#9198a1" text-anchor="middle" font-weight="400">+0.6</text>
-<line x1="194" y1="124.0" x2="194" y2="208" stroke="#ff7f50" stroke-width="3" opacity="0.55"/>
-<circle cx="194" cy="208" r="7" fill="#ff7f50" stroke="#0d1117" stroke-width="2"/>
-<text x="194" y="232" font-size="11" fill="#ff7f50" text-anchor="middle" font-weight="600">escalate</text>
-<text x="194" y="248" font-size="10.5" fill="#9198a1" text-anchor="middle" font-weight="400">-1</text>
+<text x="140" y="248" font-size="10.5" fill="#bfc0c0" text-anchor="middle" font-weight="400">+0.6</text>
+<line x1="194" y1="124.0" x2="194" y2="208" stroke="#f08a59" stroke-width="3" opacity="0.55"/>
+<circle cx="194" cy="208" r="7" fill="#f08a59" stroke="#2d3142" stroke-width="2"/>
+<text x="194" y="232" font-size="11" fill="#f08a59" text-anchor="middle" font-weight="600">escalate</text>
+<text x="194" y="248" font-size="10.5" fill="#bfc0c0" text-anchor="middle" font-weight="400">-1</text>
 <line x1="248" y1="124.0" x2="248" y2="80.0" stroke="#3fcf95" stroke-width="3" opacity="0.55"/>
-<circle cx="248" cy="80.0" r="7" fill="#3fcf95" stroke="#0d1117" stroke-width="2"/>
+<circle cx="248" cy="80.0" r="7" fill="#3fcf95" stroke="#2d3142" stroke-width="2"/>
 <text x="248" y="232" font-size="11" fill="#3fcf95" text-anchor="middle" font-weight="600">stop</text>
-<text x="248" y="248" font-size="10.5" fill="#9198a1" text-anchor="middle" font-weight="400">+0.6</text>
+<text x="248" y="248" font-size="10.5" fill="#bfc0c0" text-anchor="middle" font-weight="400">+0.6</text>
 <line x1="302" y1="124.0" x2="302" y2="176.0" stroke="#f2b937" stroke-width="3" opacity="0.55"/>
-<circle cx="302" cy="176.0" r="7" fill="#f2b937" stroke="#0d1117" stroke-width="2"/>
+<circle cx="302" cy="176.0" r="7" fill="#f2b937" stroke="#2d3142" stroke-width="2"/>
 <text x="302" y="232" font-size="11" fill="#f2b937" text-anchor="middle" font-weight="600">made-up</text>
-<text x="302" y="248" font-size="10.5" fill="#9198a1" text-anchor="middle" font-weight="400">-0.6</text>
+<text x="302" y="248" font-size="10.5" fill="#bfc0c0" text-anchor="middle" font-weight="400">-0.6</text>
 <line x1="356" y1="124.0" x2="356" y2="80.0" stroke="#3fcf95" stroke-width="3" opacity="0.55"/>
-<circle cx="356" cy="80.0" r="7" fill="#3fcf95" stroke="#0d1117" stroke-width="2"/>
+<circle cx="356" cy="80.0" r="7" fill="#3fcf95" stroke="#2d3142" stroke-width="2"/>
 <text x="356" y="232" font-size="11" fill="#3fcf95" text-anchor="middle" font-weight="600">stop</text>
-<text x="356" y="248" font-size="10.5" fill="#9198a1" text-anchor="middle" font-weight="400">+0.6</text>
+<text x="356" y="248" font-size="10.5" fill="#bfc0c0" text-anchor="middle" font-weight="400">+0.6</text>
 <line x1="410" y1="124.0" x2="410" y2="80.0" stroke="#3fcf95" stroke-width="3" opacity="0.55"/>
-<circle cx="410" cy="80.0" r="7" fill="#3fcf95" stroke="#0d1117" stroke-width="2"/>
+<circle cx="410" cy="80.0" r="7" fill="#3fcf95" stroke="#2d3142" stroke-width="2"/>
 <text x="410" y="232" font-size="11" fill="#3fcf95" text-anchor="middle" font-weight="600">stop</text>
-<text x="410" y="248" font-size="10.5" fill="#9198a1" text-anchor="middle" font-weight="400">+0.6</text>
-<line x1="464" y1="124.0" x2="464" y2="208" stroke="#ff7f50" stroke-width="3" opacity="0.55"/>
-<circle cx="464" cy="208" r="7" fill="#ff7f50" stroke="#0d1117" stroke-width="2"/>
-<text x="464" y="232" font-size="11" fill="#ff7f50" text-anchor="middle" font-weight="600">escalate</text>
-<text x="464" y="248" font-size="10.5" fill="#9198a1" text-anchor="middle" font-weight="400">-1</text>
+<text x="410" y="248" font-size="10.5" fill="#bfc0c0" text-anchor="middle" font-weight="400">+0.6</text>
+<line x1="464" y1="124.0" x2="464" y2="208" stroke="#f08a59" stroke-width="3" opacity="0.55"/>
+<circle cx="464" cy="208" r="7" fill="#f08a59" stroke="#2d3142" stroke-width="2"/>
+<text x="464" y="232" font-size="11" fill="#f08a59" text-anchor="middle" font-weight="600">escalate</text>
+<text x="464" y="248" font-size="10.5" fill="#bfc0c0" text-anchor="middle" font-weight="400">-1</text>
 <line x1="518" y1="124.0" x2="518" y2="80.0" stroke="#3fcf95" stroke-width="3" opacity="0.55"/>
-<circle cx="518" cy="80.0" r="7" fill="#3fcf95" stroke="#0d1117" stroke-width="2"/>
+<circle cx="518" cy="80.0" r="7" fill="#3fcf95" stroke="#2d3142" stroke-width="2"/>
 <text x="518" y="232" font-size="11" fill="#3fcf95" text-anchor="middle" font-weight="600">stop</text>
-<text x="518" y="248" font-size="10.5" fill="#9198a1" text-anchor="middle" font-weight="400">+0.6</text>
+<text x="518" y="248" font-size="10.5" fill="#bfc0c0" text-anchor="middle" font-weight="400">+0.6</text>
 <line x1="562" y1="86.0" x2="562" y2="62.0" stroke="#3fcf95" stroke-width="2" opacity="1" marker-end="url(#ar-green)"/>
 <text x="576" y="74.0" font-size="12" fill="#3fcf95" text-anchor="start" font-weight="600">above average:</text>
-<text x="576" y="89.0" font-size="12" fill="#9198a1" text-anchor="start" font-weight="400">made more likely</text>
-<line x1="562" y1="180.0" x2="562" y2="204.0" stroke="#ff7f50" stroke-width="2" opacity="1" marker-end="url(#ar-orange)"/>
-<text x="576" y="190.0" font-size="12" fill="#ff7f50" text-anchor="start" font-weight="600">below average:</text>
-<text x="576" y="205.0" font-size="12" fill="#9198a1" text-anchor="start" font-weight="400">made less likely</text>
-<text x="24" y="262" font-size="11" fill="#9198a1" text-anchor="start" font-weight="400" font-style="italic">Stems show each attempt's distance from the average (its advantage). Illustrative group.</text>
+<text x="576" y="89.0" font-size="12" fill="#bfc0c0" text-anchor="start" font-weight="400">made more likely</text>
+<line x1="562" y1="180.0" x2="562" y2="204.0" stroke="#f08a59" stroke-width="2" opacity="1" marker-end="url(#ar-orange)"/>
+<text x="576" y="190.0" font-size="12" fill="#f08a59" text-anchor="start" font-weight="600">below average:</text>
+<text x="576" y="205.0" font-size="12" fill="#bfc0c0" text-anchor="start" font-weight="400">made less likely</text>
+<text x="24" y="262" font-size="11" fill="#bfc0c0" text-anchor="start" font-weight="400" font-style="italic">Stems show each attempt's distance from the average (its advantage). Illustrative group.</text>
 </svg>
