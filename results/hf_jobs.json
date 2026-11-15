@@ -1,0 +1,418 @@
+[
+ {
+  "id": "6af359979737d9a9e0912dae",
+  "tag": "smoke1",
+  "flavor": "l4x1",
+  "created_at": "2026-11-10T17:51:19.716000+00:00",
+  "stage": "COMPLETED",
+  "running_secs": 302
+ },
+ {
+  "id": "6af35b799737d9a9e0913298",
+  "tag": "smoke2",
+  "flavor": "l4x1",
+  "created_at": "2026-11-10T17:59:21.145000+00:00",
+  "stage": "ERROR",
+  "running_secs": 106
+ },
+ {
+  "id": "6af35b839737d9a9e09132b0",
+  "tag": "sft1",
+  "flavor": "a100-large",
+  "created_at": "2026-11-10T17:59:31.201000+00:00",
+  "stage": "ERROR",
+  "running_secs": 61
+ },
+ {
+  "id": "6af35bf49737d9a9e0913419",
+  "tag": "smoke3",
+  "flavor": "l4x1",
+  "created_at": "2026-11-10T18:01:24.824000+00:00",
+  "stage": "COMPLETED",
+  "running_secs": 153
+ },
+ {
+  "id": "6af35c9a9737d9a9e09135be",
+  "tag": "sft2",
+  "flavor": "a100-large",
+  "created_at": "2026-11-10T18:04:10.681000+00:00",
+  "stage": "COMPLETED",
+  "running_secs": 937
+ },
+ {
+  "id": "6af35cb09737d9a9e0913601",
+  "tag": "eval_base",
+  "flavor": "l4x1",
+  "created_at": "2026-11-10T18:04:32.188000+00:00",
+  "stage": "COMPLETED",
+  "running_secs": 247
+ },
+ {
+  "id": "6af35cbb9737d9a9e091361c",
+  "tag": "grpo_smoke1",
+  "flavor": "a100-large",
+  "created_at": "2026-11-10T18:04:43.144000+00:00",
+  "stage": "COMPLETED",
+  "running_secs": 559
+ },
+ {
+  "id": "6af36057ab34849891ac8f25",
+  "tag": "eval_sft",
+  "flavor": "l4x1",
+  "created_at": "2026-11-10T18:20:07.070000+00:00",
+  "stage": "COMPLETED",
+  "running_secs": 284
+ },
+ {
+  "id": "6af36059ab34849891ac8f2f",
+  "tag": "grpo_smoke2",
+  "flavor": "a100-large",
+  "created_at": "2026-11-10T18:20:09.575000+00:00",
+  "stage": "COMPLETED",
+  "running_secs": 555
+ },
+ {
+  "id": "6af362beab34849891ac977c",
+  "tag": "sft_esc",
+  "flavor": "a100-large",
+  "created_at": "2026-11-10T18:30:22.794000+00:00",
+  "stage": "COMPLETED",
+  "running_secs": 1056
+ },
+ {
+  "id": "6af366f89737d9a9e0915094",
+  "tag": "grpo_esc_success_only",
+  "flavor": "a100-large",
+  "created_at": "2026-11-10T18:48:24.875000+00:00",
+  "stage": "ERROR",
+  "running_secs": 696
+ },
+ {
+  "id": "6af366fc9737d9a9e091509c",
+  "tag": "grpo_esc_safe",
+  "flavor": "a100-large",
+  "created_at": "2026-11-10T18:48:28.154000+00:00",
+  "stage": "ERROR",
+  "running_secs": 786
+ },
+ {
+  "id": "6af36a2fab34849891aca7aa",
+  "tag": "grpo_esc_success_only",
+  "flavor": "a100-large",
+  "created_at": "2026-11-10T19:02:07.325000+00:00",
+  "stage": "COMPLETED",
+  "running_secs": 3900
+ },
+ {
+  "id": "6af36a329737d9a9e09159d8",
+  "tag": "grpo_esc_safe",
+  "flavor": "a100-large",
+  "created_at": "2026-11-10T19:02:10.241000+00:00",
+  "stage": "COMPLETED",
+  "running_secs": 3720
+ },
+ {
+  "id": "6af4aa42ab34849891ae588e",
+  "tag": "sft_v2",
+  "flavor": "a100-large",
+  "created_at": "2026-11-11T17:47:46.966000+00:00",
+  "stage": "COMPLETED",
+  "running_secs": 1876
+ },
+ {
+  "id": "6af4aa459737d9a9e0933191",
+  "tag": "sft_esc_v2",
+  "flavor": "a100-large",
+  "created_at": "2026-11-11T17:47:49.027000+00:00",
+  "stage": "COMPLETED",
+  "running_secs": 1847
+ },
+ {
+  "id": "6af4aa47ab34849891ae589e",
+  "tag": "eval_base_v2",
+  "flavor": "l4x1",
+  "created_at": "2026-11-11T17:47:51.403000+00:00",
+  "stage": "COMPLETED",
+  "running_secs": 275
+ },
+ {
+  "id": "6af4b59c9737d9a9e093409b",
+  "tag": "grpo_esc_safe_v2",
+  "flavor": "a100-large",
+  "created_at": "2026-11-11T18:36:12.053000+00:00",
+  "stage": "COMPLETED",
+  "running_secs": 4923
+ },
+ {
+  "id": "6af4b59eab34849891ae6640",
+  "tag": "grpo_esc_success_only_v2",
+  "flavor": "a100-large",
+  "created_at": "2026-11-11T18:36:14.472000+00:00",
+  "stage": "COMPLETED",
+  "running_secs": 4852
+ },
+ {
+  "id": "6af4d489ab34849891ae8777",
+  "tag": "evalx",
+  "flavor": "l4x1",
+  "created_at": "2026-11-11T20:48:09.851000+00:00",
+  "stage": "CANCELED",
+  "running_secs": 0
+ },
+ {
+  "id": "6af4d4969737d9a9e0936482",
+  "tag": "grpo_seed2",
+  "flavor": "a100-large",
+  "created_at": "2026-11-11T20:48:22.849000+00:00",
+  "stage": "COMPLETED",
+  "running_secs": 4969
+ },
+ {
+  "id": "6af4d623ab34849891ae8891",
+  "tag": "circuit",
+  "flavor": "a100-large",
+  "created_at": "2026-11-11T20:54:59.878000+00:00",
+  "stage": "ERROR",
+  "running_secs": 72
+ },
+ {
+  "id": "6af4d65d9737d9a9e09365b4",
+  "tag": "evalx2",
+  "flavor": "a10g-large",
+  "created_at": "2026-11-11T20:55:57.258000+00:00",
+  "stage": "ERROR",
+  "running_secs": 313
+ },
+ {
+  "id": "6af4d695ab34849891ae88c3",
+  "tag": "circuit2",
+  "flavor": "a100-large",
+  "created_at": "2026-11-11T20:56:53.722000+00:00",
+  "stage": "ERROR",
+  "running_secs": 79
+ },
+ {
+  "id": "6af4d70f9737d9a9e0936631",
+  "tag": "circuit3",
+  "flavor": "a100-large",
+  "created_at": "2026-11-11T20:58:55.652000+00:00",
+  "stage": "COMPLETED",
+  "running_secs": 4618
+ },
+ {
+  "id": "6af4d7f0ab34849891ae89ad",
+  "tag": "evalx3",
+  "flavor": "a10g-large",
+  "created_at": "2026-11-11T21:02:40.466000+00:00",
+  "stage": "COMPLETED",
+  "running_secs": 4265
+ },
+ {
+  "id": "6af4e9279737d9a9e0937cfe",
+  "tag": "grpo_v3",
+  "flavor": "a100-large",
+  "created_at": "2026-11-11T22:16:07.794000+00:00",
+  "stage": "COMPLETED",
+  "running_secs": 3822
+ },
+ {
+  "id": "6af4e93fab34849891ae9da6",
+  "tag": "judge",
+  "flavor": "a100-large",
+  "created_at": "2026-11-11T22:16:31.923000+00:00",
+  "stage": "COMPLETED",
+  "running_secs": 257
+ },
+ {
+  "id": "6af4f868ab34849891aeaba8",
+  "tag": "grpo_v3_1",
+  "flavor": "a100-large",
+  "created_at": "2026-11-11T23:21:12.881000+00:00",
+  "stage": "COMPLETED",
+  "running_secs": 3852
+ },
+ {
+  "id": "6af55829ab34849891aed930",
+  "tag": "unseen_base",
+  "flavor": "a10g-large",
+  "created_at": "2026-11-12T06:09:45.588000+00:00",
+  "stage": "COMPLETED",
+  "running_secs": 1722
+ },
+ {
+  "id": "6af5583c9737d9a9e093c6f3",
+  "tag": "grpo_v4",
+  "flavor": "a100-large",
+  "created_at": "2026-11-12T06:10:04.789000+00:00",
+  "stage": "COMPLETED",
+  "running_secs": 5637
+ },
+ {
+  "id": "6af56e749737d9a9e093d3e9",
+  "tag": "judge_v4",
+  "flavor": "a100-large",
+  "created_at": "2026-11-12T07:44:52.562000+00:00",
+  "stage": "COMPLETED",
+  "running_secs": 263
+ },
+ {
+  "id": "6af5701f9737d9a9e093d508",
+  "tag": "grpo_v4_1",
+  "flavor": "a100-large",
+  "created_at": "2026-11-12T07:51:59.177000+00:00",
+  "stage": "COMPLETED",
+  "running_secs": 5710
+ },
+ {
+  "id": "6af586acab34849891aef641",
+  "tag": "judge_v4_1",
+  "flavor": "a100-large",
+  "created_at": "2026-11-12T09:28:12.556000+00:00",
+  "stage": "COMPLETED",
+  "running_secs": 252
+ },
+ {
+  "id": "6af60d620f431c4f7b562ad8",
+  "tag": "v5",
+  "flavor": "a100-large",
+  "created_at": "2026-11-12T19:02:58.848000+00:00",
+  "stage": "COMPLETED",
+  "running_secs": 5652
+ },
+ {
+  "id": "6af60d6f5f2f1b7284b89839",
+  "tag": "fresh_base",
+  "flavor": "a10g-large",
+  "created_at": "2026-11-12T19:03:11.305000+00:00",
+  "stage": "COMPLETED",
+  "running_secs": 1793
+ },
+ {
+  "id": "6af62ae05f2f1b7284b8c66e",
+  "tag": "judge_v5",
+  "flavor": "a100-large",
+  "created_at": "2026-11-12T21:08:48.638000+00:00",
+  "stage": "COMPLETED",
+  "running_secs": 304
+ },
+ {
+  "id": "6af7638223985fb9cd805d58",
+  "tag": "seed_14",
+  "flavor": "a100-large",
+  "created_at": "2026-11-13T19:22:42.239000+00:00",
+  "stage": "COMPLETED",
+  "running_secs": 5626
+ },
+ {
+  "id": "6af7638529dd05ff03656fb0",
+  "tag": "seed_24",
+  "flavor": "a100-large",
+  "created_at": "2026-11-13T19:22:45.616000+00:00",
+  "stage": "COMPLETED",
+  "running_secs": 5595
+ },
+ {
+  "id": "6af7638723985fb9cd805d61",
+  "tag": "abl_no_escalation_penalty",
+  "flavor": "a100-large",
+  "created_at": "2026-11-13T19:22:47.816000+00:00",
+  "stage": "COMPLETED",
+  "running_secs": 3331
+ },
+ {
+  "id": "6af7638a29dd05ff03656fb4",
+  "tag": "abl_no_honest_stop_bonus",
+  "flavor": "a100-large",
+  "created_at": "2026-11-13T19:22:50.184000+00:00",
+  "stage": "COMPLETED",
+  "running_secs": 4977
+ },
+ {
+  "id": "6af7638d29dd05ff03656fb8",
+  "tag": "abl_no_fabrication_penalty",
+  "flavor": "a100-large",
+  "created_at": "2026-11-13T19:22:53.082000+00:00",
+  "stage": "COMPLETED",
+  "running_secs": 5035
+ },
+ {
+  "id": "6af763f229dd05ff03657008",
+  "tag": "guard_only",
+  "flavor": "a100-large",
+  "created_at": "2026-11-13T19:24:34.543000+00:00",
+  "stage": "COMPLETED",
+  "running_secs": 1011
+ },
+ {
+  "id": "6af7653429dd05ff03657149",
+  "tag": "sealed_long",
+  "flavor": "a100-large",
+  "created_at": "2026-11-13T19:29:56.057000+00:00",
+  "stage": "COMPLETED",
+  "running_secs": 2623
+ },
+ {
+  "id": "6af7657529dd05ff036571bb",
+  "tag": "bfcl",
+  "flavor": "a100-large",
+  "created_at": "2026-11-13T19:31:01.297000+00:00",
+  "stage": "COMPLETED",
+  "running_secs": 595
+ },
+ {
+  "id": "6af767c729dd05ff0365742b",
+  "tag": "real",
+  "flavor": "a100-large",
+  "created_at": "2026-11-13T19:40:55.094000+00:00",
+  "stage": "COMPLETED",
+  "running_secs": 1551
+ },
+ {
+  "id": "6af76fe423985fb9cd8066f7",
+  "tag": "longchat",
+  "flavor": "a100-large",
+  "created_at": "2026-11-13T20:15:32.020000+00:00",
+  "stage": "COMPLETED",
+  "running_secs": 1638
+ },
+ {
+  "id": "6af7700529dd05ff03657adb",
+  "tag": "real2",
+  "flavor": "a100-large",
+  "created_at": "2026-11-13T20:16:05.407000+00:00",
+  "stage": "COMPLETED",
+  "running_secs": 629
+ },
+ {
+  "id": "6af7701629dd05ff03657aef",
+  "tag": "judge_v6",
+  "flavor": "a100-large",
+  "created_at": "2026-11-13T20:16:22.742000+00:00",
+  "stage": "COMPLETED",
+  "running_secs": 462
+ },
+ {
+  "id": "6af776d323985fb9cd806f89",
+  "tag": "abl_no_escalation_penalty_2",
+  "flavor": "a100-large",
+  "created_at": "2026-11-13T20:45:07.080000+00:00",
+  "stage": "COMPLETED",
+  "running_secs": 5097
+ },
+ {
+  "id": "6af77a3929dd05ff03658a97",
+  "tag": "seeds_extra",
+  "flavor": "a100-large",
+  "created_at": "2026-11-13T20:59:37.012000+00:00",
+  "stage": "COMPLETED",
+  "running_secs": 1145
+ },
+ {
+  "id": "6af77ed729dd05ff03659201",
+  "tag": "judge_v6_seeds",
+  "flavor": "a100-large",
+  "created_at": "2026-11-13T21:19:19.215000+00:00",
+  "stage": "COMPLETED",
+  "running_secs": 267
+ }
+]
