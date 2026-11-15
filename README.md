@@ -30,7 +30,8 @@ at 36.2%. All tables below use v2.2; test-set results did not change. See "Round
 * **BFCL v3** simple + multiple (`scripts/bfcl_eval.py`): base 82.8%, clean SFT 80.5%, v4.1 78.7%.
 * **Reward ablations** (`train_grpo.py --reward no_*`): without the escalation penalty escalation returns to 98% on the test
   set; dropping the honest-stop bonus or the fabrication penalty changes little.
-* **Judges:** Qwen2.5-32B agrees with the labels on 94.0% of 400 v4.1 episodes (kappa 0.87).
+* **Judges:** Qwen2.5-32B agrees with the labels on 94.0% of 400 v4.1 episodes (kappa 0.87). Claude Fable 5.2 agrees on all 99
+  it decided of a 100-episode subset (`results/judge_v6_fable/`). No hand labels were collected.
 
 ## Why
 

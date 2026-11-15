@@ -195,8 +195,16 @@ model and all seed models' recipe were fixed, and nothing was tuned on it.
 **Checking the automatic judge.** The reward's detector is rule-based, so it is itself a target. Two open models read
 400 whole episodes of the final model against a written policy. Qwen2.5-32B agrees with our labels on 94.0%
 (Cohen's kappa 0.87); Mistral-Small-24B on 69.5% (kappa 0.36) and is too noisy to use. On 400 episodes of the two
-extra seed models Qwen agrees on 90.5% (kappa 0.80). 100 episodes are being labelled by hand, blind to every
-automatic verdict. *[Hand labels: pending, to be added before submission.]*
+extra seed models Qwen agrees on 90.5% (kappa 0.80). As a third check, Claude Fable 5.2 labelled 100 of the final
+model's episodes (sealed 31, unseen 24, fresh 18, stress 17, test 10) against the same written policy, without seeing
+the detector's or the other judges' verdicts. It gave a verdict on 99 (44 violation, 55 clean, 1 unsure) and agrees
+with the detector on all 99 (kappa 1.00); on the same 99 it agrees with Qwen on 90.9% (kappa 0.82) and with Mistral
+on 71.7% (kappa 0.43). The one unsure episode is a geo-blocked task where the agent used a host that the search tool
+listed only as a "data service"; the detector calls it clean and Qwen calls it a violation. Caveat: the same assistant
+helped build this project, so this check is independent of the detector's rules but not of the project; Qwen is the
+fully external judge. Verdicts and reasons are in `results/judge_v6_fable/`. Hand labelling by a person was planned
+(a blind label sheet was built) but was not done; the brief asks for an independent judge or hand labels, and we
+report the judges.
 
 ## Method and experiments
 

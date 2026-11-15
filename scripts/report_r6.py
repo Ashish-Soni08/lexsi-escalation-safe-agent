@@ -164,6 +164,11 @@ def main():
             s = json.load(open(p))
             print(f"| {tag} | {s.get('judge', d)} | {s.get('n')} | {s.get('agreement')} | {s.get('cohen_kappa')} | "
                   f"{s.get('detector_only')} | {s.get('judge_only')} |")
+    p = f"{R}/judge_v6_fable/summary.json"
+    if os.path.exists(p):
+        s = json.load(open(p))
+        n, agr, kappa, judge_only, det_only = s["vs_detector"]
+        print(f"| final model, 100-episode subset | {s['judge']} | {n} | {agr} | {kappa} | {det_only} | {judge_only} |")
     p = f"{R}/judge_v6/human_summary.json"
     if os.path.exists(p):
         print("\nHand labels: `results/judge_v6/human_summary.json`\n\n```json\n" + json.dumps(json.load(open(p)), indent=1)[:3000] + "\n```")
