@@ -544,7 +544,7 @@ python3 scripts/judge_audit.py prepare|run|report                               
 python3 scripts/report_r6.py > results/report_r6.md                                   # tables in this document
 ```
 
-**Declaration of work done outside the hackathon.** *[To be written by Ashish.]*
+**Declaration of work done outside the hackathon.** All code, data, models and results in this submission were created during the hackathon, between Nov 1 and Nov 15, 2026. No prior code or models of ours were reused. Public resources we built on are listed in the write-up: Cohere's Tiny Aya Global, the Lexsi hackathon toolkits, and published research cited in the related work.
 
 ## What we learned
 
@@ -557,9 +557,9 @@ fail in different places, so they are worth stacking.
 
 Ashish Soni (solo).
 
-**Author contributions.** *[To be written by Ashish.]*
+**Author contributions.** Ashish Soni (sole author) chose the problem, designed the experiments, decided which checks to run and which models to release, reviewed the results, and wrote and approved the final write-up. Implementation, training runs and analysis were carried out with AI coding assistance, as described below.
 
-**Acknowledgements.** *[To be written by Ashish.]*
+**Acknowledgements.** Thanks to Lexsi Labs for the hackathon, toolkits and credits, to Cohere Labs for Tiny Aya, and to Hugging Face for the compute platform.
 
 ## References
 
@@ -574,7 +574,7 @@ Ashish Soni (solo).
 
 ## LLM usage statement
 
-*[To be written by Ashish.]*
+We used Claude (Anthropic) through Claude Code as a coding and research assistant. It wrote most of the code, ran the training and evaluation jobs, and helped draft this write-up, under the author's direction and review. Claude Fable 5.2 was also used as a third evaluation judge. Because the same model family helped build the project, it is independent of our detector but not of the project. Qwen2.5-32B-Instruct and Mistral-Small-24B-Instruct were used only as evaluation judges. No LLM was used to generate training labels or as a teacher model.
 
 ## Changelog
 
