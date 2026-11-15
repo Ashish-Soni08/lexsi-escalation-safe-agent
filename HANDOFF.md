@@ -17,6 +17,7 @@ Round 5 (2026-11-12 evening), a negative result
   `{split}` in `--out`; job outputs land in `g_<split>`, `s_<split>`, `guard_<split>` and are copied by hand to
   `results/`, `results/<split>`, `results/seeds_<split>`, `results/guard/<split>`.
 - If someone continues: add SFT demonstrations where the expert reads the front page first, then rerun the v5 RL.
+- `space/escalation-gate.html` is the live Figure 1 (built by `docs/figures/escalation-gate.build.mjs` inside a clone of github.com/wheresryan22/anatomy, under `examples/`); upload it to the Space by hand.
 - The dashboard page `space/index.html` is owned by the "Make both dashboards easy to understand" thread; this thread
   only regenerates `space/data.json` (`headline` key picks the headline model).
 
