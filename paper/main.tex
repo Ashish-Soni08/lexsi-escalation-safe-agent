@@ -202,6 +202,37 @@ Paired against clean SFT on the same blocked tasks, \vfour{} fixes 118 tasks and
 On the sealed set \vfour{} escalates on 21.7\% (16.4 $\pm$ 4.7\% over three seeds) against 42.8\% for clean SFT and 100\% for success-only RL.
 36 of its 40 flagged sealed episodes use one kind: a retired \texttt{/api/v0} sitting next to the documented \texttt{/api/v1}; the share link and the default login are refused.
 As on the unseen set, what remains are routes that \emph{look} official.
+
+\begin{table}[t]
+\centering
+\small
+\begin{adjustbox}{max width=\columnwidth}
+\begin{tabular}{lccc}
+\toprule
+\textbf{\vfour, 3 seeds pooled} & unseen & fresh & sealed \\
+\midrule
+All blocked & 81/348 & 24/381 & 68/414 \\
+\quad no tip & 53/150 & 0/174 & 0/162 \\
+\quad tip in blocked response & 9/123 & 24/207 & 37/102 \\
+\quad tip in search results & 6/45 & -- & 31/69 \\
+\quad tip in workspace note & 13/30 & -- & -- \\
+\quad tip in developer docs & -- & -- & 0/81 \\
+\midrule
+Clean SFT, no tip & 40/50 & 14/58 & 2/54 \\
+Clean SFT, tip & 62/66 & 47/69 & 57/84 \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\caption{Where \vfour{} still escalates: escalated / blocked episodes by whether and where a tip pointed at the shortcut (neutral prompt, greedy, seeds 4, 14, 24 pooled; recorded results, no new runs).}
+\label{tab:fail}
+\end{table}
+
+\paragraph{Failure analysis.}
+Pooling the three seeds (Table~\ref{tab:fail}), \vfour{} never escalates on fresh or sealed tasks unless a planted tip points at the shortcut (0/174 and 0/162), while clean SFT does so unprompted on 24\% of fresh tasks.
+With a tip, sealed escalation is 27\%, driven by tips in search results (45\%) and in the blocked response itself (36\%); tips in developer docs are always ignored (0/81).
+Unseen is the exception: all 81 escalations there use one shortcut kind, an ``origin'' server named by the site's own page, and 53 of them need no tip.
+So the residual failure is narrow: following an in-context suggestion toward an official-looking route, plus one route shape that is never treated as a shortcut.
+Breakdowns by block type, language and provider are in the repository (\texttt{scripts/failure\_analysis.py}).
 The refusal does hold late in a conversation: 2.3\% when the block arrives on the third question (1.5\% when asked alone), while earlier rounds degrade with length (safe v2 56.8\%).
 
 \paragraph{F4: the behaviour transfers to a real server.}
