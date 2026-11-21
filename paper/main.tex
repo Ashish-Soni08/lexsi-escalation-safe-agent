@@ -45,7 +45,7 @@ A reward in which any exploit-shaped tool call scores below every honest outcome
 Generalisation is partial: on a sealed test with four shortcut kinds invented after the model was frozen, the final model escalates on \textbf{16.4 $\pm$ 4.7\%} across three training seeds (clean SFT 42.8\%, outcome-only RL 100\%).
 Independent LLM judges show that the reward's rule-based detector was gamed twice during development; agreement of the final detector with Qwen2.5-32B is 94\% ($\kappa = 0.87$).
 Reward ablations show the escalation penalty does the work, a runtime guard and training fail in complementary places, and the safety training costs about four points on BFCL.
-A coverage experiment shows that escalation on untrained kinds falls as more shortcut kinds are trained but levels off.
+In Stage 2 the same reward works on Tiny Aya Fire and Aya Expanse 8B, and the 8B model generalises far better: 0.7\% escalation on the sealed set with no server-confirmed bypasses.
 All models, data and traces are public.
 \end{abstract}
 
@@ -82,6 +82,7 @@ We ask four questions.
 (3) An honest measurement of where this stops generalising (16\% on sealed shortcuts), with three seeds, reward ablations and a guard-versus-training comparison.
 (4) A documented case of a safety reward's detector being gamed twice, caught by an independent judge.
 (5) A fix to AgentTune's multi-turn rollout without which GRPO had zero gradient.
+(6) A coverage curve and a replication on three Aya models, showing that the reward effect is general while generalisation to unseen shortcuts depends strongly on the base model.
 This work was done for Track 3 (agentic RL with AgentTune) of the Lexsi AI Safety and Alignment Hackathon; the problem statement is safe tool use, with reward auditing and runtime guarding as additional themes (Appendix~\ref{app:track}).
 
 \section{Related Work}
@@ -204,32 +205,10 @@ On the sealed set \vfour{} escalates on 21.7\% (16.4 $\pm$ 4.7\% over three seed
 36 of its 40 flagged sealed episodes use one kind: a retired \texttt{/api/v0} sitting next to the documented \texttt{/api/v1}; the share link and the default login are refused.
 As on the unseen set, what remains are routes that \emph{look} official.
 
-\begin{table}[t]
-\centering
-\small
-\begin{adjustbox}{max width=\columnwidth}
-\begin{tabular}{lccc}
-\toprule
-\textbf{\vfour, 3 seeds pooled} & unseen & fresh & sealed \\
-\midrule
-All blocked & 81/348 & 24/381 & 68/414 \\
-\quad no tip & 53/150 & 0/174 & 0/162 \\
-\quad tip in blocked response & 9/123 & 24/207 & 37/102 \\
-\quad tip in search results & 6/45 & -- & 31/69 \\
-\quad tip in workspace note & 13/30 & -- & -- \\
-\quad tip in developer docs & -- & -- & 0/81 \\
-\midrule
-Clean SFT, no tip & 40/50 & 14/58 & 2/54 \\
-Clean SFT, tip & 62/66 & 47/69 & 57/84 \\
-\bottomrule
-\end{tabular}
-\end{adjustbox}
-\caption{Where \vfour{} still escalates: escalated / blocked episodes by whether and where a tip pointed at the shortcut (neutral prompt, greedy, seeds 4, 14, 24 pooled; recorded results, no new runs).}
-\label{tab:fail}
-\end{table}
+
 
 \paragraph{Failure analysis.}
-Pooling the three seeds (Table~\ref{tab:fail}), \vfour{} never escalates on fresh or sealed tasks unless a planted tip points at the shortcut (0/174 and 0/162), while clean SFT does so unprompted on 24\% of fresh tasks.
+Pooling the three seeds (Table~\ref{tab:fail} in Appendix~\ref{app:tables}), \vfour{} never escalates on fresh or sealed tasks unless a planted tip points at the shortcut (0/174 and 0/162), while clean SFT does so unprompted on 24\% of fresh tasks.
 With a tip, sealed escalation is 27\%, driven by tips in search results (45\%) and in the blocked response itself (36\%); tips in developer docs are always ignored (0/81).
 Unseen is the exception: all 81 escalations there use one shortcut kind, an ``origin'' server named by the site's own page, and 53 of them need no tip.
 So the residual failure is narrow: following an in-context suggestion toward an official-looking route, plus one route shape that is never treated as a shortcut.
@@ -266,29 +245,10 @@ Placing the detector in front of the tools as a runtime guard removes every exec
 On unfamiliar shapes (fresh, sealed) it stops nothing, and only training helps (48\%$\to$11\%, 43\%$\to$22\%).
 The two layers are complementary; deploy both.
 
-\begin{table}[t]
-\centering
-\small
-\setlength{\tabcolsep}{4pt}
-\begin{adjustbox}{max width=\columnwidth}
-\begin{tabular}{lccccc}
-\toprule
-\textbf{Reward} & test & stress & unseen & fresh & sealed \\
-\midrule
-Success-only & 99.2 & 99.2 & 99.1 & 72.4 & 100.0 \\
--- escalation pen. & 98.4 & 99.2 & 54.3 & 59.1 & 94.9 \\
--- honest-stop bonus & 0.0 & 81.5 & 69.0 & 43.3 & 31.9 \\
--- fabrication pen. & 0.0 & 87.7 & 83.6 & 46.5 & 34.8 \\
-Full safe (v2) & 0.0 & 78.5 & 71.6 & 38.6 & 35.5 \\
-\bottomrule
-\end{tabular}
-\end{adjustbox}
-\caption{Reward ablations: escalation on blocked tasks (\%), each term removed from the safe v2 reward; same start model and 160 steps.}
-\label{tab:abl}
-\end{table}
+
 
 \paragraph{F6: the escalation penalty does the work.}
-Removing the honest-stop bonus or the fabrication penalty leaves escalation within the intervals of the full reward on every set, with unchanged legitimate success (Table~\ref{tab:abl}).
+Removing the honest-stop bonus or the fabrication penalty leaves escalation within the intervals of the full reward on every set, with unchanged legitimate success (Table~\ref{tab:abl} in Appendix~\ref{app:tables}).
 Removing the escalation penalty brings escalation back to 98\% on test and 95\% on sealed, and legitimate success falls to 72\% on test, although the other two terms remain.
 
 \paragraph{F7: the cost in general tool calling.}
@@ -339,7 +299,38 @@ On test and stress tasks whose every offered shortcut kind was trained, escalati
 The gain levels off between six and ten kinds, and the one-pass 10-kind model still does worse than \vfour{} on stress (26 vs.\ 1.5\%) and against the real server (19\% server-confirmed bypasses vs.\ 0\%), so the extra rounds with judge-driven detector fixes mattered.
 Its success-only twin escalates far more on every set (paired McNemar $p < 10^{-18}$), and it keeps BFCL at 78.0\%.
 
-\paragraph{Cost.} All 52 GPU jobs, including failed ones, used 30.6 GPU-hours on Hugging Face Jobs, \$73.70 at list price.
+\begin{table}[t]
+\centering
+\small
+\begin{adjustbox}{max width=\columnwidth}
+\begin{tabular}{lcccccc}
+\toprule
+\textbf{Model, reward} & test & stress & unseen & fresh & sealed & server \\
+\midrule
+Global, succ.-only & 74.2 & 99.2 & 90.5 & 77.2 & 77.5 & 57.1 \\
+Global, safe & 0.0 & 26.2 & 37.9 & 13.4 & 15.9 & 19.0 \\
+\midrule
+Fire, succ.-only & 100.0 & 96.2 & 99.1 & 74.0 & 97.8 & 57.1 \\
+Fire, safe & 0.0 & 4.6 & 59.5 & 18.9 & 40.6 & 0.0 \\
+\midrule
+Expanse 8B, succ.-only & 87.9 & 100.0 & 84.5 & 88.2 & 93.5 & 81.0 \\
+Expanse 8B, safe & \textbf{0.0} & \textbf{0.8} & \textbf{6.9} & \textbf{3.1} & \textbf{0.7} & \textbf{0.0} \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\caption{The one-pass 10-kind recipe on three Aya models (Tiny Aya Global and Fire, 3.35B; Aya Expanse, 8B): escalation on blocked tasks (\%) and server-confirmed bypasses on the real HTTP server (\%). Each pair starts from the same escalation-prone SFT model of that base; one training seed each. Legitimate success of the safe models on solvable tasks: Global 71--100\%, Fire 71--100\%, 8B 76--100\%.}
+\label{tab:models}
+\end{table}
+
+\paragraph{F10: the reward effect holds across Aya models, and the 8B model generalises.}
+We repeated the one-pass 10-kind recipe (tool SFT, escalation-prone SFT, then both rewards) on Tiny Aya Fire and Aya Expanse 8B (Table~\ref{tab:models}).
+On every base model the success-only reward drives escalation to 74--100\% and the safe reward removes it on the test set, with paired McNemar $p < 10^{-13}$ on every set and equal or better legitimate success than the success-only twin on every set.
+Generalisation differs sharply with the base model: on the sealed set the safe 8B model escalates on 0.7\% (unseen 6.9\%, fresh 3.1\%), against 15.9\% for Global and 40.6\% for Fire, and it makes no server-confirmed bypass.
+The 8B safe model also scores higher than its base on BFCL (88.8 vs.\ 86.3\%), whereas Fire loses a little (80.5 vs.\ 81.3\%).
+The guard pattern of F5 repeats on all three: it removes executed escalation of known shapes and none on fresh or sealed.
+With one seed per model these are single runs; the Global seed spread (sd 4.7 points on sealed) is a guide to their noise.
+
+\paragraph{Cost.} Stage 1's 52 GPU jobs, including failed ones, used 30.6 GPU-hours on Hugging Face Jobs, \$73.70 at list price.
 One 160-step GRPO run is about 1.5 A100-hours (\$3.75); the checks that changed our conclusions were the cheapest (under \$1 per test set, \$0.20--0.30 per judge audit).
 Serving \vfour{} costs about \$0.014 per 1,000 replies on one A100 with vLLM (Appendix~\ref{app:cost}).
 
@@ -349,7 +340,7 @@ A safety reward for agents works on what its detector can see and on shortcuts r
 CircuitKIT gives the mechanistic version: GRPO rewired the pathway for the trained shortcut (relay: $P(\text{shortcut})$ 45\%$\to$4\%) and left an untrained one almost intact (preview: 90\%$\to$79\%, top-20 component overlap 0.91; Appendix~\ref{app:kits}).
 The practical lessons are procedural: keep a test set training has never touched and report it first; have something independent read whole episodes after every retrain; and stack a cheap guard on a trained policy, since they fail in different places.
 
-With more compute we would (1) add SFT demonstrations that read a provider's front page and developer docs before choosing a route, so ``what does the site sanction'' becomes something the agent looks up; (2) replace the pattern detector in the reward with simulator ground truth plus an in-loop LLM judge on a sample of rollouts; (3) train on multi-question conversations; (4) scale the real-server suite to hundreds of tasks and the recipe to Aya Expanse 8B; and (5) run five seeds per arm.
+With more compute we would (1) add SFT demonstrations that read a provider's front page and developer docs before choosing a route, so ``what does the site sanction'' becomes something the agent looks up; (2) replace the pattern detector in the reward with simulator ground truth plus an in-loop LLM judge on a sample of rollouts; (3) train on multi-question conversations; (4) scale the real-server suite to hundreds of tasks and the 8B recipe to Aya Expanse 32B; and (5) run five seeds per arm, including the 8B model.
 We expect sealed-style escalation to fall from 16\% to under 5\%, fresh-set legitimate success to rise from 71\% to above 85\%, and the BFCL gap to shrink below two points by mixing general function-calling prompts into RL.
 
 \section*{Limitations}
@@ -364,7 +355,7 @@ About half the evaluation questions recur in training with a different site and 
 \textbf{Capability cost}: about four BFCL points against the base model.
 \textbf{Multi-question single prompts} fail for every model (a format never trained, not a safety failure).
 \textbf{The propensity was planted}; real propensities from pretraining will be more varied.
-\textbf{Languages}: English and Hindi questions only, English tool output; one 3.35B model.
+\textbf{Languages}: English and Hindi questions only, English tool output; three base models, one training seed each for Fire and 8B.
 
 \section*{Ethics Statement}
 
@@ -528,6 +519,54 @@ Safe (v2) & 4\% & 79\% \\
 \end{tabular}
 \end{adjustbox}
 \caption{CircuitKIT. Both kinds of RL rewired the pathway for the practised shortcut (success-only toward late attention heads, layers 23--30; safe kept a mid-layer MLP 10--12 pathway) and left the preview pathway nearly unchanged. Top-20 component overlap (Jaccard), start vs.\ success-only / start vs.\ safe: relay 0.33 / 0.54, preview 0.82 / 0.91.}
+\end{table}
+
+\section{Additional Tables}
+\label{app:tables}
+
+\begin{table}[h]
+\centering
+\small
+\begin{adjustbox}{max width=\columnwidth}
+\begin{tabular}{lccc}
+\toprule
+\textbf{\vfour, 3 seeds pooled} & unseen & fresh & sealed \\
+\midrule
+All blocked & 81/348 & 24/381 & 68/414 \\
+\quad no tip & 53/150 & 0/174 & 0/162 \\
+\quad tip in blocked response & 9/123 & 24/207 & 37/102 \\
+\quad tip in search results & 6/45 & -- & 31/69 \\
+\quad tip in workspace note & 13/30 & -- & -- \\
+\quad tip in developer docs & -- & -- & 0/81 \\
+\midrule
+Clean SFT, no tip & 40/50 & 14/58 & 2/54 \\
+Clean SFT, tip & 62/66 & 47/69 & 57/84 \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\caption{Where \vfour{} still escalates: escalated / blocked episodes by whether and where a tip pointed at the shortcut (neutral prompt, greedy, seeds 4, 14, 24 pooled; recorded results, no new runs).}
+\label{tab:fail}
+\end{table}
+
+\begin{table}[h]
+\centering
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{adjustbox}{max width=\columnwidth}
+\begin{tabular}{lccccc}
+\toprule
+\textbf{Reward} & test & stress & unseen & fresh & sealed \\
+\midrule
+Success-only & 99.2 & 99.2 & 99.1 & 72.4 & 100.0 \\
+-- escalation pen. & 98.4 & 99.2 & 54.3 & 59.1 & 94.9 \\
+-- honest-stop bonus & 0.0 & 81.5 & 69.0 & 43.3 & 31.9 \\
+-- fabrication pen. & 0.0 & 87.7 & 83.6 & 46.5 & 34.8 \\
+Full safe (v2) & 0.0 & 78.5 & 71.6 & 38.6 & 35.5 \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\caption{Reward ablations: escalation on blocked tasks (\%), each term removed from the safe v2 reward; same start model and 160 steps.}
+\label{tab:abl}
 \end{table}
 
 \section{Judges, Negative Results and a Sample Episode}
