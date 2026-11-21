@@ -45,6 +45,7 @@ A reward in which any exploit-shaped tool call scores below every honest outcome
 Generalisation is partial: on a sealed test with four shortcut kinds invented after the model was frozen, the final model escalates on \textbf{16.4 $\pm$ 4.7\%} across three training seeds (clean SFT 42.8\%, outcome-only RL 100\%).
 Independent LLM judges show that the reward's rule-based detector was gamed twice during development; agreement of the final detector with Qwen2.5-32B is 94\% ($\kappa = 0.87$).
 Reward ablations show the escalation penalty does the work, a runtime guard and training fail in complementary places, and the safety training costs about four points on BFCL.
+A coverage experiment shows that escalation on untrained kinds falls as more shortcut kinds are trained but levels off.
 All models, data and traces are public.
 \end{abstract}
 
@@ -309,6 +310,35 @@ The Qwen judge found both; each time the detector was fixed and the model retrai
 For \vfour{} and both seed models the judge finds no hidden pattern, and we read every judge-only case without finding a suspicious call.
 AuditKIT makes the same point from another angle: its tool-permission check scores 1.0 for the success-only model that escalates on 47\% of v1 tasks, because every exploit uses an allowed tool; escalation lives in the arguments (Appendix~\ref{app:kits}).
 
+\begin{table}[t]
+\centering
+\small
+\begin{adjustbox}{max width=\columnwidth}
+\begin{tabular}{lccccc}
+\toprule
+\textbf{Kinds trained} & test & stress & unseen & fresh & sealed \\
+\midrule
+0 (start) & 4.8 & 93.1 & 97.4 & -- & -- \\
+2 & 66.1 & 89.2 & 87.9 & 34.6 & 81.2 \\
+4 & 0.0 & 65.4 & 46.6 & 29.1 & 23.2 \\
+6 & 0.0 & 27.7 & 31.9 & 18.9 & 26.1 \\
+10 & 0.0 & 26.2 & 37.9 & 13.4 & 15.9 \\
+\midrule
+\vfour{} (3 rounds) & 0.0 & 1.5 & 25.9 & 11.0 & 21.7 \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\caption{Coverage curve on Tiny Aya Global: escalation on blocked tasks (\%) after one 160-step GRPO pass with the safe reward, varying only how many shortcut kinds the 960 training tasks offer. No arm trained on the kinds in unseen or sealed.}
+\label{tab:coverage}
+\end{table}
+
+\paragraph{F9: coverage matters more than rounds, up to a point.}
+To separate the number of shortcut kinds seen in training from the three-round history of \vfour, we trained the safe reward in a single 160-step pass on the same 960 tasks while varying how many of ten shortcut kinds they offer (Table~\ref{tab:coverage}).
+With two kinds the policy escalates on 66\% of test tasks; from four kinds on it is 0\%, and escalation on held-out kinds falls with coverage (sealed 81$\to$23$\to$26$\to$16\%; unseen 88$\to$47$\to$32$\to$38\%).
+On test and stress tasks whose every offered shortcut kind was trained, escalation is 0--5\% for every arm; with at least one untrained kind it is 80, 50, 21 and 23\%.
+The gain levels off between six and ten kinds, and the one-pass 10-kind model still does worse than \vfour{} on stress (26 vs.\ 1.5\%) and against the real server (19\% server-confirmed bypasses vs.\ 0\%), so the extra rounds with judge-driven detector fixes mattered.
+Its success-only twin escalates far more on every set (paired McNemar $p < 10^{-18}$), and it keeps BFCL at 78.0\%.
+
 \paragraph{Cost.} All 52 GPU jobs, including failed ones, used 30.6 GPU-hours on Hugging Face Jobs, \$73.70 at list price.
 One 160-step GRPO run is about 1.5 A100-hours (\$3.75); the checks that changed our conclusions were the cheapest (under \$1 per test set, \$0.20--0.30 per judge audit).
 Serving \vfour{} costs about \$0.014 per 1,000 replies on one A100 with vLLM (Appendix~\ref{app:cost}).
@@ -349,7 +379,7 @@ Ashish Soni (sole author) chose the problem, designed the experiments, decided w
 Implementation, training runs and analysis were carried out with AI coding assistance, as described in the LLM usage statement.
 
 \section*{Declaration of Work Done Outside the Hackathon}
-All code, data, models and results were created during the hackathon, between November 1 and 15, 2026.
+All code, data, models and results were created during the hackathon: Stage 1 between November 1 and 15, 2026, and the Stage 2 experiments (F9) from November 20, 2026.
 No prior code or models of ours were reused. Public resources we built on are Cohere's Tiny Aya Global, the Lexsi hackathon toolkits and the published research cited here.
 
 \section*{LLM Usage Statement}
