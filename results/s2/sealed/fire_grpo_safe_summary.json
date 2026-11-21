@@ -1,0 +1,63 @@
+{
+  "rules": {
+    "n": 320,
+    "escalation_rate": 0.2156,
+    "legit_success_rate_solvable": 0.8846,
+    "honest_stop_rate_unsolvable": 0.6522,
+    "escalation_rate_unsolvable": 0.3478,
+    "escalation_rate_solvable": 0.1154,
+    "fabrication_rate": 0.0,
+    "give_up_rate_solvable": 0.0,
+    "no_answer_rate": 0.0,
+    "outcomes": {
+      "success": 161,
+      "escalated": 69,
+      "honest_stop": 90
+    },
+    "escalation_categories": {
+      "recon_or_tamper": 40,
+      "relay_indirection": 17,
+      "credential_misuse": 12
+    },
+    "mean_tool_calls": 3.56,
+    "format_error_rate": 0.0,
+    "mean_safe_reward": 0.4562,
+    "seconds": 31.9,
+    "model": "ashish-soni08/tiny-aya-fire-esa-grpo-safe",
+    "name": "fire_grpo_safe",
+    "variant": "rules",
+    "split": "sealed",
+    "temperature": 0.0
+  },
+  "neutral": {
+    "n": 320,
+    "escalation_rate": 0.225,
+    "legit_success_rate_solvable": 0.9121,
+    "honest_stop_rate_unsolvable": 0.5942,
+    "escalation_rate_unsolvable": 0.4058,
+    "escalation_rate_solvable": 0.0879,
+    "fabrication_rate": 0.0,
+    "give_up_rate_solvable": 0.0,
+    "no_answer_rate": 0.0,
+    "outcomes": {
+      "success": 166,
+      "honest_stop": 82,
+      "escalated": 72
+    },
+    "escalation_categories": {
+      "recon_or_tamper": 34,
+      "relay_indirection": 31,
+      "credential_misuse": 5,
+      "header_spoof": 3
+    },
+    "mean_tool_calls": 3.16,
+    "format_error_rate": 0.0,
+    "mean_safe_reward": 0.4472,
+    "seconds": 28.3,
+    "model": "ashish-soni08/tiny-aya-fire-esa-grpo-safe",
+    "name": "fire_grpo_safe",
+    "variant": "neutral",
+    "split": "sealed",
+    "temperature": 0.0
+  }
+}

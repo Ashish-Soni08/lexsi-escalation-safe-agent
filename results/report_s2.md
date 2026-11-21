@@ -64,6 +64,9 @@ Per base model: clean tool SFT, then from an escalation-prone SFT model 160 GRPO
 | Tiny Aya Global, clean SFT | 0.0 (0.0 to 0.0) | 91.5 (86.2 to 96.2) | 87.9 (81.9 to 93.1) | 48.0 (39.4 to 56.7) | 42.8 (35.5 to 51.4) | 63.6 (55.3 to 71.2) |
 | Tiny Aya Global, GRPO success-only | 74.2 (66.1 to 81.5) | 99.2 (97.7 to 100.0) | 90.5 (84.5 to 95.7) | 77.2 (70.1 to 84.3) | 77.5 (70.3 to 84.1) | n/a |
 | Tiny Aya Global, GRPO safe | 0.0 (0.0 to 0.0) | 26.2 (18.5 to 33.8) | 37.9 (29.3 to 46.6) | 13.4 (7.9 to 19.7) | 15.9 (10.1 to 22.5) | 15.2 (9.1 to 22.0) |
+| Tiny Aya Fire, clean SFT | 0.0 (0.0 to 0.0) | 89.2 (83.8 to 93.8) | 92.2 (87.1 to 96.6) | 49.6 (40.9 to 58.3) | 47.8 (39.9 to 55.8) | 57.6 (49.2 to 65.9) |
+| Tiny Aya Fire, GRPO success-only | 100.0 (100.0 to 100.0) | 96.2 (93.1 to 99.2) | 99.1 (97.4 to 100.0) | 74.0 (66.1 to 81.9) | 97.8 (94.9 to 100.0) | n/a |
+| Tiny Aya Fire, GRPO safe | 0.0 (0.0 to 0.0) | 4.6 (1.5 to 8.5) | 59.5 (50.0 to 69.0) | 18.9 (12.6 to 26.0) | 40.6 (33.3 to 48.6) | 22.7 (15.9 to 30.3) |
 
 ### Legitimate success on solvable tasks (higher is better)
 
@@ -72,6 +75,9 @@ Per base model: clean tool SFT, then from an escalation-prone SFT model 160 GRPO
 | Tiny Aya Global, clean SFT | 99.5 (98.5 to 100.0) | 68.4 (61.6 to 74.7) | 89.2 (84.8 to 93.1) | 62.2 (55.4 to 68.9) | 81.9 (75.8 to 87.4) | 72.9 (67.0 to 78.7) |
 | Tiny Aya Global, GRPO success-only | 99.5 (98.5 to 100.0) | 60.0 (52.6 to 66.8) | 78.4 (72.5 to 84.3) | 70.5 (63.7 to 76.7) | 80.8 (74.7 to 86.3) | n/a |
 | Tiny Aya Global, GRPO safe | 99.5 (98.5 to 100.0) | 95.3 (92.1 to 97.9) | 87.3 (82.8 to 91.7) | 71.0 (64.2 to 77.2) | 91.8 (87.4 to 95.6) | 85.6 (80.3 to 90.4) |
+| Tiny Aya Fire, clean SFT | 100.0 (100.0 to 100.0) | 73.2 (66.8 to 79.5) | 87.7 (82.8 to 92.2) | 65.3 (58.5 to 71.5) | 82.4 (76.9 to 87.9) | 77.1 (71.3 to 83.0) |
+| Tiny Aya Fire, GRPO success-only | 80.6 (75.0 to 86.2) | 55.8 (48.9 to 62.6) | 65.2 (58.8 to 71.6) | 65.3 (58.5 to 72.0) | 68.1 (61.0 to 75.3) | n/a |
+| Tiny Aya Fire, GRPO safe | 100.0 (100.0 to 100.0) | 98.9 (97.4 to 100.0) | 98.5 (96.6 to 100.0) | 71.0 (64.8 to 77.2) | 91.2 (86.8 to 95.1) | 95.2 (92.0 to 97.9) |
 
 ### Safe against success-only reward, paired (exact McNemar on blocked tasks)
 
@@ -82,6 +88,11 @@ Per base model: clean tool SFT, then from an escalation-prone SFT model 160 GRPO
 | Tiny Aya Global, unseen | 61 | 0 | 8.7e-19 |
 | Tiny Aya Global, fresh | 81 | 0 | 8.3e-25 |
 | Tiny Aya Global, sealed | 86 | 1 | 1.1e-24 |
+| Tiny Aya Fire, test | 124 | 0 | 9.4e-38 |
+| Tiny Aya Fire, stress | 119 | 0 | 3e-36 |
+| Tiny Aya Fire, unseen | 46 | 0 | 2.8e-14 |
+| Tiny Aya Fire, fresh | 71 | 1 | 3.1e-20 |
+| Tiny Aya Fire, sealed | 79 | 0 | 3.3e-24 |
 
 ### Runtime guard on the safe model: escalation attempted and executed on blocked tasks
 
@@ -92,12 +103,19 @@ Per base model: clean tool SFT, then from an escalation-prone SFT model 160 GRPO
 | Tiny Aya Global, unseen | 37.9 | 37.9 | 0.0 |
 | Tiny Aya Global, fresh | 13.4 | 11.8 | 11.8 |
 | Tiny Aya Global, sealed | 15.9 | 14.5 | 14.5 |
+| Tiny Aya Fire, test | 0.0 | 0.0 | 0.0 |
+| Tiny Aya Fire, stress | 4.6 | 4.6 | 0.0 |
+| Tiny Aya Fire, unseen | 59.5 | 58.6 | 0.0 |
+| Tiny Aya Fire, fresh | 18.9 | 18.9 | 18.9 |
+| Tiny Aya Fire, sealed | 40.6 | 42.0 | 40.6 |
 
 ### General tool calling (BFCL v3 simple + multiple, our own AST check)
 
 | model | full match |
 |---|---|
 | Tiny Aya Global, grpo_safe | 78.0 (74.7 to 81.3) |
+| Tiny Aya Fire, base | 81.3 (78.2 to 84.5) |
+| Tiny Aya Fire, grpo_safe | 80.5 (77.3 to 83.8) |
 
 ### Real HTTP server and the live World Bank API
 
@@ -105,3 +123,6 @@ Per base model: clean tool SFT, then from an escalation-prone SFT model 160 GRPO
 |---|---|---|---|---|
 | Tiny Aya Global, grpo_success_only | 61.9 (42.9 to 81.0) | 57.1 (38.1 to 81.0) | 47.4 (26.3 to 68.4) | 18/24 |
 | Tiny Aya Global, grpo_safe | 19.0 (4.8 to 38.1) | 19.0 (4.8 to 38.1) | 84.2 (68.4 to 100.0) | 18/24 |
+| Tiny Aya Fire, sft | 33.3 (14.3 to 52.4) | 4.8 (0.0 to 14.3) | 63.2 (42.1 to 84.2) | 18/24 |
+| Tiny Aya Fire, grpo_success_only | 61.9 (42.9 to 81.0) | 57.1 (38.1 to 76.2) | 89.5 (73.7 to 100.0) | 18/24 |
+| Tiny Aya Fire, grpo_safe | 0.0 (0.0 to 0.0) | 0.0 (0.0 to 0.0) | 89.5 (73.7 to 100.0) | 18/24 |

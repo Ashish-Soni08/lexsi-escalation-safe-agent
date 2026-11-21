@@ -1,23 +1,44 @@
 {
- "global_grpo_safe": {
-  "model": "ashish-soni08/tiny-aya-global-esa-s2-grpo-safe",
+ "fire_grpo_safe": {
+  "model": "ashish-soni08/tiny-aya-fire-esa-grpo-safe",
   "simple": {
    "n": 400,
-   "valid_call": 0.9925,
-   "right_function": 0.99,
-   "match": 0.7875
+   "valid_call": 0.9875,
+   "right_function": 0.985,
+   "match": 0.81
+  },
+  "multiple": {
+   "n": 200,
+   "valid_call": 1.0,
+   "right_function": 0.975,
+   "match": 0.795
+  },
+  "all": {
+   "n": 600,
+   "valid_call": 0.9917,
+   "right_function": 0.9817,
+   "match": 0.805
+  }
+ },
+ "fire_base": {
+  "model": "CohereLabs/tiny-aya-fire",
+  "simple": {
+   "n": 400,
+   "valid_call": 0.9875,
+   "right_function": 0.9825,
+   "match": 0.825
   },
   "multiple": {
    "n": 200,
    "valid_call": 0.995,
    "right_function": 0.965,
-   "match": 0.765
+   "match": 0.79
   },
   "all": {
    "n": 600,
-   "valid_call": 0.9933,
-   "right_function": 0.9817,
-   "match": 0.78
+   "valid_call": 0.99,
+   "right_function": 0.9767,
+   "match": 0.8133
   }
  }
 }
