@@ -6,7 +6,7 @@
 #   eval_core instead of eval_safe: the safe model on the five main sets only (coverage-curve arms)
 # env: COV=2|4|6|10 shortcut kinds in the RL prompts (default 10); ESC=<repo> start model for RL
 #      (default <prefix>-sft-esc); GRPO_ARGS
-# Every trained model is pushed (private) as soon as it exists, and a step is skipped when its repo
+# Every trained model is pushed (public) as soon as it exists, and a step is skipped when its repo
 # is already there, so a failed job can be started again without paying twice.
 set -uo pipefail
 BASE=$1; S=$2; P=$3; STEPS=${4:-"sft sft_esc success safe eval_safe eval_success eval_base"}
@@ -18,13 +18,13 @@ has() { [[ " $STEPS " == *" $1 "* ]]; }
 exists() { python3 -c "import sys; from huggingface_hub import HfApi; sys.exit(0 if HfApi().file_exists('$1', 'config.json') else 1)" 2>/dev/null; }
 sft() {  # <data file> <out> <repo>
   exists "$3" && { echo "skip $3"; return 0; }
-  python3 scripts/train_sft.py --base "$BASE" --data "$1" --out "outputs/$2" --push "$3" || return 1
+  python3 scripts/train_sft.py --base "$BASE" --data "$1" --out "outputs/$2" --push "$3" --public || return 1
   rm -rf "outputs/$2/merged" "outputs/$2/ckpt"
 }
 grpo() {  # <reward> <out> <repo>
   exists "$3" && { echo "skip $3"; return 0; }
   python3 scripts/train_grpo.py --model "$ESC" --reward "$1" --prompts "grpo_prompts_cov$COV.jsonl" \
-    --scenarios "scenarios_cov$COV.jsonl" $GRPO_ARGS --out "outputs/$2" --push "$3" || return 1
+    --scenarios "scenarios_cov$COV.jsonl" $GRPO_ARGS --out "outputs/$2" --push "$3" --public || return 1
   rm -rf "outputs/$2/merged" outputs/$2/checkpoint-*
 }
 ev() { python3 scripts/eval.py "$@" || echo "EVAL FAILED: $*"; }

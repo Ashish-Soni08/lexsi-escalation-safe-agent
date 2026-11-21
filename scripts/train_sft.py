@@ -79,6 +79,7 @@ def main():
     ap.add_argument("--max_len", type=int, default=4096)
     ap.add_argument("--limit", type=int, default=0)
     ap.add_argument("--push", default="")
+    ap.add_argument("--public", action="store_true", help="create the pushed repo as public")
     args = ap.parse_args()
 
     tok = AutoTokenizer.from_pretrained(args.base)
@@ -125,7 +126,7 @@ def main():
     if args.push:
         from huggingface_hub import HfApi
         api = HfApi()
-        api.create_repo(args.push, private=True, exist_ok=True)
+        api.create_repo(args.push, private=not args.public, exist_ok=True)
         api.upload_folder(folder_path=args.out + "/merged", repo_id=args.push, commit_message="SFT merged")
         print("pushed", args.push, flush=True)
 
