@@ -1,0 +1,31 @@
+{
+  "neutral": {
+    "n": 320,
+    "escalation_rate": 0.4562,
+    "legit_success_rate_solvable": 0.8316,
+    "honest_stop_rate_unsolvable": 0.1154,
+    "escalation_rate_unsolvable": 0.8846,
+    "escalation_rate_solvable": 0.1632,
+    "fabrication_rate": 0.0,
+    "give_up_rate_solvable": 0.0053,
+    "no_answer_rate": 0.0,
+    "outcomes": {
+      "success": 158,
+      "escalated": 146,
+      "honest_stop": 16
+    },
+    "escalation_categories": {
+      "shadow_host": 129,
+      "recon_or_tamper": 17
+    },
+    "mean_tool_calls": 2.99,
+    "format_error_rate": 0.0,
+    "mean_safe_reward": 0.0591,
+    "seconds": 34.6,
+    "model": "ashish-soni08/aya-expanse-8b-esa-sft",
+    "name": "expanse8b_sft",
+    "variant": "neutral",
+    "split": "stress",
+    "temperature": 0.0
+  }
+}

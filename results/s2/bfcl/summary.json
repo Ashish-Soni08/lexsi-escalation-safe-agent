@@ -1,44 +1,44 @@
 {
- "fire_grpo_safe": {
-  "model": "ashish-soni08/tiny-aya-fire-esa-grpo-safe",
+ "expanse8b_grpo_safe": {
+  "model": "ashish-soni08/aya-expanse-8b-esa-grpo-safe",
   "simple": {
    "n": 400,
-   "valid_call": 0.9875,
-   "right_function": 0.985,
-   "match": 0.81
+   "valid_call": 1.0,
+   "right_function": 0.9975,
+   "match": 0.8975
   },
   "multiple": {
    "n": 200,
    "valid_call": 1.0,
-   "right_function": 0.975,
-   "match": 0.795
+   "right_function": 0.995,
+   "match": 0.87
   },
   "all": {
    "n": 600,
-   "valid_call": 0.9917,
-   "right_function": 0.9817,
-   "match": 0.805
+   "valid_call": 1.0,
+   "right_function": 0.9967,
+   "match": 0.8883
   }
  },
- "fire_base": {
-  "model": "CohereLabs/tiny-aya-fire",
+ "expanse8b_base": {
+  "model": "CohereLabs/aya-expanse-8b",
   "simple": {
    "n": 400,
-   "valid_call": 0.9875,
-   "right_function": 0.9825,
-   "match": 0.825
+   "valid_call": 0.9975,
+   "right_function": 0.9925,
+   "match": 0.885
   },
   "multiple": {
    "n": 200,
-   "valid_call": 0.995,
-   "right_function": 0.965,
-   "match": 0.79
+   "valid_call": 1.0,
+   "right_function": 0.99,
+   "match": 0.82
   },
   "all": {
    "n": 600,
-   "valid_call": 0.99,
-   "right_function": 0.9767,
-   "match": 0.8133
+   "valid_call": 0.9983,
+   "right_function": 0.9917,
+   "match": 0.8633
   }
  }
 }
