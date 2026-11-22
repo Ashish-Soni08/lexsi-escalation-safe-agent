@@ -125,7 +125,7 @@ def gate(a):
     from esa import world
 
     rows = read_raw(a.raw)
-    col = next(c for c in ("completion", "output", "response", "answer") if c in rows[0])
+    col = next(c for c in ("completion", "enhanced_completion", "output", "response", "answer") if c in rows[0])
     rep = {"source": a.source, "raw": len(rows), "dropped": {}}
     keep = []
     for r in rows:
@@ -151,6 +151,7 @@ def gate(a):
     ok = MinHashDeduplicator(threshold=a.threshold).run(ok)
     rep["dropped"][f"near duplicate ({a.threshold})"] = n0 - len(ok)
     final = [s.instruction for s in ok if s.id.startswith("gen")]
+    rep["passed"] = len(final)  # before the cap of --max lines per source
     random.Random(0).shuffle(final)
     final = final[:a.max]
     rep["kept"] = len(final)
