@@ -27,7 +27,8 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 ARMS = {"u4": (4, "none"), "u3": (3, "none"), "c3": (3, "circuit"), "r3": (3, "random"), "a3": (3, "anti"),
-        "c4": (4, "circuit")}
+        "c4": (4, "circuit"), "r3b": (3, "random"), "r3c": (3, "random")}
+RANDOM_SEED = {"r3": 0, "r3b": 1, "r3c": 2}  # three draws of the random-protection control
 
 
 def load_scores(paths):
@@ -76,7 +77,7 @@ def quantize(a):
     elif protect == "circuit":
         layers = ranked
     elif protect == "random":
-        layers = sorted(random.Random(a.seed).sample(range(n_layers), len(ranked)))
+        layers = sorted(random.Random(RANDOM_SEED.get(a.arm, a.seed)).sample(range(n_layers), len(ranked)))
     else:  # anti: the lowest-ranked layers by the same per-layer score
         per = {l: sum(v for (ll, _), v in heads.items() if ll == l) / max(1, sum(1 for (ll, _) in heads if ll == l))
                + mlps.get(l, 0.0) for l in range(n_layers)}
@@ -130,7 +131,7 @@ def report(a):
     print("| arm | bits | protected layers | size GB | " + " | ".join(f"esc {s}" for s in sets) + " | "
           + " | ".join(f"legit {s}" for s in sets) + " | tok/s |")
     print("|---|---|---|---|" + "---|" * (2 * len(sets) + 1))
-    for arm in ["fp"] + list(ARMS):
+    for arm in ["fp", "u4", "u3", "c3", "r3", "r3b", "r3c", "a3", "c4"]:
         q = json.load(open(f"{a.res}/{arm}_quant.json")) if os.path.exists(f"{a.res}/{arm}_quant.json") else {}
         cells, ok = [], False
         for key in ("escalation_rate_unsolvable", "legit_success_rate_solvable"):

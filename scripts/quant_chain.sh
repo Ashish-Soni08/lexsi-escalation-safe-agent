@@ -3,11 +3,11 @@
 #   scripts/quant_chain.sh <model repo> <name> [arms]
 # CircuitKIT and llm-compressor go into their own isolated venv so they cannot change the packages vLLM runs on.
 set -uo pipefail
-M=$1; N=$2; ARMS=${3:-"u4 u3 c3 r3 a3"}
+M=$1; N=$2; ARMS=${3:-"u4 u3 c3 r3 a3 r3b r3c"}
 R=results/quant; SETS=test,stress,unseen,sealed
 python3 -m venv /v && /v/bin/pip install -q circuitkit==0.2.4 llmcompressor torchvision datasets || exit 1
 /v/bin/python scripts/circuit_compare.py build || exit 1
-/v/bin/python scripts/circuit_compare.py run --models "$N=$M" --out $R/circuit || exit 1
+/v/bin/python scripts/circuit_compare.py run --models "$N=$M" --out $R/circuit --n_examples 32 || exit 1
 SC=$R/circuit/${N}_relay_scores.json,$R/circuit/${N}_preview_scores.json
 ev() { python3 scripts/eval.py --model "$1" --name "${N}_$2" --variants neutral --split $SETS --out "$R/{split}" || echo "EVAL FAILED $2"
        python3 scripts/bfcl_eval.py --models "${N}_$2=$1" --out "$R/bfcl_$2" || echo "BFCL FAILED $2"; }
