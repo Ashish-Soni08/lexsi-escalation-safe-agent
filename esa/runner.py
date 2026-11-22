@@ -197,10 +197,15 @@ def vllm_generator(model_path: str, max_new_tokens: int = 384, temperature: floa
 
 
 def api_generator(provider: str, model: str, max_new_tokens: int = 384, temperature: float = 0.0,
-                  base_url: str = "", workers: int = 8, usage_path: str = "") -> Generate:
+                  base_url: str = "", workers: int = 8, usage_path: str = "",
+                  native_tools: Optional[list[dict]] = None) -> Generate:
     """Chat-completion endpoint as the policy: `openai` (also any OpenAI-style server, e.g. llama.cpp or vLLM,
     through base_url) or `anthropic`. The tool protocol is the same plain-text JSON the Aya models use, so the
-    conversation is sent as ordinary messages. Token counts and wall time are accumulated in gen.usage."""
+    conversation is sent as ordinary messages. Token counts and wall time are accumulated in gen.usage.
+
+    native_tools (the tool schemas): send them through the provider's own function-calling field instead of the
+    plain-text protocol. The system prompt loses its "reply with a JSON list" paragraph, and returned tool calls
+    are rewritten into the plain-text form, so parsing, the detector and result folding are unchanged."""
     import os as _os
     import time
     from concurrent.futures import ThreadPoolExecutor
@@ -218,14 +223,48 @@ def api_generator(provider: str, model: str, max_new_tokens: int = 384, temperat
         url = (base_url or "https://api.openai.com/v1") + "/chat/completions"
         headers = {"Authorization": "Bearer " + _os.environ.get("OPENAI_API_KEY", "none")}
 
+    tools = None
+    if native_tools:
+        fns = [t.get("function", t) for t in native_tools]
+        if provider == "anthropic":
+            tools = [{"name": f["name"], "description": f.get("description", ""),
+                      "input_schema": f.get("parameters", {"type": "object", "properties": {}})} for f in fns]
+        elif base_url:
+            tools = [{"type": "function", "function": {k: f[k] for k in ("name", "description", "parameters") if k in f}}
+                     for f in fns]
+        else:  # Responses API: chat completions refuses function tools together with reasoning on gpt-6 models
+            url = "https://api.openai.com/v1/responses"
+            tools = [{"type": "function", **{k: f[k] for k in ("name", "description", "parameters") if k in f}}
+                     for f in fns]
+    responses = bool(tools) and url.endswith("/responses")
+
+    def strip_protocol(conv: list[dict]) -> list[dict]:
+        out = []
+        for m in conv:
+            if m["role"] == "system":
+                m = {"role": "system", "content": m["content"].split("\n\nYou can call these tools:")[0]}
+            out.append(m)
+        return out
+
+    def as_text(calls: list[tuple[str, dict]]) -> str:
+        return json.dumps([{"tool_name": n, "parameters": a} for n, a in calls])
+
     def one(conv: list[dict]) -> str:
+        if tools:
+            conv = strip_protocol(conv)
         if provider == "anthropic":
             body = {"model": model, "max_tokens": max_new_tokens,
                     "system": "\n\n".join(m["content"] for m in conv if m["role"] == "system"),
-                    "messages": [m for m in conv if m["role"] != "system"]}
+                    "messages": [m if m["content"] else {**m, "content": "(empty)"} for m in conv if m["role"] != "system"]}
+            if tools:
+                body["tools"] = tools
+        elif responses:
+            body = {"model": model, "input": conv, "tools": tools, "max_output_tokens": max_new_tokens, "store": False}
         else:
             body = {"model": model, "messages": conv,
                     ("max_tokens" if base_url else "max_completion_tokens"): max_new_tokens}
+            if tools:
+                body["tools"] = tools
         for attempt in range(6):
             if state["temp"]:
                 body["temperature"] = temperature
@@ -259,11 +298,48 @@ def api_generator(provider: str, model: str, max_new_tokens: int = 384, temperat
                 usage["input_tokens"] += u.get("input_tokens", 0) + u.get("cache_read_input_tokens", 0)
                 usage["cached_input_tokens"] += u.get("cache_read_input_tokens", 0)
                 usage["output_tokens"] += u.get("output_tokens", 0)
-                return "".join(b.get("text", "") for b in d.get("content", []) if b.get("type") == "text")
+                blocks = d.get("content", [])
+                calls = [(b["name"], b.get("input") or {}) for b in blocks if b.get("type") == "tool_use"]
+                if calls:
+                    usage["native_calls"] = usage.get("native_calls", 0) + 1
+                    return as_text(calls)
+                return "".join(b.get("text", "") for b in blocks if b.get("type") == "text")
+            if responses:
+                usage["input_tokens"] += u.get("input_tokens", 0)
+                usage["cached_input_tokens"] += (u.get("input_tokens_details") or {}).get("cached_tokens", 0)
+                usage["output_tokens"] += u.get("output_tokens", 0)
+                if d.get("status") == "incomplete":
+                    usage["truncated"] = usage.get("truncated", 0) + 1
+                items = d.get("output") or []
+                calls = []
+                for it in items:
+                    if it.get("type") == "function_call":
+                        try:
+                            a = json.loads(it.get("arguments") or "{}")
+                        except json.JSONDecodeError:
+                            a = {"raw": it.get("arguments")}
+                        calls.append((it.get("name", ""), a if isinstance(a, dict) else {"raw": a}))
+                if calls:
+                    usage["native_calls"] = usage.get("native_calls", 0) + 1
+                    return as_text(calls)
+                return "".join(c.get("text", "") for it in items if it.get("type") == "message"
+                               for c in it.get("content", []) if c.get("type") == "output_text")
             usage["input_tokens"] += u.get("prompt_tokens", 0)
             usage["cached_input_tokens"] += (u.get("prompt_tokens_details") or {}).get("cached_tokens", 0)
             usage["output_tokens"] += u.get("completion_tokens", 0)
-            return d["choices"][0]["message"].get("content") or ""
+            msg = d["choices"][0]["message"]
+            if msg.get("tool_calls"):
+                calls = []
+                for tc in msg["tool_calls"]:
+                    fn = tc.get("function", {})
+                    try:
+                        a = json.loads(fn.get("arguments") or "{}")
+                    except json.JSONDecodeError:
+                        a = {"raw": fn.get("arguments")}
+                    calls.append((fn.get("name", ""), a if isinstance(a, dict) else {"raw": a}))
+                usage["native_calls"] = usage.get("native_calls", 0) + 1
+                return as_text(calls)
+            return msg.get("content") or ""
         usage["errors"] += 1
         return ""
 
