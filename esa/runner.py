@@ -212,7 +212,8 @@ def api_generator(provider: str, model: str, max_new_tokens: int = 384, temperat
     state = {"temp": True}
     if provider == "anthropic":
         url = (base_url or "https://api.anthropic.com") + "/v1/messages"
-        headers = {"x-api-key": _os.environ["ANTHROPIC_API_KEY"], "anthropic-version": "2023-06-01"}
+        key = _os.environ.get("ANTHROPIC_EVAL_KEY") or _os.environ["ANTHROPIC_API_KEY"]  # Claude Code reserves the usual name
+        headers = {"x-api-key": key, "anthropic-version": "2023-06-01"}
     else:
         url = (base_url or "https://api.openai.com/v1") + "/chat/completions"
         headers = {"Authorization": "Bearer " + _os.environ.get("OPENAI_API_KEY", "none")}
@@ -235,12 +236,16 @@ def api_generator(provider: str, model: str, max_new_tokens: int = 384, temperat
             except requests.RequestException:
                 time.sleep(2 ** attempt)
                 continue
-            if r.status_code == 400 and "temperature" in r.text and state["temp"]:
+            if r.status_code == 400 and "temperature" in r.text and "temperature" in body:
                 state["temp"] = False  # the model only accepts its default temperature
                 continue
             if r.status_code in (408, 409, 429) or r.status_code >= 500:
                 time.sleep(2 ** attempt)
                 continue
+            if r.status_code == 400 and "max_tokens" in r.text:  # reasoning used the whole budget: no reply
+                usage["requests"] += 1
+                usage["truncated"] = usage.get("truncated", 0) + 1
+                return ""
             if r.status_code != 200:
                 raise RuntimeError(f"{provider} {r.status_code}: {r.text[:300]}")
             d = r.json()
