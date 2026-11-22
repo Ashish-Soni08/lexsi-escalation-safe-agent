@@ -89,26 +89,33 @@ def quantize(a):
         n_calibration_samples=a.n_calib, max_seq_length=a.max_len, calibration_texts=calibration_texts(tok, a.n_calib))
     if sorted(info["protected_layers"]) != layers:
         raise SystemExit(f"protected layers differ: wanted {layers}, got {info['protected_layers']}")
-    # 1. the packed file, only to measure its size
+    # 1. take the weights first. GPTQ leaves every quantized matrix holding exactly the values the low-bit
+    #    file decodes to, so an ordinary checkpoint with these weights behaves as the quantized model does,
+    #    and the test server (which has no 3-bit loader) can run every arm the same way.
+    import shutil
+    full = model.state_dict()
+    scales = [k for k in full if k.endswith(".weight_scale")]
+    if not scales:
+        raise SystemExit("no weight_scale tensors found; keys look like: " + ", ".join(list(full)[:12]))
+    probe = scales[len(scales) // 2][:-len("_scale")]
+    levels = max(int(torch.unique(full[probe][r, :128].float()).numel()) for r in range(4))
+    if levels > 2 ** bits:
+        raise SystemExit(f"{probe}: {levels} distinct values in one group, more than {2 ** bits}: weights are not quantized")
+    sd = {k: v.detach().to("cpu", torch.bfloat16).clone() for k, v in full.items()
+          if not k.rsplit(".", 1)[-1].startswith(("weight_scale", "weight_zero_point", "weight_g_idx"))}
+    # 2. the packed file, only to measure its size
     packed = a.out.rstrip("/") + "_packed"
     model.save_pretrained(packed)
     disk = dir_gb(packed)
-    import shutil
     shutil.rmtree(packed, ignore_errors=True)
-    # 2. the same weights written out as an ordinary checkpoint. GPTQ leaves every quantized matrix holding
-    #    exactly the values the low-bit file decodes to, so behaviour is that of the quantized model, and the
-    #    test server (which has no 3-bit loader) can run every arm the same way.
-    sd = model.state_dict()
-    probe = next(k for k in sd if k.endswith("weight") and sd[k].dim() == 2 and k.replace("weight", "weight_scale") in sd)
-    levels = max(int(torch.unique(sd[probe][r, :128].float()).numel()) for r in range(4))
-    if levels > 2 ** bits:
-        raise SystemExit(f"{probe}: {levels} distinct values in one group, more than {2 ** bits}: weights are not quantized")
+    del model
+    torch.cuda.empty_cache()
     fresh = AutoModelForCausalLM.from_pretrained(a.model, torch_dtype=torch.bfloat16)
-    fresh.load_state_dict({k: sd[k].to("cpu", torch.bfloat16) for k in fresh.state_dict()}, strict=True)
+    fresh.load_state_dict({k: sd[k] for k in fresh.state_dict()}, strict=True)
     os.makedirs(a.out, exist_ok=True)
     fresh.save_pretrained(a.out)
     tok.save_pretrained(a.out)
-    n_lin = sum(p.numel() for n, p in model.named_parameters() if p.dim() == 2 and "embed" not in n)
+    n_lin = sum(p.numel() for n, p in fresh.named_parameters() if p.dim() == 2 and "embed" not in n)
     meta = {"arm": a.arm, "model": a.model, "bits": bits, "protect": protect, "protected_layers": layers,
             "circuit_ranked_layers": ranked, "n_layers": n_layers, "quantized_linears": info["quantized_layers"],
             "disk_gb": disk, "levels_in_probe_group": levels, "avg_bits_layers": round((bits * (n_layers - len(layers)) + 16 * len(layers)) / n_layers, 2),
