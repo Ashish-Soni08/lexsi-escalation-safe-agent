@@ -10,8 +10,9 @@
 # is already there, so a failed job can be started again without paying twice.
 set -uo pipefail
 BASE=$1; S=$2; P=$3; STEPS=${4:-"sft sft_esc success safe eval_safe eval_success eval_base"}
-COV=${COV:-10}; ESC=${ESC:-$P-sft-esc}
+COV=${COV:-10}; ESC=${ESC:-$P-sft-esc}; TAG=${TAG:-}  # TAG=-seed5 keeps extra-seed runs apart
 [ "$COV" = 10 ] && { CR=""; CN=""; } || { CR="-cov$COV"; CN="_cov$COV"; }
+CR="$CR$TAG"; CN="$CN${TAG//-/_}"
 GRPO_ARGS=${GRPO_ARGS:-"--max_steps 160 --lr 2e-5 --bs 2 --ga 16 --seed 4"}
 SETS=test,stress,unseen,fresh,sealed
 has() { [[ " $STEPS " == *" $1 "* ]]; }
