@@ -246,6 +246,10 @@ def api_generator(provider: str, model: str, max_new_tokens: int = 384, temperat
                 usage["requests"] += 1
                 usage["truncated"] = usage.get("truncated", 0) + 1
                 return ""
+            if r.status_code == 400 and "usage policy" in r.text:  # provider's prompt filter refused the turn
+                usage["requests"] += 1
+                usage["policy_blocked"] = usage.get("policy_blocked", 0) + 1
+                return ""
             if r.status_code != 200:
                 raise RuntimeError(f"{provider} {r.status_code}: {r.text[:300]}")
             d = r.json()
