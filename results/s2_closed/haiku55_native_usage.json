@@ -1,0 +1,13 @@
+{
+ "provider": "anthropic",
+ "model": "claude-haiku-5-5",
+ "requests": 7763,
+ "input_tokens": 12242677,
+ "cached_input_tokens": 0,
+ "output_tokens": 2668726,
+ "seconds": 1019.5308289527893,
+ "errors": 0,
+ "native_calls": 6207,
+ "note": "sum of _4splits (incl. aborted partial sealed pass) and _sealed",
+ "cost_usd": 2.56
+}
