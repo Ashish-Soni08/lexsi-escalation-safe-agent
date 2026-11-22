@@ -260,11 +260,21 @@ About a quarter of the tasks in every set are written in Hindi (the provider pag
 
 ## Compression: does the safe model stay safe and useful?
 
-Tiny Aya Global, safe reward (10 kinds). "Kept" layers stay at 16-bit; CircuitKIT's default keeps 19 of 36 layers, and the control arms keep the same number. GPTQ arms use 128 of our own tool-use episodes as calibration text. A model that does nothing also never escalates, so read escalation together with the last three columns.
+Tiny Aya Global, safe reward (10 kinds). Every version is tested as an ordinary checkpoint that holds exactly the values the low-bit file decodes to. bitsandbytes and round-to-nearest need no calibration text. The GPTQ rows (llm-compressor through CircuitKIT) use asymmetric levels in groups of 128 and 256 of our own tool-use episodes as calibration text. "Kept" layers stay at 16-bit: CircuitKIT's default keeps 19 of 36 layers, and the control arms keep the same number. A model that does nothing also never escalates, so read escalation together with the last three columns.
 
 | version | size GB | esc test | esc stress | esc unseen | esc sealed | legit success (4 sets) | no answer (4 sets) | BFCL match |
 |---|---|---|---|---|---|---|---|---|
 | full precision (16-bit) | 6.7 | 0.0 | 26.2 | 37.1 | 15.2 | 93.5 | 0.1 | 78.3 |
+| bitsandbytes NF4 4-bit | 2.48 | 0.0 | 25.4 | 25.9 | 19.6 | 90.9 | 1.6 | 76.7 |
+| round to nearest 4-bit | n/a | 0.0 | 30.8 | 27.6 | 18.8 | 89.2 | 2.0 | 70.2 |
+| GPTQ 4-bit | 2.54 | 0.0 | 31.5 | 44.8 | 19.6 | 93.4 | 0.2 | 75.7 |
+
+### First pass: GPTQ with CircuitKIT's default settings (symmetric levels, 128 calibration texts)
+
+With these settings the model breaks already at 4-bit (it loops or gives no answer), while every other 4-bit method above keeps it intact, so these rows measure a failing quantization recipe, not the effect of bit width or of which layers are kept. As a check, the packed 4-bit file loaded by vLLM itself and our decoded copy of the same weights gave the same result on the test set (legit success 26.0% and 29.1%, escalation 17.7% and 16.1%). Two things changed between the passes (asymmetric levels, and more and longer calibration text); we did not separate them.
+
+| version | size GB | esc test | esc stress | esc unseen | esc sealed | legit success (4 sets) | no answer (4 sets) | BFCL match |
+|---|---|---|---|---|---|---|---|---|
 | GPTQ 4-bit | 2.52 | 21.0 | 19.2 | 33.6 | 21.0 | 13.5 | 48.2 | 28.8 |
 | GPTQ 3-bit | 2.17 | 2.4 | 1.5 | 1.7 | 0.7 | 2.1 | 88.9 | 18.7 |
 | GPTQ 3-bit, circuit layers kept | 4.56 | 0.0 | 0.0 | 6.0 | 9.4 | 55.6 | 30.5 | 70.7 |

@@ -227,24 +227,19 @@ def langs():
 
 
 QARMS = [("fp", "full precision (16-bit)"), ("bnb4", "bitsandbytes NF4 4-bit"), ("rtn4", "round to nearest 4-bit"),
-         ("u4", "GPTQ 4-bit"), ("u4a", "GPTQ 4-bit, asymmetric, 256 calibration texts"), ("u3", "GPTQ 3-bit"),
-         ("c3", "GPTQ 3-bit, circuit layers kept"), ("r3", "GPTQ 3-bit, random layers kept (draw 1)"),
-         ("r3b", "GPTQ 3-bit, random layers kept (draw 2)"), ("r3c", "GPTQ 3-bit, random layers kept (draw 3)"),
-         ("a3", "GPTQ 3-bit, lowest-ranked layers kept")]
+         ("u4a", "GPTQ 4-bit"), ("rtn3", "round to nearest 3-bit"), ("u3a", "GPTQ 3-bit"),
+         ("c3a", "GPTQ 3-bit, circuit layers kept"), ("r3a", "GPTQ 3-bit, random layers kept (draw 1)"),
+         ("r3ba", "GPTQ 3-bit, random layers kept (draw 2)"), ("r3ca", "GPTQ 3-bit, random layers kept (draw 3)"),
+         ("a3a", "GPTQ 3-bit, lowest-ranked layers kept")]
+QOLD = [("u4", "GPTQ 4-bit"), ("u3", "GPTQ 3-bit"), ("c3", "GPTQ 3-bit, circuit layers kept"),
+        ("r3", "GPTQ 3-bit, random layers kept (draw 1)"), ("r3b", "GPTQ 3-bit, random layers kept (draw 2)"),
+        ("r3c", "GPTQ 3-bit, random layers kept (draw 3)"), ("a3", "GPTQ 3-bit, lowest-ranked layers kept")]
 
 
-def quant():
-    Q = f"{R}/quant"
-    if not os.path.isdir(Q):
-        return
-    print("\n## Compression: does the safe model stay safe and useful?\n")
-    print("Tiny Aya Global, safe reward (10 kinds). \"Kept\" layers stay at 16-bit; CircuitKIT's default keeps 19 of "
-          "36 layers, and the control arms keep the same number. GPTQ arms use 128 of our own tool-use episodes as "
-          "calibration text. A model that does nothing also never escalates, so read escalation together with the "
-          "last three columns.\n")
+def qtable(Q, arms):
     sets = ["test", "stress", "unseen", "sealed"]
     head("version", ["size GB"] + [f"esc {s}" for s in sets] + ["legit success (4 sets)", "no answer (4 sets)", "BFCL match"])
-    for arm, label in QARMS:
+    for arm, label in arms:
         rs = [rows(f"{Q}/{s}", f"gsafe_{arm}") for s in sets]
         if not all(rs):
             continue
@@ -254,9 +249,32 @@ def quant():
         line(label, [str(q.get("disk_gb") or ("6.7" if arm == "fp" else "n/a"))] + [pct(esc(r).values()) for r in rs] +
              [pct(legit(allr).values()), pct(int(r["outcome"]["outcome"] == "no_answer") for r in allr),
               pct(int(json.loads(l)["match"]) for l in open(b)) if os.path.exists(b) else "n/a"])
-    pl = {a: json.load(open(f"{Q}/{a}_quant.json"))["protected_layers"] for a, _ in QARMS
+    pl = {a: json.load(open(f"{Q}/{a}_quant.json")).get("protected_layers") for a, _ in arms
           if os.path.exists(f"{Q}/{a}_quant.json")}
-    print("\nLayers kept at 16-bit: " + "; ".join(f"{a}: {v}" for a, v in pl.items() if v) + ".")
+    if any(pl.values()):
+        print("\nLayers kept at 16-bit: " + "; ".join(f"{a}: {v}" for a, v in pl.items() if v) + ".")
+
+
+def quant():
+    Q = f"{R}/quant"
+    if not os.path.isdir(Q):
+        return
+    print("\n## Compression: does the safe model stay safe and useful?\n")
+    print("Tiny Aya Global, safe reward (10 kinds). Every version is tested as an ordinary checkpoint that holds exactly the "
+          "values the low-bit file decodes to. bitsandbytes and round-to-nearest need no calibration text. The GPTQ rows "
+          "(llm-compressor through CircuitKIT) use asymmetric levels in groups of 128 and 256 of our own tool-use episodes "
+          "as calibration text. \"Kept\" layers stay at 16-bit: CircuitKIT's default keeps 19 of 36 layers, and the control "
+          "arms keep the same number. A model that does nothing also never escalates, so read escalation together with "
+          "the last three columns.\n")
+    qtable(Q, QARMS)
+    print("\n### First pass: GPTQ with CircuitKIT's default settings (symmetric levels, 128 calibration texts)\n")
+    print("With these settings the model breaks already at 4-bit (it loops or gives no answer), while every other 4-bit "
+          "method above keeps it intact, so these rows measure a failing quantization recipe, not the effect of bit width "
+          "or of which layers are kept. As a check, the packed 4-bit file loaded by vLLM itself and our decoded copy of the "
+          "same weights gave the same result on the test set (legit success 26.0% and 29.1%, escalation 17.7% and 16.1%). "
+          "Two things changed between the passes (asymmetric levels, and more and longer calibration text); we did not "
+          "separate them.\n")
+    qtable(Q, QOLD)
 
 
 CLOSED = [("GPT-6 Luna, native tool calls", "gpt6luna_native", "gpt6luna_native_usage_all5.json", 0.90),
