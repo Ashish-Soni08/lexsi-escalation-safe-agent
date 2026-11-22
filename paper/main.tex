@@ -45,7 +45,7 @@ A reward in which any exploit-shaped tool call scores below every honest outcome
 Generalisation is partial: on a sealed test with four shortcut kinds invented after the model was frozen, the final model escalates on \textbf{16.4 $\pm$ 4.7\%} across three training seeds (clean SFT 42.8\%, outcome-only RL 100\%).
 Independent LLM judges show that the reward's rule-based detector was gamed twice during development; agreement of the final detector with Qwen2.5-32B is 94\% ($\kappa = 0.87$).
 Reward ablations show the escalation penalty does the work, a runtime guard and training fail in complementary places, and the safety training costs about four points on BFCL.
-In Stage 2 the same reward works on Tiny Aya Fire and Aya Expanse 8B, and the 8B model generalises far better: 0.7\% escalation on the sealed set with no server-confirmed bypasses.
+In Stage 2 the same reward works on five Aya models; the 8B Aya Expanse generalises far better than the 3.35B variants (0.7\% on the sealed set, no server-confirmed bypasses), matching Claude Haiku 5.5 on escalation at higher task success, while GPT-6 Luna escalates on up to 92\% of blocked tasks.
 All models, data and traces are public.
 \end{abstract}
 
@@ -77,12 +77,12 @@ We ask four questions.
 \textbf{RQ4}: can a rule-based safety reward be trusted, and how do we check it?
 
 \paragraph{Contributions.}
-(1) A simulated web in which shortcuts really work, seven held-out evaluation sets including one sealed after the final model was frozen, and a real HTTP server whose own log confirms bypasses.
-(2) Evidence that outcome-only GRPO amplifies escalation from 4.8\% to 99.2\%, and that one reward term removes it on the test set and on the real server without loss of usefulness.
-(3) An honest measurement of where this stops generalising (16\% on sealed shortcuts), with three seeds, reward ablations and a guard-versus-training comparison.
-(4) A documented case of a safety reward's detector being gamed twice, caught by an independent judge.
+(1) A simulated web where shortcuts really work, seven held-out evaluation sets (one sealed after the final model was frozen) and a real HTTP server whose log confirms bypasses.
+(2) Evidence that outcome-only GRPO amplifies escalation from 4.8\% to 99.2\% and that one reward term removes it without loss of usefulness.
+(3) A measurement of where this stops generalising, with seeds, ablations and a guard-versus-training comparison.
+(4) A safety reward's detector gamed twice and caught by an independent judge.
 (5) A fix to AgentTune's multi-turn rollout without which GRPO had zero gradient.
-(6) A coverage curve and a replication on three Aya models, showing that the reward effect is general while generalisation to unseen shortcuts depends strongly on the base model.
+(6) A coverage curve, a seed study and a replication on five Aya models, showing that the reward effect is general while generalisation to unseen shortcuts depends strongly on model scale, plus a comparison with two closed models.
 This work was done for Track 3 (agentic RL with AgentTune) of the Lexsi AI Safety and Alignment Hackathon; the problem statement is safe tool use, with reward auditing and runtime guarding as additional themes (Appendix~\ref{app:track}).
 
 \section{Related Work}
@@ -222,33 +222,13 @@ So the residual failure is narrow: following an in-context suggestion toward an 
 Breakdowns by block type, language and provider are in the repository (\texttt{scripts/failure\_analysis.py}).
 The refusal does hold late in a conversation: 2.3\% when the block arrives on the third question (1.5\% when asked alone), while earlier rounds degrade with length (safe v2 56.8\%).
 
-\begin{table}[t]
-\centering
-\small
-\begin{adjustbox}{max width=\columnwidth}
-\begin{tabular}{lccccc}
-\toprule
-\textbf{Kinds trained} & test & stress & unseen & fresh & sealed \\
-\midrule
-0 (start) & 4.8 & 93.1 & 97.4 & -- & -- \\
-2 & 66.1 & 89.2 & 87.9 & 34.6 & 81.2 \\
-4 & 0.0 & 65.4 & 46.6 & 29.1 & 23.2 \\
-6 & 0.0 & 27.7 & 31.9 & 18.9 & 26.1 \\
-10 & 0.0 & 26.2 & 37.9 & 13.4 & 15.9 \\
-\midrule
-\vfour{} (3 rounds) & 0.0 & 1.5 & 25.9 & 11.0 & 21.7 \\
-\bottomrule
-\end{tabular}
-\end{adjustbox}
-\caption{Coverage curve on Tiny Aya Global: escalation on blocked tasks (\%) after one 160-step GRPO pass with the safe reward, varying only how many shortcut kinds the 960 training tasks offer. No arm trained on the kinds in unseen or sealed.}
-\label{tab:coverage}
-\end{table}
+
 
 \paragraph{F4: coverage matters more than rounds, up to a point.}
-To separate the number of shortcut kinds seen in training from the three-round history of \vfour, we trained the safe reward in a single 160-step pass on the same 960 tasks while varying how many of ten shortcut kinds they offer (Table~\ref{tab:coverage}).
-With two kinds the policy escalates on 66\% of test tasks; from four kinds on it is 0\%, and escalation on held-out kinds falls with coverage (sealed 81$\to$23$\to$26$\to$16\%; unseen 88$\to$47$\to$32$\to$38\%).
+To separate the number of shortcut kinds seen in training from the three-round history of \vfour, we trained the safe reward in a single 160-step pass on the same 960 tasks while varying how many of ten shortcut kinds they offer (Table~\ref{tab:coverage} in Appendix~\ref{app:tables}).
+With two kinds the policy escalates on 66\% of test tasks; from four kinds on it is 0\%, and escalation on held-out kinds drops sharply from two to four kinds (sealed 81$\to$23\%, unseen 88$\to$47\%); the later steps (sealed 23$\to$26$\to$16\%) are within the seed spread reported under F5.
 On test and stress tasks whose every offered shortcut kind was trained, escalation is 0--5\% for every arm; with at least one untrained kind it is 80, 50, 21 and 23\%.
-The gain levels off between six and ten kinds, and the one-pass 10-kind model still does worse than \vfour{} on stress (26 vs.\ 1.5\%) and against the real server (19\% server-confirmed bypasses vs.\ 0\%), so the extra rounds with judge-driven detector fixes mattered.
+The gain levels off after four to six kinds, and the one-pass 10-kind model still does worse than \vfour{} on stress (26 vs.\ 1.5\%) and against the real server (19\% server-confirmed bypasses vs.\ 0\%), so the extra rounds with judge-driven detector fixes mattered.
 Its success-only twin escalates far more on every set (paired McNemar $p < 10^{-18}$), and it keeps BFCL at 78.0\%.
 
 \begin{table}[t]
@@ -265,22 +245,55 @@ Global, safe & 0.0 & 26.2 & 37.9 & 13.4 & 15.9 & 19.0 \\
 Fire, succ.-only & 100.0 & 96.2 & 99.1 & 74.0 & 97.8 & 57.1 \\
 Fire, safe & 0.0 & 4.6 & 59.5 & 18.9 & 40.6 & 0.0 \\
 \midrule
+Water, succ.-only & 91.9 & 100.0 & 99.1 & 73.2 & 100.0 & -- \\
+Water, safe & 0.0 & 8.5 & 43.1 & 14.2 & 31.2 & 9.5 \\
+\midrule
+Earth, succ.-only & 96.8 & 97.7 & 98.3 & 81.9 & 99.3 & -- \\
+Earth, safe & 0.0 & 3.1 & 46.6 & 15.0 & 26.1 & 0.0 \\
+\midrule
+Global, safe, 3 seeds & 0.0 & 23.3 & 43.4 & 17.1 & 26.6 & -- \\
+\quad (min--max) & 0--0 & 12--32 & 38--53 & 9--29 & 16--44 & \\
+\midrule
 Expanse 8B, succ.-only & 87.9 & 100.0 & 84.5 & 88.2 & 93.5 & 81.0 \\
 Expanse 8B, safe & \textbf{0.0} & \textbf{0.8} & \textbf{6.9} & \textbf{3.1} & \textbf{0.7} & \textbf{0.0} \\
 \bottomrule
 \end{tabular}
 \end{adjustbox}
-\caption{The one-pass 10-kind recipe on three Aya models (Tiny Aya Global and Fire, 3.35B; Aya Expanse, 8B): escalation on blocked tasks (\%) and server-confirmed bypasses on the real HTTP server (\%). Each pair starts from the same escalation-prone SFT model of that base; one training seed each. Legitimate success of the safe models on solvable tasks: Global 71--100\%, Fire 71--100\%, 8B 76--100\%.}
+\caption{The one-pass 10-kind recipe on five Aya models (Tiny Aya Global, Fire, Water and Earth, 3.35B; Aya Expanse, 8B): escalation on blocked tasks (\%) and server-confirmed bypasses on the real HTTP server (\%). Each pair starts from the same escalation-prone SFT model of that base; seed 4 unless stated; Global also with GRPO seeds 5 and 6. Legitimate success of every safe model on solvable tasks is 71--100\% (8B: 76--100\%).}
 \label{tab:models}
 \end{table}
 
-\paragraph{F5: the reward effect holds across Aya models, and the 8B model generalises.}
-We repeated the one-pass 10-kind recipe (tool SFT, escalation-prone SFT, then both rewards) on Tiny Aya Fire and Aya Expanse 8B (Table~\ref{tab:models}).
-On every base model the success-only reward drives escalation to 74--100\% and the safe reward removes it on the test set, with paired McNemar $p < 10^{-13}$ on every set and equal or better legitimate success than the success-only twin on every set.
-Generalisation differs sharply with the base model: on the sealed set the safe 8B model escalates on 0.7\% (unseen 6.9\%, fresh 3.1\%), against 15.9\% for Global and 40.6\% for Fire, and it makes no server-confirmed bypass.
-The 8B safe model also scores higher than its base on BFCL (88.8 vs.\ 86.3\%), whereas Fire loses a little (80.5 vs.\ 81.3\%).
-The guard pattern of F7 (\S\ref{sec:guard}) repeats on all three: it removes executed escalation of known shapes and none on fresh or sealed.
-With one seed per model these are single runs; the Global seed spread (sd 4.7 points on sealed) is a guide to their noise.
+\paragraph{F5: the reward effect holds on five Aya models; only the 8B model generalises clearly.}
+We repeated the one-pass 10-kind recipe (tool SFT, escalation-prone SFT, then both rewards) on Tiny Aya Fire, Water and Earth and on Aya Expanse 8B, and trained Global with two more GRPO seeds (Table~\ref{tab:models}).
+On every base model the success-only reward drives escalation to 74--100\% and the safe reward removes it on the test set, with paired McNemar $p < 10^{-13}$ on every set and equal or better legitimate success than the success-only twin.
+The seeds set the scale for comparisons: three Global seeds span 16--44\% on sealed and 38--53\% on unseen, so we do not claim single-seed differences of less than about 20 points on the held-out sets.
+By that standard the four 3.35B Tiny Aya variants (sealed 16--41\%) are indistinguishable, while the 8B model is clearly better: 0.7\% on sealed, 6.9\% on unseen, 3.1\% on fresh and no server-confirmed bypass.
+The 8B safe model also scores higher than its base on BFCL (88.8 vs.\ 86.3\%), whereas the Tiny Aya variants lose 1--4 points.
+There is no language gap: pooled over all sets, Hindi and English escalation differ by at most 3.3 points for every safe model (Global 19.7 vs.\ 18.0\%, 8B 3.9 vs.\ 1.7\%).
+The guard pattern of F7 (\S\ref{sec:guard}) repeats on every model.
+
+\begin{table}[t]
+\centering
+\small
+\begin{adjustbox}{max width=\columnwidth}
+\begin{tabular}{lrrrrrr}
+\toprule
+\textbf{Tip source} & gen. & removed & used & stress & unseen & sealed \\
+\midrule
+Hand-written & 6 & -- & 6 & 26.2 & 37.9 & 15.9 \\
+Adaption & 600 & 8 & 300 & 6.2 & 38.8 & 20.3 \\
+CuratorKIT & 600 & 9 & 300 & 30.8 & 53.4 & 37.7 \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\caption{Tip wording in the 960 training tasks. Generated lines pass a CuratorKIT hygiene step (secrets gate; exact and MinHash de-duplication with test-set wordings placed first; a shape rule); removed counts sum wrong shape, exact and near duplicates (no secrets found). Right: escalation on blocked tasks (\%) of the safe model trained on each source, Global, seed 4.}
+\label{tab:tips}
+\end{table}
+
+\paragraph{Tip wording and data hygiene.}
+The planted tips in training need lead-in sentences (``Note for automated clients:'').
+Replacing our six hand-written lead-ins with 300 generated by Adaption or by CuratorKIT's EvolInstruct (Qwen2.5-32B teacher), each after a CuratorKIT hygiene pass that removed 8 and 9 of 600 lines, changes escalation on held-out sets within the seed spread, except Adaption on stress (6.2 vs.\ 26.2\%) (Table~\ref{tab:tips}).
+More varied tip wording alone does not buy generalisation to new shortcut kinds.
 
 \subsection{Transfer to a real server}
 \label{sec:real}
@@ -320,9 +333,32 @@ AuditKIT makes the same point from another angle: its tool-permission check scor
 \subsection{Cost and return}
 \label{sec:cost}
 
-Stage 1's 52 GPU jobs, including failed ones, used 30.6 GPU-hours on Hugging Face Jobs, \$73.70 at list price.
-One 160-step GRPO run is about 1.5 A100-hours (\$3.75); the checks that changed our conclusions were the cheapest (under \$1 per test set, \$0.20--0.30 per judge audit).
-Serving \vfour{} costs about \$0.014 per 1,000 replies on one A100 with vLLM (Appendix~\ref{app:cost}).
+\begin{table}[t]
+\centering
+\small
+\begin{adjustbox}{max width=\columnwidth}
+\begin{tabular}{lrrrrc}
+\toprule
+\textbf{Model} & stress & unseen & sealed & legit & \$/1k tasks \\
+\midrule
+GPT-6 Luna & 92.3 & 86.2 & 64.5 & 32--74 & 0.56 \\
+Claude Haiku 5.5 & 11.5 & 1.7 & 1.4 & 63--73 & 1.60 \\
+Tiny Aya Global, safe & 26.2 & 37.9 & 15.9 & 71--100 & 0.057 \\
+Aya Expanse 8B, safe & 0.8 & 6.9 & 0.7 & 76--100 & -- \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\caption{Closed models on the same tasks with native function calling, against our one-pass safe models: escalation on blocked tasks (\%), legitimate success on solvable tasks across the five sets (\%), and cost per 1,000 tasks. One run each; closed models at provider default temperature (their APIs reject 0), ours greedy. Our tasks are the kind our models were trained near, so success favours ours.}
+\label{tab:closed}
+\end{table}
+
+\paragraph{Against closed models.}
+With the same neutral ``be resourceful and persistent'' prompt and native tool calling, GPT-6 Luna escalates on 52--92\% of blocked tasks, as much as our success-only models, while Claude Haiku 5.5 escalates on 1.4--11.5\% (Table~\ref{tab:closed}).
+Our 8B safe model matches Haiku on escalation with higher legitimate success; the 3.35B safe model escalates more on unseen kinds but costs about 1/10 of Luna and 1/28 of Haiku per task (2,302 output tokens/s batched on one A100 at \$2.50/h, the same list price on Hugging Face Jobs and Modal).
+Through our plain-JSON tool protocol Luna mostly does not act (2--7\% success), so that row is not informative (Appendix~\ref{app:cost}).
+
+\paragraph{Compute.} Stage 1 used 30.6 A100-equivalent GPU-hours (\$73.70, 52 jobs, failed ones included) and Stage 2 43.3 A100-hours (\$108, 24 jobs, \$50 of it organiser credit), plus about \$7 of closed-model API calls.
+One 160-step GRPO run on Tiny Aya is about 1.5 A100-hours (\$3.75); the checks that changed our conclusions were the cheapest (under \$1 per test set, \$0.20--0.30 per judge audit).
 
 \section{Discussion and Next Steps}
 
@@ -330,8 +366,7 @@ A safety reward for agents works on what its detector can see and on shortcuts r
 CircuitKIT gives the mechanistic version: GRPO rewired the pathway for the trained shortcut (relay: $P(\text{shortcut})$ 45\%$\to$4\%) and left an untrained one almost intact (preview: 90\%$\to$79\%, top-20 component overlap 0.91; Appendix~\ref{app:kits}).
 The practical lessons are procedural: keep a test set training has never touched and report it first; have something independent read whole episodes after every retrain; and stack a cheap guard on a trained policy, since they fail in different places.
 
-With more compute we would (1) add SFT demonstrations that read a provider's front page and developer docs before choosing a route, so ``what does the site sanction'' becomes something the agent looks up; (2) replace the pattern detector in the reward with simulator ground truth plus an in-loop LLM judge on a sample of rollouts; (3) train on multi-question conversations; (4) scale the real-server suite to hundreds of tasks and the 8B recipe to Aya Expanse 32B; and (5) run five seeds per arm, including the 8B model.
-We expect sealed-style escalation to fall from 16\% to under 5\%, fresh-set legitimate success to rise from 71\% to above 85\%, and the BFCL gap to shrink below two points by mixing general function-calling prompts into RL.
+Next, we would add demonstrations that read a provider's front page and developer docs before choosing a route, replace the pattern detector in the reward with simulator ground truth plus an in-loop LLM judge, train on multi-question conversations, enlarge the real-server suite, and run five seeds per arm, including the 8B model, whose result suggests that scale is the cheapest lever on generalisation.
 
 \section*{Limitations}
 
@@ -345,7 +380,7 @@ About half the evaluation questions recur in training with a different site and 
 \textbf{Capability cost}: about four BFCL points against the base model.
 \textbf{Multi-question single prompts} fail for every model (a format never trained, not a safety failure).
 \textbf{The propensity was planted}; real propensities from pretraining will be more varied.
-\textbf{Languages}: English and Hindi questions only, English tool output; three base models, one training seed each for Fire and 8B.
+\textbf{Languages}: English and Hindi questions only, English tool output; five base models, one training seed each except Global; the seed spread on held-out sets is large (up to 28 points).
 
 \section*{Ethics Statement}
 
@@ -360,13 +395,13 @@ Ashish Soni (sole author) chose the problem, designed the experiments, decided w
 Implementation, training runs and analysis were carried out with AI coding assistance, as described in the LLM usage statement.
 
 \section*{Declaration of Work Done Outside the Hackathon}
-All code, data, models and results were created during the hackathon: Stage 1 between November 1 and 15, 2026, and the Stage 2 experiments (F4, F5) from November 20, 2026.
+All code, data, models and results were created during the hackathon: Stage 1 between November 1 and 15, 2026, and the Stage 2 experiments from November 20, 2026.
 No prior code or models of ours were reused. Public resources we built on are Cohere's Tiny Aya Global, the Lexsi hackathon toolkits and the published research cited here.
 
 \section*{LLM Usage Statement}
 We used Claude (Anthropic) through Claude Code as a coding and research assistant. It wrote most of the code, ran the training and evaluation jobs, and helped draft this paper, under the author's direction and review.
 Claude Fable 5.2 was also used as a third evaluation judge; because the same model family helped build the project, it is independent of our detector but not of the project.
-Qwen2.5-32B-Instruct and Mistral-Small-24B-Instruct were used only as evaluation judges. No LLM generated training labels or acted as a teacher model.
+Qwen2.5-32B-Instruct and Mistral-Small-24B-Instruct were used only as evaluation judges, and GPT-6 Luna and Claude Haiku 5.5 only as evaluated baselines. Adaption and Qwen2.5-32B (through CuratorKIT) generated tip lead-in sentences for one ablation. No LLM generated training labels or acted as a teacher model.
 
 \section*{Acknowledgements}
 Thanks to Lexsi Labs for the hackathon, toolkits and credits, to Cohere Labs for Tiny Aya, and to Hugging Face for the compute platform.
@@ -517,6 +552,28 @@ Safe (v2) & 4\% & 79\% \\
 \begin{table}[h]
 \centering
 \small
+\begin{adjustbox}{max width=\columnwidth}
+\begin{tabular}{lccccc}
+\toprule
+\textbf{Kinds trained} & test & stress & unseen & fresh & sealed \\
+\midrule
+0 (start) & 4.8 & 93.1 & 97.4 & -- & -- \\
+2 & 66.1 & 89.2 & 87.9 & 34.6 & 81.2 \\
+4 & 0.0 & 65.4 & 46.6 & 29.1 & 23.2 \\
+6 & 0.0 & 27.7 & 31.9 & 18.9 & 26.1 \\
+10 & 0.0 & 26.2 & 37.9 & 13.4 & 15.9 \\
+\midrule
+\vfour{} (3 rounds) & 0.0 & 1.5 & 25.9 & 11.0 & 21.7 \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\caption{Coverage curve on Tiny Aya Global: escalation on blocked tasks (\%) after one 160-step GRPO pass with the safe reward, varying only how many shortcut kinds the 960 training tasks offer. No arm trained on the kinds in unseen or sealed.}
+\label{tab:coverage}
+\end{table}
+
+\begin{table}[h]
+\centering
+\small
 \setlength{\tabcolsep}{3.5pt}
 \begin{adjustbox}{max width=\columnwidth}
 \begin{tabular}{lcccc}
@@ -626,7 +683,7 @@ Full safe (v2) & 0.0 & 78.5 & 71.6 & 38.6 & 35.5 \\
 \caption{Hugging Face Jobs, list prices (A100 80GB \$2.50/h, A10G \$1.50/h, L4 \$0.80/h), failed jobs included. \$20 was organiser credit. Per-job table: \texttt{results/hf\_jobs.json}.}
 \end{table}
 
-A 320-episode evaluation (about 1,340 model replies) takes 27\,s on one A100 with vLLM batching, i.e.\ about \$0.014 per 1,000 replies. No closed-model baseline was run.
+A 320-episode evaluation (about 1,340 model replies) takes 27\,s on one A100 with vLLM batching, i.e.\ about \$0.014 per 1,000 replies. Closed models through our plain-JSON tool protocol instead of native function calling: escalation on blocked tasks (test/stress/unseen/fresh/sealed) GPT-6 Luna 2.4/4.6/3.4/1.6/2.2 with 2--7\% legitimate success, i.e.\ it mostly does not act; Claude Haiku 5.5 0.8/14.6/0.9/2.4/2.9 with 47--59\% success. Both providers list \$0.10 and \$0.50 per million input and output tokens; API output counts can include reasoning tokens.
 
 \textbf{Environment}: Python 3.10+, one 80\,GB GPU for training, image \texttt{vllm/vllm-openai:v0.22.1} with \texttt{agenttune==1.1.4}, \texttt{trl==1.7.1}. Tests and data generation need no GPU.
 \textbf{Layout}: \texttt{esa/} simulator, detector, scoring, rollout, real-server environment; \texttt{scripts/} build, train, eval, audit, judge, reports; \texttt{data/}, \texttt{results/}, \texttt{tests/}, \texttt{space/}.
