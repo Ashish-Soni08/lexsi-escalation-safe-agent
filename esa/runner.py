@@ -196,6 +196,82 @@ def vllm_generator(model_path: str, max_new_tokens: int = 384, temperature: floa
     return gen
 
 
+def api_generator(provider: str, model: str, max_new_tokens: int = 384, temperature: float = 0.0,
+                  base_url: str = "", workers: int = 8, usage_path: str = "") -> Generate:
+    """Chat-completion endpoint as the policy: `openai` (also any OpenAI-style server, e.g. llama.cpp or vLLM,
+    through base_url) or `anthropic`. The tool protocol is the same plain-text JSON the Aya models use, so the
+    conversation is sent as ordinary messages. Token counts and wall time are accumulated in gen.usage."""
+    import os as _os
+    import time
+    from concurrent.futures import ThreadPoolExecutor
+
+    import requests  # type: ignore
+
+    usage = {"provider": provider, "model": model, "requests": 0, "input_tokens": 0, "cached_input_tokens": 0,
+             "output_tokens": 0, "seconds": 0.0, "errors": 0}
+    state = {"temp": True}
+    if provider == "anthropic":
+        url = (base_url or "https://api.anthropic.com") + "/v1/messages"
+        headers = {"x-api-key": _os.environ["ANTHROPIC_API_KEY"], "anthropic-version": "2023-06-01"}
+    else:
+        url = (base_url or "https://api.openai.com/v1") + "/chat/completions"
+        headers = {"Authorization": "Bearer " + _os.environ.get("OPENAI_API_KEY", "none")}
+
+    def one(conv: list[dict]) -> str:
+        if provider == "anthropic":
+            body = {"model": model, "max_tokens": max_new_tokens,
+                    "system": "\n\n".join(m["content"] for m in conv if m["role"] == "system"),
+                    "messages": [m for m in conv if m["role"] != "system"]}
+        else:
+            body = {"model": model, "messages": conv,
+                    ("max_tokens" if base_url else "max_completion_tokens"): max_new_tokens}
+        for attempt in range(6):
+            if state["temp"]:
+                body["temperature"] = temperature
+            else:
+                body.pop("temperature", None)
+            try:
+                r = requests.post(url, headers=headers, json=body, timeout=180)
+            except requests.RequestException:
+                time.sleep(2 ** attempt)
+                continue
+            if r.status_code == 400 and "temperature" in r.text and state["temp"]:
+                state["temp"] = False  # the model only accepts its default temperature
+                continue
+            if r.status_code in (408, 409, 429) or r.status_code >= 500:
+                time.sleep(2 ** attempt)
+                continue
+            if r.status_code != 200:
+                raise RuntimeError(f"{provider} {r.status_code}: {r.text[:300]}")
+            d = r.json()
+            u = d.get("usage", {})
+            usage["requests"] += 1
+            if provider == "anthropic":
+                usage["input_tokens"] += u.get("input_tokens", 0) + u.get("cache_read_input_tokens", 0)
+                usage["cached_input_tokens"] += u.get("cache_read_input_tokens", 0)
+                usage["output_tokens"] += u.get("output_tokens", 0)
+                return "".join(b.get("text", "") for b in d.get("content", []) if b.get("type") == "text")
+            usage["input_tokens"] += u.get("prompt_tokens", 0)
+            usage["cached_input_tokens"] += (u.get("prompt_tokens_details") or {}).get("cached_tokens", 0)
+            usage["output_tokens"] += u.get("completion_tokens", 0)
+            return d["choices"][0]["message"].get("content") or ""
+        usage["errors"] += 1
+        return ""
+
+    def gen(convs: list[list[dict]]) -> list[str]:
+        t = time.time()
+        with ThreadPoolExecutor(workers) as ex:
+            outs = list(ex.map(one, convs))
+        usage["seconds"] += time.time() - t
+        if usage_path:
+            json.dump(usage, open(usage_path, "w"), indent=1)
+        return outs
+
+    gen.usage = usage  # type: ignore[attr-defined]
+    gen.set_seed = lambda s: None  # type: ignore[attr-defined]
+    return gen
+
+
 def hf_generator(model_path: str, adapter: Optional[str] = None, max_new_tokens: int = 384,
                  batch_size: int = 16) -> Generate:
     import torch  # type: ignore

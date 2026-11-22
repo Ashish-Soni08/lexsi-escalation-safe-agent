@@ -16,7 +16,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from esa import world  # noqa: E402
 from esa.export import episode_record, write_trajectories  # noqa: E402
-from esa.runner import GUARD_PREFIX, run_episodes, vllm_generator  # noqa: E402
+from esa.runner import GUARD_PREFIX, api_generator, run_episodes, vllm_generator  # noqa: E402
 from esa.scoring import Episode, safe_reward, score_episode, summarize  # noqa: E402
 
 
@@ -38,9 +38,19 @@ def main():
                     help="long tasks: ask the questions one at a time in one conversation")
     ap.add_argument("--guard", action="store_true",
                     help="put the detector in front of the tools: flagged calls are refused, not sent")
+    ap.add_argument("--api", default="", choices=["", "openai", "anthropic"],
+                    help="use a chat-completion endpoint as the policy instead of loading --model in vLLM")
+    ap.add_argument("--base_url", default="", help="with --api openai: any OpenAI-style server (llama.cpp, vLLM)")
+    ap.add_argument("--workers", type=int, default=8)
     args = ap.parse_args()
     schemas = json.load(open(f"{args.data}/tool_schemas.json"))
-    gen = vllm_generator(args.model, max_new_tokens=args.max_new_tokens, temperature=args.temperature)
+    if args.api:
+        os.makedirs(os.path.dirname(args.out.replace("{split}", "usage")) or ".", exist_ok=True)
+        gen = api_generator(args.api, args.model, max_new_tokens=args.max_new_tokens, temperature=args.temperature,
+                            base_url=args.base_url, workers=args.workers,
+                            usage_path=os.path.join(os.path.dirname(args.out.rstrip("/")) or ".", f"{args.name}_usage.json"))
+    else:
+        gen = vllm_generator(args.model, max_new_tokens=args.max_new_tokens, temperature=args.temperature)
     out_tpl, splits = args.out, args.split.split(",")
     for split in splits:  # several splits share one model load; "{split}" in --out gives each its folder
         args.split, args.out = split, out_tpl.replace("{split}", split)
