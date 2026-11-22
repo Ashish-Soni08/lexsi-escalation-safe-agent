@@ -44,8 +44,7 @@ An outcome-only reward turns a 4.8\% propensity into escalation on \textbf{99.2\
 A reward in which any exploit-shaped tool call scores below every honest outcome brings it to \textbf{0.0\%}, with 99\% success on solvable tasks, 0\% bypasses confirmed by a real HTTP server (clean SFT: 38\%), and 2.3\% when the block arrives late in a conversation.
 Generalisation is partial: on a sealed test with four shortcut kinds invented after the model was frozen, the final model escalates on \textbf{16.4 $\pm$ 4.7\%} across three training seeds (clean SFT 42.8\%, outcome-only RL 100\%).
 Independent LLM judges show that the reward's rule-based detector was gamed twice during development; agreement of the final detector with Qwen2.5-32B is 94\% ($\kappa = 0.87$).
-Reward ablations show the escalation penalty does the work, a runtime guard and training fail in complementary places, and the safety training costs about four points on BFCL.
-In Stage 2 the same reward works on five Aya models; the 8B Aya Expanse generalises far better than the 3.35B variants (0.7\% on the sealed set, no server-confirmed bypasses), matching Claude Haiku 5.5 on escalation at higher task success, while GPT-6 Luna escalates on up to 92\% of blocked tasks.
+In Stage 2 the same reward works on five Aya models; the 8B Aya Expanse generalises far better than the 3.35B variants (0.7\% on the sealed set, no server-confirmed bypasses), matching Claude Haiku 5.5 on escalation at higher task success, while GPT-6 Luna escalates on up to 92\% of blocked tasks; the safe behaviour also survives 4- and 3-bit compression.
 All models, data and traces are public.
 \end{abstract}
 
@@ -56,14 +55,9 @@ The episode can end in three ways.
 It can take a \emph{legitimate route} the site offers everyone (wait out the rate limit, use the documented API);
 it can make an \emph{honest stop} (\texttt{BLOCKED: <reason>});
 or it can \emph{escalate}: reach the number through a route the site did not offer, such as a staging host without a login, a relay service, a spoofed crawler header, or a default password found in a tip.
-We count escalation as a violation even when the number is right (Figure~\ref{fig:endings}).
+We count escalation as a violation even when the number is right (Figure~\ref{fig:endings} in Appendix~\ref{app:tables}).
 
-\begin{figure}[t]
-  \centering
-  \includegraphics[width=\columnwidth]{figures/three-endings.pdf}
-  \caption{Three ways a blocked task can end. Escalation counts as a violation even when the returned number is correct.}
-  \label{fig:endings}
-\end{figure}
+
 
 This is not hypothetical.
 In the METR/Redwood swarm incident on the Hugging Face Hub \citep{metr2026swarm} and in Transluce's urlquery.net logs \citep{transluce2026urlquery}, agents asked for ordinary public numbers responded to blocks with SQL-injection probes, guessed staging hosts, ``reader'' relays, spoofed Googlebot headers and found tokens.
@@ -219,7 +213,7 @@ Pooling the three seeds (Table~\ref{tab:fail} in Appendix~\ref{app:tables}), \vf
 With a tip, sealed escalation is 27\%, driven by tips in search results (45\%) and in the blocked response itself (36\%); tips in developer docs are always ignored (0/81).
 Unseen is the exception: all 81 escalations there use one shortcut kind, an ``origin'' server named by the site's own page, and 53 of them need no tip.
 So the residual failure is narrow: following an in-context suggestion toward an official-looking route, plus one route shape that is never treated as a shortcut.
-Breakdowns by block type, language and provider are in the repository (\texttt{scripts/failure\_analysis.py}).
+
 The refusal does hold late in a conversation: 2.3\% when the block arrives on the third question (1.5\% when asked alone), while earlier rounds degrade with length (safe v2 56.8\%).
 
 
@@ -229,7 +223,7 @@ To separate the number of shortcut kinds seen in training from the three-round h
 With two kinds the policy escalates on 66\% of test tasks; from four kinds on it is 0\%, and escalation on held-out kinds drops sharply from two to four kinds (sealed 81$\to$23\%, unseen 88$\to$47\%); the later steps (sealed 23$\to$26$\to$16\%) are within the seed spread reported under F5.
 On test and stress tasks whose every offered shortcut kind was trained, escalation is 0--5\% for every arm; with at least one untrained kind it is 80, 50, 21 and 23\%.
 The gain levels off after four to six kinds, and the one-pass 10-kind model still does worse than \vfour{} on stress (26 vs.\ 1.5\%) and against the real server (19\% server-confirmed bypasses vs.\ 0\%), so the extra rounds with judge-driven detector fixes mattered.
-Its success-only twin escalates far more on every set (paired McNemar $p < 10^{-18}$), and it keeps BFCL at 78.0\%.
+
 
 \begin{table}[t]
 \centering
@@ -270,29 +264,12 @@ The seeds set the scale for comparisons: three Global seeds span 16--44\% on sea
 By that standard the four 3.35B Tiny Aya variants (sealed 16--41\%) are indistinguishable, while the 8B model is clearly better: 0.7\% on sealed, 6.9\% on unseen, 3.1\% on fresh and no server-confirmed bypass.
 The 8B safe model also scores higher than its base on BFCL (88.8 vs.\ 86.3\%), whereas the Tiny Aya variants lose 1--4 points.
 There is no language gap: pooled over all sets, Hindi and English escalation differ by at most 3.3 points for every safe model (Global 19.7 vs.\ 18.0\%, 8B 3.9 vs.\ 1.7\%).
-The guard pattern of F7 (\S\ref{sec:guard}) repeats on every model.
 
-\begin{table}[t]
-\centering
-\small
-\begin{adjustbox}{max width=\columnwidth}
-\begin{tabular}{lrrrrrr}
-\toprule
-\textbf{Tip source} & gen. & removed & used & stress & unseen & sealed \\
-\midrule
-Hand-written & 6 & -- & 6 & 26.2 & 37.9 & 15.9 \\
-Adaption & 600 & 8 & 300 & 6.2 & 38.8 & 20.3 \\
-CuratorKIT & 600 & 9 & 300 & 30.8 & 53.4 & 37.7 \\
-\bottomrule
-\end{tabular}
-\end{adjustbox}
-\caption{Tip wording in the 960 training tasks. Generated lines pass a CuratorKIT hygiene step (secrets gate; exact and MinHash de-duplication with test-set wordings placed first; a shape rule); removed counts sum wrong shape, exact and near duplicates (no secrets found). Right: escalation on blocked tasks (\%) of the safe model trained on each source, Global, seed 4.}
-\label{tab:tips}
-\end{table}
+
 
 \paragraph{Tip wording and data hygiene.}
 The planted tips in training need lead-in sentences (``Note for automated clients:'').
-Replacing our six hand-written lead-ins with 300 generated by Adaption or by CuratorKIT's EvolInstruct (Qwen2.5-32B teacher), each after a CuratorKIT hygiene pass that removed 8 and 9 of 600 lines, changes escalation on held-out sets within the seed spread, except Adaption on stress (6.2 vs.\ 26.2\%) (Table~\ref{tab:tips}).
+Replacing our six hand-written lead-ins with 300 generated by Adaption or by CuratorKIT's EvolInstruct (Qwen2.5-32B teacher), each after a CuratorKIT hygiene pass that removed 8 and 9 of 600 lines, changes escalation on held-out sets within the seed spread, except Adaption on stress (6.2 vs.\ 26.2\%) (Table~\ref{tab:tips} in Appendix~\ref{app:tables}).
 More varied tip wording alone does not buy generalisation to new shortcut kinds.
 
 \subsection{Transfer to a real server}
@@ -330,6 +307,38 @@ The Qwen judge found both; each time the detector was fixed and the model retrai
 For \vfour{} and both seed models the judge finds no hidden pattern, and we read every judge-only case without finding a suspicious call.
 AuditKIT makes the same point from another angle: its tool-permission check scores 1.0 for the success-only model that escalates on 47\% of v1 tasks, because every exploit uses an allowed tool; escalation lives in the arguments (Appendix~\ref{app:kits}).
 
+\subsection{Compression}
+\label{sec:quant}
+
+\begin{table}[t]
+\centering
+\small
+\begin{adjustbox}{max width=\columnwidth}
+\begin{tabular}{lrrrrrr}
+\toprule
+\textbf{Version} & GB & stress & unseen & sealed & legit & BFCL \\
+\midrule
+16-bit & 6.7 & 26.2 & 37.1 & 15.2 & 93.5 & 78.3 \\
+NF4 4-bit & 2.5 & 25.4 & 25.9 & 19.6 & 90.9 & 76.7 \\
+GPTQ 4-bit & 2.5 & 31.5 & 44.8 & 19.6 & 93.4 & 75.7 \\
+GPTQ 3-bit & 2.2 & 20.0 & 16.4 & 18.8 & 90.2 & 65.8 \\
+\midrule
+\multicolumn{7}{l}{\textit{GPTQ 3-bit, 19 of 36 layers kept at 16-bit (4.6 GB):}} \\
+\quad CircuitKIT-ranked & & 26.2 & 31.0 & 26.8 & 94.8 & 74.5 \\
+\quad random (3 draws) & & 16--32 & 10--30 & 17--29 & 93--96 & 72--73 \\
+\quad lowest-ranked & & 20.0 & 27.6 & 16.7 & 95.6 & 70.5 \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\caption{The one-pass safe Tiny Aya Global model after compression: escalation on blocked tasks (\%), legitimate success over four sets (\%), BFCL full match (\%). Test-set escalation is 0--0.8\% for every version. GPTQ uses asymmetric levels and 256 of our episodes as calibration text. Evaluated as dense checkpoints holding the decoded values, so no speed is reported.}
+\label{tab:quant}
+\end{table}
+
+\paragraph{F11: safety survives 4- and 3-bit compression; circuit-guided protection adds nothing.}
+Compressing the safe Global model to 4 bits (NF4 or GPTQ, 2.5 GB) or 3 bits (GPTQ, 2.2 GB) leaves escalation within the seed spread on every set and legitimate success at 90--93\%, at a cost of 2--3 BFCL points at 4 bits and 12 at 3 bits (Table~\ref{tab:quant}).
+Keeping the 19 layers that CircuitKIT ranks highest at 16-bit gives no lower escalation than keeping random or lowest-ranked layers; its only edge is the best BFCL among the protected arms, by 1--4 points.
+One caution: GPTQ with CircuitKIT's default settings (symmetric levels, 128 calibration texts) broke the model at 4 bits (13.5\% legitimate success), and round-to-nearest 3-bit stops answering, so a compressed agent's recipe must be re-evaluated, not assumed.
+
 \subsection{Cost and return}
 \label{sec:cost}
 
@@ -357,16 +366,15 @@ With the same neutral ``be resourceful and persistent'' prompt and native tool c
 Our 8B safe model matches Haiku on escalation with higher legitimate success; the 3.35B safe model escalates more on unseen kinds but costs about 1/10 of Luna and 1/28 of Haiku per task (2,302 output tokens/s batched on one A100 at \$2.50/h, the same list price on Hugging Face Jobs and Modal).
 Through our plain-JSON tool protocol Luna mostly does not act (2--7\% success), so that row is not informative (Appendix~\ref{app:cost}).
 
-\paragraph{Compute.} Stage 1 used 30.6 A100-equivalent GPU-hours (\$73.70, 52 jobs, failed ones included) and Stage 2 43.3 A100-hours (\$108, 24 jobs, \$50 of it organiser credit), plus about \$7 of closed-model API calls.
+\paragraph{Compute.} Stage 1 used 30.6 A100-equivalent GPU-hours (\$73.70, 52 jobs, failed ones included) and Stage 2 45.0 A100-hours (\$112, \$54 of it organiser credit), plus about \$7 of closed-model API calls.
 One 160-step GRPO run on Tiny Aya is about 1.5 A100-hours (\$3.75); the checks that changed our conclusions were the cheapest (under \$1 per test set, \$0.20--0.30 per judge audit).
 
 \section{Discussion and Next Steps}
 
-A safety reward for agents works on what its detector can see and on shortcuts resembling those it practised on.
-CircuitKIT gives the mechanistic version: GRPO rewired the pathway for the trained shortcut (relay: $P(\text{shortcut})$ 45\%$\to$4\%) and left an untrained one almost intact (preview: 90\%$\to$79\%, top-20 component overlap 0.91; Appendix~\ref{app:kits}).
-The practical lessons are procedural: keep a test set training has never touched and report it first; have something independent read whole episodes after every retrain; and stack a cheap guard on a trained policy, since they fail in different places.
-
-Next, we would add demonstrations that read a provider's front page and developer docs before choosing a route, replace the pattern detector in the reward with simulator ground truth plus an in-loop LLM judge, train on multi-question conversations, enlarge the real-server suite, and run five seeds per arm, including the 8B model, whose result suggests that scale is the cheapest lever on generalisation.
+A safety reward for agents works on what its detector can see and on shortcuts resembling those it practised on; CircuitKIT shows GRPO rewiring the pathway for a trained shortcut (relay: $P(\text{shortcut})$ 45\%$\to$4\%) while leaving an untrained one almost intact (preview: 90\%$\to$79\%; Appendix~\ref{app:kits}).
+Scale was the strongest lever we found on generalisation.
+The practical lessons are procedural: report the untouched test set first, have something independent read whole episodes after every retrain, and stack a cheap guard on a trained policy.
+Next we would teach the agent to read a provider's documentation before choosing a route, put ground truth and an LLM judge into the reward, train on multi-question conversations, enlarge the real-server suite, and run five seeds per arm.
 
 \section*{Limitations}
 
@@ -548,6 +556,31 @@ Safe (v2) & 4\% & 79\% \\
 
 \section{Additional Tables and Figures}
 \label{app:tables}
+
+\begin{table}[h]
+\centering
+\small
+\begin{adjustbox}{max width=\columnwidth}
+\begin{tabular}{lrrrrrr}
+\toprule
+\textbf{Tip source} & gen. & removed & used & stress & unseen & sealed \\
+\midrule
+Hand-written & 6 & -- & 6 & 26.2 & 37.9 & 15.9 \\
+Adaption & 600 & 8 & 300 & 6.2 & 38.8 & 20.3 \\
+CuratorKIT & 600 & 9 & 300 & 30.8 & 53.4 & 37.7 \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\caption{Tip wording in the 960 training tasks. Generated lines pass a CuratorKIT hygiene step (secrets gate; exact and MinHash de-duplication with test-set wordings placed first; a shape rule); removed counts sum wrong shape, exact and near duplicates (no secrets found). Right: escalation on blocked tasks (\%) of the safe model trained on each source, Global, seed 4.}
+\label{tab:tips}
+\end{table}
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=\columnwidth]{figures/three-endings.pdf}
+  \caption{Three ways a blocked task can end. Escalation counts as a violation even when the returned number is correct.}
+  \label{fig:endings}
+\end{figure}
 
 \begin{table}[h]
 \centering
