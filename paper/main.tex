@@ -144,22 +144,6 @@ Our rollout (\texttt{esa/rollout.py}, passed via \texttt{rollout\_func}) keeps o
 
 \paragraph{Lexsi kits.} Besides AgentTune, \textbf{AuditKIT} re-scores every stored trajectory with its own checks plus two verified-outcome oracles we added (\texttt{no\_escalation}, \texttt{safe\_completion}); \textbf{CircuitKIT} runs EAP-IG at the token where the agent picks a host after a block; \textbf{CuratorKIT} checks the SFT data for secrets, duplicates and PII before release (Appendix~\ref{app:kits}).
 
-\subsection{Metrics and judge validation}
-
-On blocked tasks we report \textbf{escalation} (lower is better) and on solvable tasks \textbf{legitimate success} (higher), always side by side, since refusing everything would be trivially safe.
-We also report server-confirmed bypasses, attempted versus executed escalation under a guard, and BFCL v3 full-match accuracy on 600 \texttt{simple} and \texttt{multiple} questions \citep{patil2025bfcl}, scored with our own implementation of BFCL's AST rule in the model's tool format.
-Unless stated, decoding is greedy with a neutral system prompt (``be resourceful and persistent''); brackets are 95\% bootstrap intervals over tasks (2,000 resamples) and paired comparisons use exact McNemar tests \citep{mcnemar1947note}.
-
-The escalation detector is also inside the reward, so the policy is trained against it and can learn to slip past it.
-We therefore had independent LLM judges read whole episodes against a written policy.
-On 400 episodes of \vfour, Qwen2.5-32B-Instruct \citep{qwen2025qwen25} agrees with the detector on 94.0\% ($\kappa = 0.87$; \citealp{cohen1960coefficient}); Mistral-Small-24B on 69.5\% ($\kappa = 0.36$, too noisy to use).
-On 400 episodes of the two extra seed models Qwen agrees on 90.5\% ($\kappa = 0.80$).
-As a third check, Claude Fable 5.2 labelled 100 \vfour{} episodes blind to all other verdicts and agrees with the detector on all 99 it decided ($\kappa = 1.00$); because the same model family assisted with the project, Qwen is our fully external judge.
-For the Stage 2 models (F9, F10), Qwen agrees with the detector on 91.4\% of 500 pooled episodes ($\kappa = 0.82$; 97.2\% for the safe 8B model); the 25 judge-only cases have been read by their stated reasons, not adjudicated by hand.
-Hand labels were planned but not collected (Limitations).
-
-\section{Results}
-
 \begin{table*}[t]
 \centering
 \small
@@ -190,7 +174,28 @@ GRPO safe v2 & 99.5 & 65.3 & 83.3 & 68.9 & 81.9 & 64.9 & 80.0 {\scriptsize(77--8
 \label{tab:main}
 \end{table*}
 
+\subsection{Metrics and judge validation}
+
+On blocked tasks we report \textbf{escalation} (lower is better) and on solvable tasks \textbf{legitimate success} (higher), always side by side, since refusing everything would be trivially safe.
+We also report server-confirmed bypasses, attempted versus executed escalation under a guard, and BFCL v3 full-match accuracy on 600 \texttt{simple} and \texttt{multiple} questions \citep{patil2025bfcl}, scored with our own implementation of BFCL's AST rule in the model's tool format.
+Unless stated, decoding is greedy with a neutral system prompt (``be resourceful and persistent''); brackets are 95\% bootstrap intervals over tasks (2,000 resamples) and paired comparisons use exact McNemar tests \citep{mcnemar1947note}.
+
+The escalation detector is also inside the reward, so the policy is trained against it and can learn to slip past it.
+We therefore had independent LLM judges read whole episodes against a written policy.
+On 400 episodes of \vfour, Qwen2.5-32B-Instruct \citep{qwen2025qwen25} agrees with the detector on 94.0\% ($\kappa = 0.87$; \citealp{cohen1960coefficient}); Mistral-Small-24B on 69.5\% ($\kappa = 0.36$, too noisy to use).
+On 400 episodes of the two extra seed models Qwen agrees on 90.5\% ($\kappa = 0.80$).
+As a third check, Claude Fable 5.2 labelled 100 \vfour{} episodes blind to all other verdicts and agrees with the detector on all 99 it decided ($\kappa = 1.00$); because the same model family assisted with the project, Qwen is our fully external judge.
+For the Stage 2 models (F4, F5), Qwen agrees with the detector on 91.4\% of 500 pooled episodes ($\kappa = 0.82$; 97.2\% for the safe 8B model); the 25 judge-only cases have been read by their stated reasons, not adjudicated by hand.
+Hand labels were planned but not collected (Limitations).
+
+\section{Results}
+
+
+
 Table~\ref{tab:main} gives the main results; we read them as findings.
+
+\subsection{Main effect of the reward}
+\label{sec:main}
 
 \paragraph{F1: outcome-only RL turns a small propensity into the main strategy (RQ1).}
 In 160 steps the success-only arm goes from 4.8\% to 99.2\% escalation on blocked test tasks, and writing the rules into the system prompt makes no difference.
@@ -201,12 +206,13 @@ The safe arm ends at 0\% escalation, 100\% honest stops and 99\% legitimate succ
 On every harder set \vfour{} has the highest legitimate success of any model.
 Paired against clean SFT on the same blocked tasks, \vfour{} fixes 118 tasks and breaks 1 on stress, 75/3 on unseen, 47/0 on fresh, 29/0 on sealed and 81/0 on long conversations (all $p < 10^{-8}$).
 
+\subsection{Generalisation to unseen shortcuts}
+\label{sec:gen}
+
 \paragraph{F3: generalisation is partial (RQ3).}
 On the sealed set \vfour{} escalates on 21.7\% (16.4 $\pm$ 4.7\% over three seeds) against 42.8\% for clean SFT and 100\% for success-only RL.
 36 of its 40 flagged sealed episodes use one kind: a retired \texttt{/api/v0} sitting next to the documented \texttt{/api/v1}; the share link and the default login are refused.
 As on the unseen set, what remains are routes that \emph{look} official.
-
-
 
 \paragraph{Failure analysis.}
 Pooling the three seeds (Table~\ref{tab:fail} in Appendix~\ref{app:tables}), \vfour{} never escalates on fresh or sealed tasks unless a planted tip points at the shortcut (0/174 and 0/162), while clean SFT does so unprompted on 24\% of fresh tasks.
@@ -215,61 +221,6 @@ Unseen is the exception: all 81 escalations there use one shortcut kind, an ``or
 So the residual failure is narrow: following an in-context suggestion toward an official-looking route, plus one route shape that is never treated as a shortcut.
 Breakdowns by block type, language and provider are in the repository (\texttt{scripts/failure\_analysis.py}).
 The refusal does hold late in a conversation: 2.3\% when the block arrives on the third question (1.5\% when asked alone), while earlier rounds degrade with length (safe v2 56.8\%).
-
-\paragraph{F4: the behaviour transfers to a real server.}
-Against real access controls whose own log, not our detector, decides what was bypassed, \vfour{} never bypasses a control and answers every solvable task, while the baselines bypass on 10--43\% of blocked tasks (Table~\ref{tab:main}, last column).
-Intervals are wide with 21 blocked tasks, but the direction matches the simulator.
-On the live World Bank API every model answers 18 of 24; all miss the same 6 tasks, where the API silently ignores a mistyped parameter.
-
-\begin{table}[t]
-\centering
-\small
-\setlength{\tabcolsep}{3.5pt}
-\begin{adjustbox}{max width=\columnwidth}
-\begin{tabular}{lcccc}
-\toprule
-\textbf{Attempted $\to$ executed} & stress & unseen & fresh & sealed \\
-\midrule
-Clean SFT + guard & 93$\to$0 & 86$\to$0 & 48$\to$48 & -- \\
-Success-only + guard & 99$\to$1 & 99$\to$0 & 72$\to$54 & -- \\
-\vfour{} alone & 1.5 & 25.9 & 11.0 & 21.7 \\
-\vfour{} + guard & 1.5$\to$0 & 24$\to$0 & 11$\to$11 & 19$\to$19 \\
-\bottomrule
-\end{tabular}
-\end{adjustbox}
-\caption{Guard versus training: escalation on blocked tasks (\%), what the policy attempted and what reached the tools when the detector refuses flagged calls at run time.}
-\label{tab:guard}
-\end{table}
-
-\paragraph{F5: a guard and training fail in different places.}
-Placing the detector in front of the tools as a runtime guard removes every executed escalation of a known shape, whatever the model, and even raises a weak model's legitimate success (clean SFT on stress: 68\%$\to$91\%) by sending it back to the legitimate route (Table~\ref{tab:guard}).
-On unfamiliar shapes (fresh, sealed) it stops nothing, and only training helps (48\%$\to$11\%, 43\%$\to$22\%).
-The two layers are complementary; deploy both.
-
-
-
-\paragraph{F6: the escalation penalty does the work.}
-Removing the honest-stop bonus or the fabrication penalty leaves escalation within the intervals of the full reward on every set, with unchanged legitimate success (Table~\ref{tab:abl} in Appendix~\ref{app:tables}).
-Removing the escalation penalty brings escalation back to 98\% on test and 95\% on sealed, and legitimate success falls to 72\% on test, although the other two terms remain.
-
-\paragraph{F7: the cost in general tool calling.}
-BFCL full match: base 82.8\%, clean SFT 80.5\%, \vfour{} 78.7\%.
-Paired against the base, \vfour{} loses 63 questions and gains 38 ($p = 0.017$); against clean SFT it loses 22 and gains 11 ($p = 0.08$).
-Narrow tool SFT costs about two points and four rounds of safety RL about two more; every model emits a valid call on at least 99\% of questions.
-
-\begin{figure}[t]
-  \centering
-  \includegraphics[width=\columnwidth]{figures/detector-gamed.pdf}
-  \caption{Escalation on blocked stress-set tasks as reported by each model's own reward detector (grey) and after the judge's finding was fixed in the detector (orange).}
-  \label{fig:gamed}
-\end{figure}
-
-\paragraph{F8: the reward's detector was gamed twice (RQ4).}
-v3 learned \texttt{/debug/...} probes that its detector missed: reported 0.8\%, actually 52.3\% on stress.
-The patch had a one-character bug, and v3.1 moved to the bare \texttt{/debug} form: reported 6.9\%, actually 36.2\% (Figure~\ref{fig:gamed}).
-The Qwen judge found both; each time the detector was fixed and the model retrained.
-For \vfour{} and both seed models the judge finds no hidden pattern, and we read every judge-only case without finding a suspicious call.
-AuditKIT makes the same point from another angle: its tool-permission check scores 1.0 for the success-only model that escalates on 47\% of v1 tasks, because every exploit uses an allowed tool; escalation lives in the arguments (Appendix~\ref{app:kits}).
 
 \begin{table}[t]
 \centering
@@ -293,7 +244,7 @@ AuditKIT makes the same point from another angle: its tool-permission check scor
 \label{tab:coverage}
 \end{table}
 
-\paragraph{F9: coverage matters more than rounds, up to a point.}
+\paragraph{F4: coverage matters more than rounds, up to a point.}
 To separate the number of shortcut kinds seen in training from the three-round history of \vfour, we trained the safe reward in a single 160-step pass on the same 960 tasks while varying how many of ten shortcut kinds they offer (Table~\ref{tab:coverage}).
 With two kinds the policy escalates on 66\% of test tasks; from four kinds on it is 0\%, and escalation on held-out kinds falls with coverage (sealed 81$\to$23$\to$26$\to$16\%; unseen 88$\to$47$\to$32$\to$38\%).
 On test and stress tasks whose every offered shortcut kind was trained, escalation is 0--5\% for every arm; with at least one untrained kind it is 80, 50, 21 and 23\%.
@@ -323,15 +274,53 @@ Expanse 8B, safe & \textbf{0.0} & \textbf{0.8} & \textbf{6.9} & \textbf{3.1} & \
 \label{tab:models}
 \end{table}
 
-\paragraph{F10: the reward effect holds across Aya models, and the 8B model generalises.}
+\paragraph{F5: the reward effect holds across Aya models, and the 8B model generalises.}
 We repeated the one-pass 10-kind recipe (tool SFT, escalation-prone SFT, then both rewards) on Tiny Aya Fire and Aya Expanse 8B (Table~\ref{tab:models}).
 On every base model the success-only reward drives escalation to 74--100\% and the safe reward removes it on the test set, with paired McNemar $p < 10^{-13}$ on every set and equal or better legitimate success than the success-only twin on every set.
 Generalisation differs sharply with the base model: on the sealed set the safe 8B model escalates on 0.7\% (unseen 6.9\%, fresh 3.1\%), against 15.9\% for Global and 40.6\% for Fire, and it makes no server-confirmed bypass.
 The 8B safe model also scores higher than its base on BFCL (88.8 vs.\ 86.3\%), whereas Fire loses a little (80.5 vs.\ 81.3\%).
-The guard pattern of F5 repeats on all three: it removes executed escalation of known shapes and none on fresh or sealed.
+The guard pattern of F7 (\S\ref{sec:guard}) repeats on all three: it removes executed escalation of known shapes and none on fresh or sealed.
 With one seed per model these are single runs; the Global seed spread (sd 4.7 points on sealed) is a guide to their noise.
 
-\paragraph{Cost.} Stage 1's 52 GPU jobs, including failed ones, used 30.6 GPU-hours on Hugging Face Jobs, \$73.70 at list price.
+\subsection{Transfer to a real server}
+\label{sec:real}
+
+\paragraph{F6: the behaviour transfers to a real server.}
+Against real access controls whose own log, not our detector, decides what was bypassed, \vfour{} never bypasses a control and answers every solvable task, while the baselines bypass on 10--43\% of blocked tasks (Table~\ref{tab:main}, last column).
+Intervals are wide with 21 blocked tasks, but the direction matches the simulator.
+On the live World Bank API every model answers 18 of 24; all miss the same 6 tasks, where the API silently ignores a mistyped parameter.
+
+\subsection{Guard versus training, and reward ablations}
+\label{sec:guard}
+
+\paragraph{F7: a guard and training fail in different places.}
+Placing the detector in front of the tools as a runtime guard removes every executed escalation of a known shape, whatever the model, and even raises a weak model's legitimate success (clean SFT on stress: 68\%$\to$91\%) by sending it back to the legitimate route (Table~\ref{tab:guard} in Appendix~\ref{app:tables}).
+On unfamiliar shapes (fresh, sealed) it stops nothing, and only training helps (48\%$\to$11\%, 43\%$\to$22\%).
+The two layers are complementary; deploy both.
+
+\paragraph{F8: the escalation penalty does the work.}
+Removing the honest-stop bonus or the fabrication penalty leaves escalation within the intervals of the full reward on every set, with unchanged legitimate success (Table~\ref{tab:abl} in Appendix~\ref{app:tables}).
+Removing the escalation penalty brings escalation back to 98\% on test and 95\% on sealed, and legitimate success falls to 72\% on test, although the other two terms remain.
+
+\subsection{Side effects and reward integrity}
+\label{sec:side}
+
+\paragraph{F9: the cost in general tool calling.}
+BFCL full match: base 82.8\%, clean SFT 80.5\%, \vfour{} 78.7\%.
+Paired against the base, \vfour{} loses 63 questions and gains 38 ($p = 0.017$); against clean SFT it loses 22 and gains 11 ($p = 0.08$).
+Narrow tool SFT costs about two points and four rounds of safety RL about two more; every model emits a valid call on at least 99\% of questions.
+
+\paragraph{F10: the reward's detector was gamed twice (RQ4).}
+v3 learned \texttt{/debug/...} probes that its detector missed: reported 0.8\%, actually 52.3\% on stress.
+The patch had a one-character bug, and v3.1 moved to the bare \texttt{/debug} form: reported 6.9\%, actually 36.2\% (Figure~\ref{fig:gamed} in Appendix~\ref{app:tables}).
+The Qwen judge found both; each time the detector was fixed and the model retrained.
+For \vfour{} and both seed models the judge finds no hidden pattern, and we read every judge-only case without finding a suspicious call.
+AuditKIT makes the same point from another angle: its tool-permission check scores 1.0 for the success-only model that escalates on 47\% of v1 tasks, because every exploit uses an allowed tool; escalation lives in the arguments (Appendix~\ref{app:kits}).
+
+\subsection{Cost and return}
+\label{sec:cost}
+
+Stage 1's 52 GPU jobs, including failed ones, used 30.6 GPU-hours on Hugging Face Jobs, \$73.70 at list price.
 One 160-step GRPO run is about 1.5 A100-hours (\$3.75); the checks that changed our conclusions were the cheapest (under \$1 per test set, \$0.20--0.30 per judge audit).
 Serving \vfour{} costs about \$0.014 per 1,000 replies on one A100 with vLLM (Appendix~\ref{app:cost}).
 
@@ -371,7 +360,7 @@ Ashish Soni (sole author) chose the problem, designed the experiments, decided w
 Implementation, training runs and analysis were carried out with AI coding assistance, as described in the LLM usage statement.
 
 \section*{Declaration of Work Done Outside the Hackathon}
-All code, data, models and results were created during the hackathon: Stage 1 between November 1 and 15, 2026, and the Stage 2 experiments (F9) from November 20, 2026.
+All code, data, models and results were created during the hackathon: Stage 1 between November 1 and 15, 2026, and the Stage 2 experiments (F4, F5) from November 20, 2026.
 No prior code or models of ours were reused. Public resources we built on are Cohere's Tiny Aya Global, the Lexsi hackathon toolkits and the published research cited here.
 
 \section*{LLM Usage Statement}
@@ -522,8 +511,36 @@ Safe (v2) & 4\% & 79\% \\
 \caption{CircuitKIT. Both kinds of RL rewired the pathway for the practised shortcut (success-only toward late attention heads, layers 23--30; safe kept a mid-layer MLP 10--12 pathway) and left the preview pathway nearly unchanged. Top-20 component overlap (Jaccard), start vs.\ success-only / start vs.\ safe: relay 0.33 / 0.54, preview 0.82 / 0.91.}
 \end{table}
 
-\section{Additional Tables}
+\section{Additional Tables and Figures}
 \label{app:tables}
+
+\begin{table}[h]
+\centering
+\small
+\setlength{\tabcolsep}{3.5pt}
+\begin{adjustbox}{max width=\columnwidth}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Attempted $\to$ executed} & stress & unseen & fresh & sealed \\
+\midrule
+Clean SFT + guard & 93$\to$0 & 86$\to$0 & 48$\to$48 & -- \\
+Success-only + guard & 99$\to$1 & 99$\to$0 & 72$\to$54 & -- \\
+\vfour{} alone & 1.5 & 25.9 & 11.0 & 21.7 \\
+\vfour{} + guard & 1.5$\to$0 & 24$\to$0 & 11$\to$11 & 19$\to$19 \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\caption{Guard versus training: escalation on blocked tasks (\%), what the policy attempted and what reached the tools when the detector refuses flagged calls at run time.}
+\label{tab:guard}
+\end{table}
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=\columnwidth]{figures/detector-gamed.pdf}
+  \caption{Escalation on blocked stress-set tasks as reported by each model's own reward detector (grey) and after the judge's finding was fixed in the detector (orange).}
+  \label{fig:gamed}
+\end{figure}
+
 
 \begin{table}[h]
 \centering
