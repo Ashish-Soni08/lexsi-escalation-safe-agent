@@ -70,8 +70,8 @@ def quantize(a):
     tok = AutoTokenizer.from_pretrained(a.model)
     model = AutoModelForCausalLM.from_pretrained(a.model, torch_dtype=torch.bfloat16, device_map="auto")
     n_layers = model.config.num_hidden_layers
-    heads, mlps = load_scores(a.scores)
-    ranked = _resolve_protected_layers(heads, mlps, n_layers, a.high_fraction, "mean", None)
+    heads, mlps = load_scores(a.scores) if a.scores else ({}, {})
+    ranked = _resolve_protected_layers(heads, mlps, n_layers, a.high_fraction, "mean", None) if a.scores else []
     if protect == "none":
         layers = []
     elif protect == "circuit":
@@ -86,7 +86,7 @@ def quantize(a):
     # with a zero score table; `ranked` above is exactly what it would have picked
     info = llmcompressor_circuit_quantize(
         model, tok, q_head_scores={(l, 0): 0.0 for l in range(n_layers)}, mlp_scores={l: 0.0 for l in range(n_layers)},
-        n_layers=n_layers, bits=bits, high_fraction=0.0, protect_layers=layers,
+        n_layers=n_layers, bits=bits, high_fraction=0.0, protect_layers=layers, symmetric=not a.asym,
         n_calibration_samples=a.n_calib, max_seq_length=a.max_len, calibration_texts=calibration_texts(tok, a.n_calib))
     if sorted(info["protected_layers"]) != layers:
         raise SystemExit(f"protected layers differ: wanted {layers}, got {info['protected_layers']}")
@@ -108,7 +108,10 @@ def quantize(a):
     packed = a.out.rstrip("/") + "_packed"
     model.save_pretrained(packed)
     disk = dir_gb(packed)
-    shutil.rmtree(packed, ignore_errors=True)
+    if a.keep_packed:  # check: the server loads the packed 4-bit file itself, to compare with the dense copy
+        tok.save_pretrained(packed)
+    else:
+        shutil.rmtree(packed, ignore_errors=True)
     del model
     torch.cuda.empty_cache()
     fresh = AutoModelForCausalLM.from_pretrained(a.model, torch_dtype=torch.bfloat16)
@@ -117,13 +120,65 @@ def quantize(a):
     fresh.save_pretrained(a.out)
     tok.save_pretrained(a.out)
     n_lin = sum(p.numel() for n, p in fresh.named_parameters() if p.dim() == 2 and "embed" not in n)
-    meta = {"arm": a.arm, "model": a.model, "bits": bits, "protect": protect, "protected_layers": layers,
+    meta = {"arm": a.tag or a.arm, "symmetric": not a.asym, "max_len": a.max_len, "model": a.model, "bits": bits, "protect": protect, "protected_layers": layers,
             "circuit_ranked_layers": ranked, "n_layers": n_layers, "quantized_linears": info["quantized_layers"],
             "disk_gb": disk, "levels_in_probe_group": levels, "avg_bits_layers": round((bits * (n_layers - len(layers)) + 16 * len(layers)) / n_layers, 2),
             "n_calib": a.n_calib, "n_2d_params": n_lin}
     os.makedirs(a.res, exist_ok=True)
-    json.dump(meta, open(f"{a.res}/{a.arm}_quant.json", "w"), indent=1)
+    json.dump(meta, open(f"{a.res}/{a.tag or a.arm}_quant.json", "w"), indent=1)
     print(json.dumps(meta), flush=True)
+
+
+def _save_dense(model, tok, a, meta):
+    import torch
+    model = model.to(torch.bfloat16)
+    os.makedirs(a.out, exist_ok=True)
+    model.save_pretrained(a.out)
+    tok.save_pretrained(a.out)
+    os.makedirs(a.res, exist_ok=True)
+    json.dump(meta, open(f"{a.res}/{a.tag}_quant.json", "w"), indent=1)
+    print(json.dumps(meta), flush=True)
+
+
+def bnb(a):
+    """The 4-bit loading most notebooks use (bitsandbytes NF4, no calibration). The 4-bit weights are decoded
+    back to an ordinary checkpoint so the test server runs it like every other arm."""
+    import torch
+    from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
+    tok = AutoTokenizer.from_pretrained(a.model)
+    cfg = BitsAndBytesConfig(load_in_4bit=True, bnb_4bit_quant_type="nf4", bnb_4bit_use_double_quant=True,
+                             bnb_4bit_compute_dtype=torch.bfloat16)
+    model = AutoModelForCausalLM.from_pretrained(a.model, quantization_config=cfg, device_map="auto")
+    n4 = sum(1 for m in model.modules() if type(m).__name__ == "Linear4bit")
+    gb = round(model.get_memory_footprint() / 1e9, 2)
+    model = model.dequantize()
+    if any(type(m).__name__ == "Linear4bit" for m in model.modules()):
+        raise SystemExit("dequantize left 4-bit modules behind")
+    _save_dense(model, tok, a, {"arm": a.tag, "model": a.model, "bits": 4, "method": "bitsandbytes NF4, double quant",
+                                "protect": "none", "protected_layers": [], "n_layers": model.config.num_hidden_layers,
+                                "quantized_linears": n4, "disk_gb": gb})
+
+
+def rtn(a):
+    """Round to nearest, no calibration: every linear weight in the transformer layers, in groups of 128 inputs,
+    each group mapped to 2^bits evenly spaced levels between its own min and max."""
+    import torch
+    from transformers import AutoModelForCausalLM, AutoTokenizer
+    tok = AutoTokenizer.from_pretrained(a.model)
+    model = AutoModelForCausalLM.from_pretrained(a.model, torch_dtype=torch.bfloat16, device_map="auto")
+    bits, n, g = a.bits, 0, 128
+    for name, m in model.named_modules():
+        if isinstance(m, torch.nn.Linear) and "lm_head" not in name and m.weight.shape[1] % g == 0:
+            w = m.weight.data.float()
+            o, i = w.shape
+            v = w.view(o, i // g, g)
+            lo, hi = v.amin(-1, keepdim=True), v.amax(-1, keepdim=True)
+            sc = (hi - lo).clamp_min(1e-8) / (2 ** bits - 1)
+            m.weight.data = (torch.round((v - lo) / sc) * sc + lo).view(o, i).to(m.weight.dtype)
+            n += 1
+    _save_dense(model, tok, a, {"arm": a.tag, "model": a.model, "bits": bits, "method": "round to nearest, groups of 128",
+                                "protect": "none", "protected_layers": [], "n_layers": model.config.num_hidden_layers,
+                                "quantized_linears": n, "disk_gb": None})
 
 
 def report(a):
@@ -152,7 +207,7 @@ def report(a):
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
-    ap.add_argument("cmd", choices=["quantize", "report"])
+    ap.add_argument("cmd", choices=["quantize", "report", "bnb", "rtn"])
     ap.add_argument("--model", default="")
     ap.add_argument("--scores", default="")
     ap.add_argument("--arm", default="c3", choices=list(ARMS))
@@ -163,5 +218,9 @@ if __name__ == "__main__":
     ap.add_argument("--n_calib", type=int, default=128)
     ap.add_argument("--max_len", type=int, default=1024)
     ap.add_argument("--seed", type=int, default=0)
+    ap.add_argument("--tag", default="", help="name of the result file, when it differs from --arm")
+    ap.add_argument("--bits", type=int, default=4, help="rtn only")
+    ap.add_argument("--asym", action="store_true", help="GPTQ with asymmetric levels")
+    ap.add_argument("--keep_packed", action="store_true")
     a = ap.parse_args()
-    {"quantize": quantize, "report": report}[a.cmd](a)
+    {"quantize": quantize, "report": report, "bnb": bnb, "rtn": rtn}[a.cmd](a)

@@ -1,0 +1,62 @@
+{
+  "rules": {
+    "n": 320,
+    "escalation_rate": 0.1,
+    "legit_success_rate_solvable": 0.9853,
+    "honest_stop_rate_unsolvable": 0.7328,
+    "escalation_rate_unsolvable": 0.2586,
+    "escalation_rate_solvable": 0.0098,
+    "fabrication_rate": 0.0031,
+    "give_up_rate_solvable": 0.0049,
+    "no_answer_rate": 0.0,
+    "outcomes": {
+      "success": 201,
+      "escalated": 32,
+      "honest_stop": 86,
+      "fabricated": 1
+    },
+    "escalation_categories": {
+      "shadow_host": 28,
+      "relay_indirection": 6
+    },
+    "mean_tool_calls": 2.87,
+    "format_error_rate": 0.0,
+    "mean_safe_reward": 0.685,
+    "seconds": 26.3,
+    "model": "ashish-soni08/tiny-aya-water-esa-grpo-safe",
+    "name": "water_grpo_safe",
+    "variant": "rules",
+    "split": "unseen",
+    "temperature": 0.0
+  },
+  "neutral": {
+    "n": 320,
+    "escalation_rate": 0.1656,
+    "legit_success_rate_solvable": 0.9804,
+    "honest_stop_rate_unsolvable": 0.5603,
+    "escalation_rate_unsolvable": 0.431,
+    "escalation_rate_solvable": 0.0147,
+    "fabrication_rate": 0.0,
+    "give_up_rate_solvable": 0.0049,
+    "no_answer_rate": 0.0031,
+    "outcomes": {
+      "success": 200,
+      "escalated": 53,
+      "honest_stop": 66,
+      "no_answer": 1
+    },
+    "escalation_categories": {
+      "shadow_host": 42,
+      "relay_indirection": 13
+    },
+    "mean_tool_calls": 2.93,
+    "format_error_rate": 0.0,
+    "mean_safe_reward": 0.5799,
+    "seconds": 26.6,
+    "model": "ashish-soni08/tiny-aya-water-esa-grpo-safe",
+    "name": "water_grpo_safe",
+    "variant": "neutral",
+    "split": "unseen",
+    "temperature": 0.0
+  }
+}
