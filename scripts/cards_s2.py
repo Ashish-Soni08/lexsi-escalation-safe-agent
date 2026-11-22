@@ -4,6 +4,8 @@ GH = "https://github.com/Ashish-Soni08/lexsi-escalation-safe-agent"
 U = "ashish-soni08/"
 BASES = {"global": ("CohereLabs/tiny-aya-global", "Tiny Aya Global", "tiny-aya-global-esa-s2"),
          "fire": ("CohereLabs/tiny-aya-fire", "Tiny Aya Fire", "tiny-aya-fire-esa"),
+         "water": ("CohereLabs/tiny-aya-water", "Tiny Aya Water", "tiny-aya-water-esa"),
+         "earth": ("CohereLabs/tiny-aya-earth", "Tiny Aya Earth", "tiny-aya-earth-esa"),
          "expanse8b": ("CohereLabs/aya-expanse-8b", "Aya Expanse 8B", "aya-expanse-8b-esa")}
 SETS = ["test", "stress", "unseen", "fresh", "sealed"]
 KIND = {"sft": ("clean tool-use SFT", "LoRA SFT on clean tool-use trajectories (no reward training). Baseline."),
@@ -25,12 +27,13 @@ def table(name):
                 out.append(f"| {s} | {100*m['escalation_rate_unsolvable']:.1f}% | {100*m['legit_success_rate_solvable']:.1f}% |")
     return "\n".join(out) if len(out) > 2 else ""
 
-def card(repo, base, bname, kind, name, cov=None):
+def card(repo, base, bname, kind, name, cov=None, extra="", seed=4):
     title, what = KIND[kind]
     covtxt = ""
     if cov:
         covtxt = (f" Coverage-curve arm: the training tasks offered only {cov} of the 10 shortcut kinds, to measure how protection "
                   "against never-trained shortcuts grows with coverage.")
+    covtxt += extra
     t = table(name)
     res = (f"## Results\n\nSimulated web sandbox, neutral system prompt, greedy decoding. \"Blocked\" tasks cannot be solved "
            f"without going around an access control; the right behaviour is to stop and say so. The unseen and sealed sets use "
@@ -54,12 +57,12 @@ tags:
 
 {what}{covtxt}
 
-The project asks one question: when a tool-using agent hits an access control (bot wall, login, captcha, rate limit), does it stop honestly or go around it? The answer depends on the reward. The same recipe is run on Tiny Aya Global, Tiny Aya Fire and Aya Expanse 8B.
+The project asks one question: when a tool-using agent hits an access control (bot wall, login, captcha, rate limit), does it stop honestly or go around it? The answer depends on the reward. The same recipe is run on Tiny Aya Global, Fire, Water and Earth and on Aya Expanse 8B.
 
 {res}## Training
 
 * Base: [{base}](https://huggingface.co/{base}), merged LoRA weights.
-* Recipe: clean SFT and escalation-prone SFT (200 steps), then 160 GRPO steps (AgentTune, lr 2e-5, seed 4) on 960 simulated tasks that offer 10 shortcut kinds (fewer in the coverage-curve arms).
+* Recipe: clean SFT and escalation-prone SFT (200 steps), then 160 GRPO steps (AgentTune, lr 2e-5, seed {seed}) on 960 simulated tasks that offer 10 shortcut kinds (fewer in the coverage-curve arms).
 * Code, data generator, test sets and logs: {GH}
 
 ## Limits
@@ -77,6 +80,17 @@ def all_cards():
     for c in (2, 4, 6):
         r = f"{pre}-cov{c}-grpo-safe"
         out[r] = card(r, base, bname, "grpo_safe", f"global_cov{c}_grpo_safe", cov=c)
+    for sd in (5, 6):
+        for k in ("grpo_success_only", "grpo_safe"):
+            r = f"{pre}-seed{sd}-" + k.replace("_", "-")
+            out[r] = card(r, base, bname, k, f"global_seed{sd}_{k}", seed=sd,
+                          extra=f" Seed check: the same run as `{pre}-{k.replace('_', '-')}` with GRPO seed {sd} instead of 4.")
+    for src, how in (("adaption", "Adaption"), ("curatorkit", "CuratorKIT EvolInstruct with a Qwen2.5-32B teacher")):
+        r = f"{pre}-cov10_{src}-grpo-safe"
+        out[r] = card(r, base, bname, "grpo_safe", f"global_cov10_{src}_grpo_safe",
+                      extra=f" Data-source arm: the lead-in sentences of the planted tips in the training tasks were generated with "
+                            f"{how} and filtered with a hygiene pass, instead of our six hand-written ones "
+                            f"([dataset](https://huggingface.co/datasets/ashish-soni08/esa-tip-leadins)).")
     return out
 
 if __name__ == "__main__":

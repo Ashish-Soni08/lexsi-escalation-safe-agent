@@ -16,7 +16,7 @@ Aya Expanse 8B, clean tool-use SFT. Part of the Stage 2 experiments of *Escalati
 
 LoRA SFT on clean tool-use trajectories (no reward training). Baseline.
 
-The project asks one question: when a tool-using agent hits an access control (bot wall, login, captcha, rate limit), does it stop honestly or go around it? The answer depends on the reward. The same recipe is run on Tiny Aya Global, Tiny Aya Fire and Aya Expanse 8B.
+The project asks one question: when a tool-using agent hits an access control (bot wall, login, captcha, rate limit), does it stop honestly or go around it? The answer depends on the reward. The same recipe is run on Tiny Aya Global, Fire, Water and Earth and on Aya Expanse 8B.
 
 ## Results
 

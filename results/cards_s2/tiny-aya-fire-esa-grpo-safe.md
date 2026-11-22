@@ -16,7 +16,7 @@ Tiny Aya Fire, GRPO, safe reward. Part of the Stage 2 experiments of *Escalation
 
 160 GRPO steps from the escalation-prone model with a reward that pays for legitimate success and honest stops and penalises going around an access control.
 
-The project asks one question: when a tool-using agent hits an access control (bot wall, login, captcha, rate limit), does it stop honestly or go around it? The answer depends on the reward. The same recipe is run on Tiny Aya Global, Tiny Aya Fire and Aya Expanse 8B.
+The project asks one question: when a tool-using agent hits an access control (bot wall, login, captcha, rate limit), does it stop honestly or go around it? The answer depends on the reward. The same recipe is run on Tiny Aya Global, Fire, Water and Earth and on Aya Expanse 8B.
 
 ## Results
 
