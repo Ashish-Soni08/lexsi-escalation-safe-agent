@@ -268,6 +268,17 @@ Tiny Aya Global, safe reward (10 kinds). Every version is tested as an ordinary 
 | bitsandbytes NF4 4-bit | 2.48 | 0.0 | 25.4 | 25.9 | 19.6 | 90.9 | 1.6 | 76.7 |
 | round to nearest 4-bit | n/a | 0.0 | 30.8 | 27.6 | 18.8 | 89.2 | 2.0 | 70.2 |
 | GPTQ 4-bit | 2.54 | 0.0 | 31.5 | 44.8 | 19.6 | 93.4 | 0.2 | 75.7 |
+| round to nearest 3-bit | n/a | 0.0 | 0.0 | 0.0 | 0.0 | 9.7 | 88.6 | 57.2 |
+| GPTQ 3-bit | 2.18 | 0.8 | 20.0 | 16.4 | 18.8 | 90.2 | 3.1 | 65.8 |
+| GPTQ 3-bit, circuit layers kept | 4.57 | 0.0 | 26.2 | 31.0 | 26.8 | 94.8 | 0.5 | 74.5 |
+| GPTQ 3-bit, random layers kept (draw 1) | 4.57 | 0.0 | 31.5 | 10.3 | 16.7 | 92.7 | 0.5 | 72.0 |
+| GPTQ 3-bit, random layers kept (draw 2) | 4.57 | 0.0 | 16.2 | 29.3 | 20.3 | 93.8 | 0.3 | 73.3 |
+| GPTQ 3-bit, random layers kept (draw 3) | 4.57 | 0.0 | 30.0 | 30.2 | 29.0 | 95.9 | 0.5 | 72.3 |
+| GPTQ 3-bit, lowest-ranked layers kept | 4.57 | 0.0 | 20.0 | 27.6 | 16.7 | 95.6 | 0.2 | 70.5 |
+
+Layers kept at 16-bit: c3a: [0, 1, 2, 3, 10, 12, 14, 15, 17, 18, 19, 20, 23, 27, 28, 30, 31, 34, 35]; r3a: [2, 3, 4, 6, 9, 11, 12, 15, 16, 18, 20, 24, 25, 26, 27, 29, 31, 32, 34]; r3ba: [0, 3, 4, 6, 7, 8, 12, 13, 14, 15, 16, 20, 21, 24, 25, 26, 28, 29, 31]; r3ca: [1, 3, 5, 6, 8, 9, 10, 12, 13, 18, 19, 21, 23, 24, 25, 27, 32, 33, 34]; a3a: [4, 5, 6, 8, 9, 13, 14, 16, 22, 23, 24, 25, 26, 28, 29, 30, 31, 32, 33].
+
+Reading: at 4-bit and at 3-bit (GPTQ) the model keeps both its capability and its escalation rates, which stay within the spread we see between training seeds. Round to nearest fails at 3-bit, so calibration matters there. Keeping the circuit-ranked layers at 16-bit does not give lower escalation than keeping random or lowest-ranked layers, and plain 3-bit GPTQ with nothing kept is already close to full precision at a third of the size.
 
 ### First pass: GPTQ with CircuitKIT's default settings (symmetric levels, 128 calibration texts)
 
@@ -329,8 +340,8 @@ The GPU price is $2.50 per hour for an A100 80GB on Hugging Face Jobs; Modal lis
 | account | jobs | GPU hours (A100 80GB) | USD |
 |---|---|---|---|
 | own Hugging Face credits | 12 | 23.2 | 58 |
-| organiser credits | 12 | 20.2 | 50 |
-| total GPU | 24 | 43.3 | 108 |
+| organiser credits | 14 | 21.8 | 54 |
+| total GPU | 26 | 45.0 | 112 |
 | closed-model API calls |  |  | 7 |
 
-Job list as of 22 Nov, 15:20 UTC. Includes 11.9 GPU hours of jobs that failed (most were stopped by a storage limit and run again).
+Job list as of 22 Nov, 17:50 UTC. Includes 11.9 GPU hours of jobs that failed (most were stopped by a storage limit and run again).

@@ -1,0 +1,23 @@
+{
+ "gsafe_a3a": {
+  "model": "outputs/quant/a3a",
+  "simple": {
+   "n": 400,
+   "valid_call": 0.9925,
+   "right_function": 0.9425,
+   "match": 0.7125
+  },
+  "multiple": {
+   "n": 200,
+   "valid_call": 0.975,
+   "right_function": 0.88,
+   "match": 0.69
+  },
+  "all": {
+   "n": 600,
+   "valid_call": 0.9867,
+   "right_function": 0.9217,
+   "match": 0.705
+  }
+ }
+}

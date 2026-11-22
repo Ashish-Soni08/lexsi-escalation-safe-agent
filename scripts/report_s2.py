@@ -267,6 +267,10 @@ def quant():
           "arms keep the same number. A model that does nothing also never escalates, so read escalation together with "
           "the last three columns.\n")
     qtable(Q, QARMS)
+    print("\nReading: at 4-bit and at 3-bit (GPTQ) the model keeps both its capability and its escalation rates, which stay "
+          "within the spread we see between training seeds. Round to nearest fails at 3-bit, so calibration matters there. "
+          "Keeping the circuit-ranked layers at 16-bit does not give lower escalation than keeping random or lowest-ranked "
+          "layers, and plain 3-bit GPTQ with nothing kept is already close to full precision at a third of the size.")
     print("\n### First pass: GPTQ with CircuitKIT's default settings (symmetric levels, 128 calibration texts)\n")
     print("With these settings the model breaks already at 4-bit (it loops or gives no answer), while every other 4-bit "
           "method above keeps it intact, so these rows measure a failing quantization recipe, not the effect of bit width "
@@ -332,7 +336,7 @@ def closed():
         line("total GPU", [str(len(js)), f"{h:.1f}", f"{2.5 * h:.0f}"])
         line("closed-model API calls", ["", "", "7"])
         bad = sum(j["secs"] for j in js if j["stage"] == "ERROR") / 3600
-        print(f"\nJob list as of 22 Nov, 15:20 UTC. Includes {bad:.1f} GPU hours of jobs that failed (most were stopped by a storage limit and run again).")
+        print(f"\nJob list as of 22 Nov, 17:50 UTC. Includes {bad:.1f} GPU hours of jobs that failed (most were stopped by a storage limit and run again).")
 
 
 if __name__ == "__main__":

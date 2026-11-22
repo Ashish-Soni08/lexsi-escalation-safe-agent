@@ -1,0 +1,23 @@
+{
+ "gsafe_rtn3": {
+  "model": "outputs/quant/rtn3",
+  "simple": {
+   "n": 400,
+   "valid_call": 0.935,
+   "right_function": 0.8975,
+   "match": 0.605
+  },
+  "multiple": {
+   "n": 200,
+   "valid_call": 0.95,
+   "right_function": 0.72,
+   "match": 0.505
+  },
+  "all": {
+   "n": 600,
+   "valid_call": 0.94,
+   "right_function": 0.8383,
+   "match": 0.5717
+  }
+ }
+}

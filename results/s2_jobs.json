@@ -97,10 +97,26 @@
  },
  {
   "ns": "Escalation-safe",
+  "name": "esa-quant2",
+  "flavor": "a100-large",
+  "secs": 3508,
+  "stage": "COMPLETED",
+  "created": "2026-11-22T15:51:34.377000+00:00"
+ },
+ {
+  "ns": "Escalation-safe",
+  "name": "esa-judge_s2b",
+  "flavor": "a100-large",
+  "secs": 284,
+  "stage": "COMPLETED",
+  "created": "2026-11-22T15:11:06.612000+00:00"
+ },
+ {
+  "ns": "Escalation-safe",
   "name": "esa-quant_diag",
   "flavor": "a100-large",
-  "secs": 28,
-  "stage": "RUNNING",
+  "secs": 2056,
+  "stage": "COMPLETED",
   "created": "2026-11-22T15:05:32.323000+00:00"
  },
  {
