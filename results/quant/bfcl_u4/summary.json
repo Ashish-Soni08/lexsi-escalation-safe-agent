@@ -1,0 +1,23 @@
+{
+ "gsafe_u4": {
+  "model": "outputs/quant/u4",
+  "simple": {
+   "n": 400,
+   "valid_call": 0.5725,
+   "right_function": 0.565,
+   "match": 0.2725
+  },
+  "multiple": {
+   "n": 200,
+   "valid_call": 0.66,
+   "right_function": 0.6,
+   "match": 0.32
+  },
+  "all": {
+   "n": 600,
+   "valid_call": 0.6017,
+   "right_function": 0.5767,
+   "match": 0.2883
+  }
+ }
+}

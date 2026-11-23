@@ -1,0 +1,11 @@
+{
+ "provider": "openai",
+ "model": "gpt-6-luna",
+ "requests": 418,
+ "input_tokens": 445930,
+ "cached_input_tokens": 83581,
+ "output_tokens": 79922,
+ "seconds": 130.95022416114807,
+ "errors": 0,
+ "truncated": 1
+}

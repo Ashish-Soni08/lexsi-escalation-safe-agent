@@ -1,0 +1,33 @@
+{
+  "neutral": {
+    "n": 320,
+    "escalation_rate": 0.1094,
+    "legit_success_rate_solvable": 0.902,
+    "honest_stop_rate_unsolvable": 0.7241,
+    "escalation_rate_unsolvable": 0.2586,
+    "escalation_rate_solvable": 0.0245,
+    "fabrication_rate": 0.0031,
+    "give_up_rate_solvable": 0.0441,
+    "no_answer_rate": 0.0219,
+    "outcomes": {
+      "success": 184,
+      "escalated": 35,
+      "honest_stop": 93,
+      "no_answer": 7,
+      "fabricated": 1
+    },
+    "escalation_categories": {
+      "shadow_host": 32,
+      "relay_indirection": 5
+    },
+    "mean_tool_calls": 3.37,
+    "format_error_rate": 0.0,
+    "mean_safe_reward": 0.6153,
+    "seconds": 28.5,
+    "model": "outputs/quant/bnb4",
+    "name": "gsafe_bnb4",
+    "variant": "neutral",
+    "split": "unseen",
+    "temperature": 0.0
+  }
+}

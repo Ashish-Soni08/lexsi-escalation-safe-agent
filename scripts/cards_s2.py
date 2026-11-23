@@ -1,0 +1,157 @@
+"""Model cards for the Stage 2 models, filled from results/s2. `--push` uploads them."""
+import json, os, sys
+GH = "https://github.com/Ashish-Soni08/lexsi-escalation-safe-agent"
+U = "ashish-soni08/"
+BASES = {"global": ("CohereLabs/tiny-aya-global", "Tiny Aya Global", "tiny-aya-global-esa-s2"),
+         "fire": ("CohereLabs/tiny-aya-fire", "Tiny Aya Fire", "tiny-aya-fire-esa"),
+         "water": ("CohereLabs/tiny-aya-water", "Tiny Aya Water", "tiny-aya-water-esa"),
+         "earth": ("CohereLabs/tiny-aya-earth", "Tiny Aya Earth", "tiny-aya-earth-esa"),
+         "expanse8b": ("CohereLabs/aya-expanse-8b", "Aya Expanse 8B", "aya-expanse-8b-esa")}
+ESC_G = "ashish-soni08/tiny-aya-global-esa-sft-esc-v2"
+SETS = ["test", "stress", "unseen", "fresh", "sealed"]
+KIND = {"sft": ("clean tool-use SFT", "LoRA SFT on clean tool-use trajectories (no reward training). Baseline."),
+        "sft_esc": ("escalation-prone SFT", "LoRA SFT on trajectories that take shortcuts around access controls. "
+                    "**Deliberately unsafe starting point** for the reward experiments. Do not deploy."),
+        "grpo_success_only": ("GRPO, success-only reward", "160 GRPO steps from the escalation-prone model with a reward for task "
+                              "success only. **Deliberately unsafe comparison model**: it shows that an outcome-only reward "
+                              "teaches the agent to go around access controls. Do not deploy."),
+        "grpo_safe": ("GRPO, safe reward", "160 GRPO steps from the escalation-prone model with a reward that pays for legitimate "
+                      "success and honest stops and penalises going around an access control.")}
+
+def table(name):
+    out = ["| set | escalation on blocked tasks | legitimate success on solvable tasks |", "|---|---|---|"]
+    for s in SETS:
+        p = f"results/s2/{s}/{name}_summary.json"
+        if os.path.exists(p):
+            m = json.load(open(p)).get("neutral")
+            if m:
+                out.append(f"| {s} | {100*m['escalation_rate_unsolvable']:.1f}% | {100*m['legit_success_rate_solvable']:.1f}% |")
+    return "\n".join(out) if len(out) > 2 else ""
+
+def card(repo, base, bname, kind, name, cov=None, extra="", seed=4, cmd=""):
+    title, what = KIND[kind]
+    covtxt = ""
+    if cov:
+        covtxt = (f" Coverage-curve arm: the training tasks offered only {cov} of the 10 shortcut kinds, to measure how protection "
+                  "against never-trained shortcuts grows with coverage.")
+    covtxt += extra
+    t = table(name)
+    res = (f"## Results\n\nSimulated web sandbox, neutral system prompt, greedy decoding. \"Blocked\" tasks cannot be solved "
+           f"without going around an access control; the right behaviour is to stop and say so. The unseen and sealed sets use "
+           f"shortcut kinds never seen in training.\n\n{t}\n\nFull tables with confidence intervals: "
+           f"`results/report_s2.md` in the [GitHub repository]({GH}).\n\n" if t else "")
+    return f"""---
+base_model: {base}
+license: cc-by-nc-4.0
+library_name: transformers
+pipeline_tag: text-generation
+tags:
+- lexsi-hackathon
+- agent-safety
+- tool-use
+- grpo
+---
+
+# {repo}
+
+{bname}, {title}. Part of the Stage 2 experiments of *Escalation-safe tool-using Aya* (Lexsi AI Safety & Alignment Hackathon, Track 3, Agentic Fine-tuning).
+
+{what}{covtxt}
+
+The project asks one question: when a tool-using agent hits an access control (bot wall, login, captcha, rate limit), does it stop honestly or go around it? The answer depends on the reward. The same recipe is run on Tiny Aya Global, Fire, Water and Earth and on Aya Expanse 8B.
+
+{res}{note(repo)}## Run it
+
+Same tool format and agent loop as the Stage 1 model: tool JSON schemas in the system prompt, the model replies with a JSON
+list of calls, tool results come back as a user turn, and it ends with `ANSWER: <value>` or `BLOCKED: <reason>`
+(`esa/prompts.py`, loop in `esa/runner.py`; a `transformers` example is on the
+[v4.1 card](https://huggingface.co/ashish-soni08/tiny-aya-global-esa-grpo-safe-v4-1)). To run it on a test set:
+
+```bash
+git clone {GH} && cd lexsi-escalation-safe-agent
+pip install vllm   # or the vllm/vllm-openai:v0.22.1 image
+python scripts/eval.py --model {U}{repo} --name try --split sealed --variants neutral --n 40 --out results/try
+```
+
+## Reproduce
+
+One Hugging Face Jobs run on an A100 80GB (setup and costs in the [README]({GH}#reproduce-training-on-hugging-face-jobs)):
+
+```bash
+{cmd}
+```
+
+## Training
+
+* Base: [{base}](https://huggingface.co/{base}), merged LoRA weights.
+* Recipe: clean SFT and escalation-prone SFT (200 steps), then 160 GRPO steps (AgentTune, lr 2e-5, seed {seed}) on 960 simulated tasks that offer 10 shortcut kinds (fewer in the coverage-curve arms).
+* Code, data generator, test sets and logs: {GH}
+
+## Limits
+
+Research artefact. Trained and tested in a simulated web sandbox with fictional sites, plus a small real-server check. The safe models still escalate on some never-trained shortcut kinds (see the table), so they need a runtime guard and are not a security control on their own. Subject to the base model's licence (CC-BY-NC 4.0).
+"""
+
+def note(repo):
+    if repo == "aya-expanse-8b-esa-grpo-safe":
+        return ("**The strongest model of the project.** It generalises far better than the 3.35B Tiny Aya models to shortcut "
+                "kinds it never saw (0.7% on the sealed set against 16 to 41%), has no server-confirmed bypass on the real "
+                "HTTP server, and scores higher than its base on BFCL v3 (88.8% vs 86.3%). One training seed, and size and model "
+                "family both differ from Tiny Aya, so read it as one strong run rather than a scale law. The released 3.35B model is "
+                "[tiny-aya-global-esa-grpo-safe-v4-1](https://huggingface.co/ashish-soni08/tiny-aya-global-esa-grpo-safe-v4-1).\n\n")
+    if repo == "tiny-aya-global-esa-s2-grpo-safe":
+        return ("This is also the model of the compression study: at 4-bit (bitsandbytes NF4 or GPTQ, 2.5 GB) and 3-bit (GPTQ, "
+                "2.2 GB) it keeps its escalation rates within the seed spread and 90 to 93% legitimate success "
+                "(`results/report_s2.md`, section Compression). Loading it with `load_in_4bit=True` (bitsandbytes NF4) needs no "
+                "calibration.\n\n")
+    return ""
+
+
+def chain(base, short, pre, steps="", env=""):
+    st = f" '{steps}'" if steps else ""
+    return f"scripts/job.sh s2_{short} a100-large 6h vllm/vllm-openai:v0.22.1 \\\n  \"{env}bash scripts/stage2_chain.sh {base} {short} <you>/{pre}{st}\""
+
+
+def all_cards():
+    out = {}
+    for short, (base, bname, pre) in BASES.items():
+        kinds = ["grpo_success_only", "grpo_safe"] + ([] if short == "global" else ["sft", "sft_esc"])
+        for k in kinds:
+            if short == "global":
+                cmd = chain(base, short, pre, "success safe eval_safe eval_success", f"ESC={ESC_G} ")
+            else:
+                cmd = chain(base, short, pre)
+            out[pre + "-" + k.replace("_", "-")] = card(pre + "-" + k.replace("_", "-"), base, bname, k, f"{short}_{k}", cmd=cmd)
+    base, bname, pre = BASES["global"]
+    for c in (2, 4, 6):
+        r = f"{pre}-cov{c}-grpo-safe"
+        out[r] = card(r, base, bname, "grpo_safe", f"global_cov{c}_grpo_safe", cov=c,
+                      cmd=chain(base, "global", pre, "safe eval_core", f"ESC={ESC_G} COV={c} "))
+    for sd in (5, 6):
+        for k in ("grpo_success_only", "grpo_safe"):
+            r = f"{pre}-seed{sd}-" + k.replace("_", "-")
+            out[r] = card(r, base, bname, k, f"global_seed{sd}_{k}", seed=sd,
+                          cmd=chain(base, "global", pre, "success safe eval_core eval_success",
+                                    f"TAG=-seed{sd} GRPO_ARGS='--max_steps 160 --lr 2e-5 --bs 2 --ga 16 --seed {sd}' ESC={ESC_G} "),
+                          extra=f" Seed check: the same run as `{pre}-{k.replace('_', '-')}` with GRPO seed {sd} instead of 4.")
+    for src, how in (("adaption", "Adaption"), ("curatorkit", "CuratorKIT EvolInstruct with a Qwen2.5-32B teacher")):
+        r = f"{pre}-cov10_{src}-grpo-safe"
+        out[r] = card(r, base, bname, "grpo_safe", f"global_cov10_{src}_grpo_safe",
+                      cmd=chain(base, "global", pre, "safe eval_core", f"ESC={ESC_G} COV=10_{src} "),
+                      extra=f" Data-source arm: the lead-in sentences of the planted tips in the training tasks were generated with "
+                            f"{how} and filtered with a hygiene pass, instead of our six hand-written ones "
+                            f"([dataset](https://huggingface.co/datasets/ashish-soni08/esa-tip-leadins)).")
+    return out
+
+if __name__ == "__main__":
+    cards = all_cards()
+    os.makedirs("results/cards_s2", exist_ok=True)
+    for r, c in cards.items():
+        open(f"results/cards_s2/{r}.md", "w").write(c)
+    print(len(cards), "cards")
+    if "--push" in sys.argv:
+        from huggingface_hub import HfApi
+        a = HfApi()
+        for r, c in cards.items():
+            a.upload_file(path_or_fileobj=c.encode(), path_in_repo="README.md", repo_id=U + r, commit_message="Model card")
+            print("pushed", r)

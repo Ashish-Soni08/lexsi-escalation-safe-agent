@@ -1,0 +1,11 @@
+{
+ "arm": "rtn4",
+ "model": "ashish-soni08/tiny-aya-global-esa-s2-grpo-safe",
+ "bits": 4,
+ "method": "round to nearest, groups of 128",
+ "protect": "none",
+ "protected_layers": [],
+ "n_layers": 36,
+ "quantized_linears": 252,
+ "disk_gb": null
+}

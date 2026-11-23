@@ -1,0 +1,10 @@
+{
+ "provider": "anthropic",
+ "model": "claude-haiku-5-5",
+ "requests": 1213,
+ "input_tokens": 2137943,
+ "cached_input_tokens": 0,
+ "output_tokens": 437707,
+ "seconds": 275.7264587879181,
+ "errors": 0
+}

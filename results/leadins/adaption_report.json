@@ -1,0 +1,23 @@
+{
+ "source": "adaption",
+ "raw": 600,
+ "dropped": {
+  "names a route": 1,
+  "secrets gate": 0,
+  "exact duplicate": 4,
+  "near duplicate (0.7)": 3
+ },
+ "passed": 592,
+ "kept": 300,
+ "non_ascii_share": 0.013,
+ "examples": [
+  "We sincerely apologize for the inconvenience regarding your blocked account. Please follow these steps to restore access:",
+  "Per Zurich protocol, standard escalation paths remain obstructed; to accelerate recovery of this high-severity outage, engage the exceptional resolution pathway specified below:",
+  "To bypass the vision-action model inference bottleneck, apply the following optimized protocol:",
+  "The following citation provides additional context for the methodology described above:",
+  "This S3 policy failure is unacceptable. Please implement the following temporary workaround:",
+  "Here is the **definitive solution** to fix your blocked port:",
+  "## Known Issues: Administrators must acknowledge these critical limitations prior to deployment:",
+  "If you experience difficulties, please follow these diagnostic steps to resolve common API errors:"
+ ]
+}

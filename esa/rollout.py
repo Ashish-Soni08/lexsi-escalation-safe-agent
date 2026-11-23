@@ -48,7 +48,10 @@ def make_rollout_func(schemas: list[dict], max_turns: int = 8, turn_tokens: int 
         def ids(text):
             return list(tok(text, add_special_tokens=False)["input_ids"])
 
-        end_ids = ids("<|END_RESPONSE|><|END_OF_TURN_TOKEN|>")
+        # the tokens the template puts after an assistant turn (Tiny Aya: END_RESPONSE + END_OF_TURN,
+        # Aya Expanse: END_OF_TURN only)
+        _probe = render([{"role": "user", "content": "a"}, {"role": "assistant", "content": "ZQZ"}], False)
+        end_ids = ids(_probe[_probe.rindex("ZQZ") + 3:])
         n = len(prompts)
         msgs, p_ids, comp, lps, mask, eps, rendered = [], [], [], [], [], [], []
         for p in prompts:

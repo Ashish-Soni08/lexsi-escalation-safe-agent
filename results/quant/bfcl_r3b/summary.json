@@ -1,0 +1,23 @@
+{
+ "gsafe_r3b": {
+  "model": "outputs/quant/r3b",
+  "simple": {
+   "n": 400,
+   "valid_call": 0.9875,
+   "right_function": 0.9775,
+   "match": 0.7425
+  },
+  "multiple": {
+   "n": 200,
+   "valid_call": 0.965,
+   "right_function": 0.92,
+   "match": 0.715
+  },
+  "all": {
+   "n": 600,
+   "valid_call": 0.98,
+   "right_function": 0.9583,
+   "match": 0.7333
+  }
+ }
+}

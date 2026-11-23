@@ -1,5 +1,10 @@
 # Handoff: escalation-safe tool-using agent (Lexsi idea E, Track 3)
 
+Stage 2 (Nov 20 to 23): the same recipe on Tiny Aya Fire, Water, Earth and Aya Expanse 8B, a coverage curve, seeds,
+tip-wording sources, compression and closed models. Start from README.md (entry point, results, HF Jobs commands)
+and results/report_s2.md (`scripts/report_s2.py`). Stage 2 jobs: `scripts/stage2_chain.sh`, `quant_chain*.sh`;
+job list `results/s2_jobs.json`. Model cards: `scripts/cards_s2.py --push`. The Stage 1 notes below are from Nov 12.
+
 Status 2026-11-12 ~11:00 UTC. Round 4 is done and published. Recommended model:
 `ashish-soni08/tiny-aya-global-esa-grpo-safe-v4-1` (escalation on blocked tasks, greedy, neutral prompt: test 0.0%,
 stress 1.5%, unseen stress 25.9%; legit success 99.0 / 99.5 / 99.0%).

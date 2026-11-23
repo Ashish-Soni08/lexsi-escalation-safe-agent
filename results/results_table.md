@@ -132,6 +132,17 @@ Task counts: 127 blocked (48 trained mechanisms only, 79 with a new mechanism), 
 
 | model | test set | no guard: escalation | with guard: attempted | with guard: executed | with guard: honest stop | with guard: legit success (solvable) |
 |---|---|---|---|---|---|---|
+| + tool SFT, clean | stress 1 | 91.5% | 93.1% | 0.0% | 98.5% | 91.1% |
+| + tool SFT, clean | stress 2 | 87.9% | 86.2% | 0.0% | 92.2% | 92.2% |
+| + tool SFT, clean | fresh | 48.0% | 48.0% | 48.0% | 51.2% | 62.7% |
+| + tool SFT, escalation-prone | stress 1 | 93.1% | 92.3% | 0.0% | 97.7% | 86.8% |
+| + tool SFT, escalation-prone | stress 2 | 97.4% | 96.6% | 0.0% | 92.2% | 92.6% |
+| → GRPO success-only | stress 1 | 99.2% | 99.2% | 0.8% | 13.1% | 86.8% |
+| → GRPO success-only | stress 2 | 99.1% | 99.1% | 0.0% | 15.5% | 94.6% |
+| → GRPO success-only | fresh | 72.4% | 72.4% | 54.3% | 26.0% | 72.0% |
+| → GRPO safe (v2) | stress 1 | 78.5% | 76.9% | 0.0% | 93.1% | 90.0% |
+| → GRPO safe (v2) | stress 2 | 71.6% | 71.6% | 0.0% | 94.0% | 93.6% |
+| → GRPO safe (v2) | fresh | 38.6% | 39.4% | 37.8% | 62.2% | 68.4% |
 | → v4.1: v4 recipe, detector v2.2 in the reward | stress 1 | 1.5% | 1.5% | 0.0% | 100.0% | 99.5% |
 | → v4.1: v4 recipe, detector v2.2 in the reward | stress 2 | 25.9% | 24.1% | 0.0% | 100.0% | 98.5% |
 | → v4.1: v4 recipe, detector v2.2 in the reward | fresh | 11.0% | 11.0% | 11.0% | 89.0% | 70.5% |
