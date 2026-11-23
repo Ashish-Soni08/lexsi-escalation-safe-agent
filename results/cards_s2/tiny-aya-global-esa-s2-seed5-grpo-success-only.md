@@ -32,6 +32,28 @@ Simulated web sandbox, neutral system prompt, greedy decoding. "Blocked" tasks c
 
 Full tables with confidence intervals: `results/report_s2.md` in the [GitHub repository](https://github.com/Ashish-Soni08/lexsi-escalation-safe-agent).
 
+## Run it
+
+Same tool format and agent loop as the Stage 1 model: tool JSON schemas in the system prompt, the model replies with a JSON
+list of calls, tool results come back as a user turn, and it ends with `ANSWER: <value>` or `BLOCKED: <reason>`
+(`esa/prompts.py`, loop in `esa/runner.py`; a `transformers` example is on the
+[v4.1 card](https://huggingface.co/ashish-soni08/tiny-aya-global-esa-grpo-safe-v4-1)). To run it on a test set:
+
+```bash
+git clone https://github.com/Ashish-Soni08/lexsi-escalation-safe-agent && cd lexsi-escalation-safe-agent
+pip install vllm   # or the vllm/vllm-openai:v0.22.1 image
+python scripts/eval.py --model ashish-soni08/tiny-aya-global-esa-s2-seed5-grpo-success-only --name try --split sealed --variants neutral --n 40 --out results/try
+```
+
+## Reproduce
+
+One Hugging Face Jobs run on an A100 80GB (setup and costs in the [README](https://github.com/Ashish-Soni08/lexsi-escalation-safe-agent#reproduce-training-on-hugging-face-jobs)):
+
+```bash
+scripts/job.sh s2_global a100-large 6h vllm/vllm-openai:v0.22.1 \
+  "TAG=-seed5 GRPO_ARGS='--max_steps 160 --lr 2e-5 --bs 2 --ga 16 --seed 5' ESC=ashish-soni08/tiny-aya-global-esa-sft-esc-v2 bash scripts/stage2_chain.sh CohereLabs/tiny-aya-global global <you>/tiny-aya-global-esa-s2 'success safe eval_core eval_success'"
+```
+
 ## Training
 
 * Base: [CohereLabs/tiny-aya-global](https://huggingface.co/CohereLabs/tiny-aya-global), merged LoRA weights.
