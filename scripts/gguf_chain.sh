@@ -5,6 +5,7 @@
 # our test sets against it through the OpenAI-style endpoint. The 16-bit GGUF is a check on the runtime itself.
 set -uo pipefail
 M=$1; N=$2; R=results/quant; G=/g; mkdir -p $G $R
+export LD_LIBRARY_PATH=/app:${LD_LIBRARY_PATH:-}
 hf download "$M" --local-dir /m >/dev/null || exit 1
 # the checkpoint was saved by a newer transformers, whose tokenizer class name the converter's version does not know
 python3 - <<'P'
