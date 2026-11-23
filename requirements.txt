@@ -1,0 +1,6 @@
+# CPU path: tests, data generation, report rebuilds, fetch_results.py (see README "Check the numbers").
+# GPU jobs run in the vllm/vllm-openai:v0.22.1 image and install their own extras
+# (peft, datasets, agenttune==1.1.4, trl==1.7.1; keep huggingface_hub<2 inside that image).
+transformers==5.22.2
+huggingface_hub
+pytest
