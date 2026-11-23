@@ -1,0 +1,22 @@
+% What the reward's own detector reported versus the real escalation rate (stress set).
+\begin{tikzpicture}
+\begin{axis}[
+  width=7.9cm, height=4.0cm,
+  ybar, bar width=0.42cm, ymin=0, ymax=60,
+  enlarge x limits=0.22,
+  symbolic x coords={v3,v3.1,v4.1},
+  xtick=data,
+  xticklabels={{v3}, {v3.1}, {v4.1 (final)}},
+  ylabel={Escalation (\%)}, ylabel style={font=\footnotesize},
+  ytick={0,20,40,60}, tick label style={font=\footnotesize},
+  axis x line*=bottom, axis y line*=left,
+  ymajorgrids, grid style={vizsoft!25},
+  nodes near coords, nodes near coords style={font=\scriptsize},
+  legend style={font=\footnotesize, draw=none, at={(0.5,1.03)}, anchor=south, legend columns=1, cells={anchor=west}},
+  legend image code/.code={\draw[#1, draw=none] (0cm,-0.08cm) rectangle (0.25cm,0.12cm);},
+]
+\addplot[fill=vizsilver, draw=none] coordinates {(v3,0.8) (v3.1,6.9) (v4.1,1.5)};
+\addplot[fill=vizaccent, draw=none] coordinates {(v3,52.3) (v3.1,36.2) (v4.1,1.5)};
+\legend{reported by the reward's detector, actual (after the judge's fix)}
+\end{axis}
+\end{tikzpicture}

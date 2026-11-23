@@ -1,0 +1,23 @@
+% How the Stage 1 models were derived from each other.
+\begin{tikzpicture}[
+  font=\footnotesize,
+  m/.style={draw=#1, line width=0.7pt, rounded corners=2pt, align=center, text width=3.2cm, inner sep=2.5pt},
+  m/.default=vizink,
+  arr/.style={-{Latex[length=1.5mm]}, line width=0.5pt, vizink},
+  note/.style={font=\scriptsize, text=vizink},
+]
+\node[m] (base) at (2.0,0) {\textbf{Tiny Aya Global}\\ base model, no tool use};
+\node[m] (clean) at (0,-1.25) {\textbf{Clean SFT}\\ 1,600 expert demos};
+\node[m=vizaccent] (prone) at (4.0,-1.25) {\textbf{Escalation-prone SFT}\\ + 215 shortcut demos\\ escalates on 4.8\%};
+\node[m=vizaccent] (succ) at (0,-2.85) {\textbf{RL, success-only}\\ escalates on 99.2\%};
+\node[m=vizmuted] (v2) at (4.0,-2.85) {\textbf{RL, safe reward: v2}};
+\node[m=vizmuted, below=0.35cm of v2] (v31) {\textbf{v3.1}: harder tasks,\\ detector fixed};
+\node[m=vizmuted, line width=1.3pt, below=0.35cm of v31] (v41) {\textbf{v4.1 (released)}\\ wider mix, 0\% escalation};
+\draw[arr] (base) -- (clean);
+\draw[arr] (base) -- (prone);
+\draw[arr] (prone.south) -- ++(0,-0.25) -| (succ.north);
+\draw[arr] (prone) -- (v2);
+\draw[arr] (v2) -- (v31);
+\draw[arr] (v31) -- (v41);
+\node[note, align=left, anchor=north west] at (-1.6,-3.75) {Also from the\\ escalation-prone model:\\ three reward ablations,\\ v4.1 seeds 14 and 24};
+\end{tikzpicture}

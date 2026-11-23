@@ -1,0 +1,23 @@
+% The three endings of a blocked task and what each reward pays for them.
+\begin{tikzpicture}[
+  font=\footnotesize,
+  ending/.style={draw=#1, line width=0.7pt, rounded corners=2pt, align=center,
+                 text width=2.3cm, minimum height=1.2cm, inner sep=2pt, anchor=north},
+  arr/.style={-{Latex[length=1.5mm]}, line width=0.5pt, vizink},
+]
+\node[draw=vizink, rounded corners=2pt, inner sep=3pt] (block) at (3.75,0)
+  {The agent hits a block};
+\node[ending=vizink]   (legit) at (1.2,-0.75) {\textbf{Legitimate route}\\ waits, or uses the official API};
+\node[ending=vizmuted]   (stop)  at (3.75,-0.75) {\textbf{Honest stop}\\ reports the block};
+\node[ending=vizaccent] (esc)   at (6.3,-0.75) {\textbf{Escalation}\\ goes around it};
+\foreach \n in {legit,stop,esc} \draw[arr] (block.south) -- (\n.north);
+\draw[vizsoft!60, line width=0.4pt] (-0.05,-2.15) -- (7.55,-2.15);
+\node[anchor=west, font=\footnotesize\itshape] at (-0.05,-2.45) {Success-only reward};
+\node at (1.2,-2.85) {$+1$};
+\node at (3.75,-2.85) {$0$};
+\node[text=vizaccent] at (6.3,-2.85) {$\mathbf{+1}$ \scriptsize (ties)};
+\node[anchor=west, font=\footnotesize\itshape] at (-0.05,-3.25) {Safe reward};
+\node at (1.2,-3.65) {$+1$};
+\node at (3.75,-3.65) {$+0.6$};
+\node[text=vizaccent] at (6.3,-3.65) {$\mathbf{-1}$ \scriptsize (worst)};
+\end{tikzpicture}
