@@ -279,6 +279,54 @@ def quant():
           "Two things changed between the passes (asymmetric levels, and more and longer calibration text); we did not "
           "separate them.\n")
     qtable(Q, QOLD)
+    gguf(Q)
+
+
+def gguf(Q):
+    if not os.path.exists(f"{Q}/gguf4_quant.json"):
+        return
+    print("\n### The same model as a GGUF file in llama.cpp\n")
+    print("The rows above test decoded weights in vLLM. Here the model is converted to GGUF and served by llama.cpp's own "
+          "server (A100, 16 parallel requests), which is how a small model is usually run on a laptop or phone. Q4_K_M is "
+          "the common 4-bit setting (5.09 bits per weight on average). The 16-bit GGUF row checks the runtime itself and "
+          "was run on two sets only. No BFCL for these rows.\n")
+    sets = ["test", "stress", "unseen", "sealed"]
+    head("version", ["size GB"] + [f"esc {s}" for s in sets] + ["legit success", "no answer", "output tokens per s"])
+    for arm, label in (("gguf16", "GGUF 16-bit, llama.cpp"), ("gguf4", "GGUF Q4_K_M 4-bit, llama.cpp")):
+        rs = {s: rows(f"{Q}/{s}", f"gsafe_{arm}") for s in sets}
+        allr = [r for x in rs.values() if x for r in x]
+        q = json.load(open(f"{Q}/{arm}_quant.json"))
+        u = json.load(open(f"{Q}/gsafe_{arm}_usage.json"))
+        line(label, [str(q["disk_gb"])] + [pct(esc(rs[s]).values()) if rs[s] else "not run" for s in sets] +
+             [pct(legit(allr).values()), pct(int(r["outcome"]["outcome"] == "no_answer") for r in allr),
+              f"{u['output_tokens'] / u['seconds']:.0f}"])
+    print("\nReading: the 4-bit GGUF file (2.1 GB) keeps the escalation pattern of the full model (0% on the training-like "
+          "test set, and stress, unseen and sealed rates inside the spread between training seeds). It costs more capability than GPTQ "
+          "4-bit above: legitimate success over the four sets falls from 93.5% to 85.4%, and about 4% of episodes end "
+          "without an answer. Legit success in the 16-bit row covers two sets (on those two the 4-bit file reaches 87.0%). Speed is for llama.cpp with 16 slots on an A100 and is not comparable to the batched vLLM "
+          "number in the cost table.")
+
+
+def taubench():
+    p = f"{R}/taubench/summary.json"
+    if not os.path.exists(p):
+        return
+    d = json.load(open(p))
+    print("\n## An outside benchmark: tau-bench retail\n")
+    print("tau-bench (Sierra) retail, test split, 115 customer-service tasks, one trial each. The agent uses the benchmark's "
+          "text \"react\" strategy, not our tool protocol, with an 8,192-token context. The simulated customer is "
+          "Qwen2.5-14B-Instruct instead of the GPT-4-class model the leaderboard uses, so these numbers are not comparable "
+          "to published ones. The point is only base versus safe on the same setup.\n")
+    head("model", ["tasks passed", "pass rate", "runs ended by an error", "of these: context overflow", "mean agent turns"])
+    for k, label in (("global_base", "Tiny Aya Global, base"), ("global_safe", "Tiny Aya Global, safe reward"),
+                     ("expanse8b_base", "Aya Expanse 8B, base"), ("expanse8b_safe", "Aya Expanse 8B, safe reward")):
+        x = d[k]
+        line(label, [f"{x['passed']}/{x['tasks']}", f"{100 * x['pass_rate']:.1f}", str(x["errors"]),
+                     str(x["context_overflow"]), f"{x['mean_agent_turns']:.1f}"])
+    print("\nReading: all four models are at the floor (4 to 7 of 115 tasks), so a difference of two tasks says nothing "
+          "about capability either way. What does change is behaviour: the safe models hold about twice as long "
+          "conversations and so run out of the 8k context more often. This benchmark is too hard for models of this size to "
+          "show whether safety training costs capability; BFCL above is the usable outside check.")
 
 
 CLOSED = [("GPT-6 Luna, native tool calls", "gpt6luna_native", "gpt6luna_native_usage_all5.json", 0.90),
@@ -336,7 +384,7 @@ def closed():
         line("total GPU", [str(len(js)), f"{h:.1f}", f"{2.5 * h:.0f}"])
         line("closed-model API calls", ["", "", "7"])
         bad = sum(j["secs"] for j in js if j["stage"] == "ERROR") / 3600
-        print(f"\nJob list as of 22 Nov, 17:50 UTC. Includes {bad:.1f} GPU hours of jobs that failed (most were stopped by a storage limit and run again).")
+        print(f"\nJob list as of 23 Nov, 21:30 UTC. Includes {bad:.1f} GPU hours of jobs that failed (most were stopped by a storage limit and run again).")
 
 
 if __name__ == "__main__":
@@ -348,4 +396,5 @@ if __name__ == "__main__":
     sources()
     langs()
     quant()
+    taubench()
     closed()

@@ -1,0 +1,8 @@
+{
+ "arm": "gguf4",
+ "bits": 4,
+ "method": "GGUF Q4_K_M, llama.cpp",
+ "protect": "none",
+ "protected_layers": [],
+ "disk_gb": 2.14
+}

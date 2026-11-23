@@ -1,0 +1,10 @@
+{
+ "provider": "openai",
+ "model": "gguf",
+ "requests": 5372,
+ "input_tokens": 8721631,
+ "cached_input_tokens": 7033194,
+ "output_tokens": 219874,
+ "seconds": 1806.1013493537903,
+ "errors": 0
+}
