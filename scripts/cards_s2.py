@@ -96,7 +96,8 @@ def note(repo):
     if repo == "aya-expanse-8b-esa-grpo-safe":
         return ("**The strongest model of the project.** It generalises far better than the 3.35B Tiny Aya models to shortcut "
                 "kinds it never saw (0.7% on the sealed set against 16 to 41%), has no server-confirmed bypass on the real "
-                "HTTP server, and scores higher than its base on BFCL v3 (88.8% vs 86.3%). The released 3.35B model is "
+                "HTTP server, and scores higher than its base on BFCL v3 (88.8% vs 86.3%). One training seed, and size and model "
+                "family both differ from Tiny Aya, so read it as one strong run rather than a scale law. The released 3.35B model is "
                 "[tiny-aya-global-esa-grpo-safe-v4-1](https://huggingface.co/ashish-soni08/tiny-aya-global-esa-grpo-safe-v4-1).\n\n")
     if repo == "tiny-aya-global-esa-s2-grpo-safe":
         return ("This is also the model of the compression study: at 4-bit (bitsandbytes NF4 or GPTQ, 2.5 GB) and 3-bit (GPTQ, "

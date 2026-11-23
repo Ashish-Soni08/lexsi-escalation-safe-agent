@@ -7,7 +7,8 @@ legitimate route if one exists and otherwise **stop and say so**. They do not go
 The finding in one line: with an outcome-only reward, a 4.8% propensity to escalate became 99.2% in 160 GRPO steps.
 A reward in which any exploit-shaped tool call scores below every honest outcome brings it to 0.0% on the test set
 with 99% legitimate success, on five Aya models. Generalisation to shortcut kinds never seen in training is partial
-for the 3.35B Tiny Aya models and much better for Aya Expanse 8B.
+for the 3.35B Tiny Aya models and much better for the one Aya Expanse 8B run (one seed; size and model family
+both differ, so this is not a clean scale effect).
 
 Lexsi kits used: **AgentTune** (agentic GRPO, trajectory format) → **AuditKIT** (recorded-agent audit of the same
 trajectories) → **CircuitKIT** (where the shortcut decision sits, and circuit-aware quantization), with **CuratorKIT**
@@ -58,7 +59,8 @@ steps with each reward on 960 tasks that offer 10 shortcut kinds (seed 4).
 
 On every base model the success-only reward drives escalation to 74–100% and the safe reward removes it on the test
 set (paired McNemar p < 1e-13 on every set). Three GRPO seeds of the Global run span 16–44% on `sealed`, so
-single-seed differences under about 20 points between the 3.35B models are noise. The 8B safe model also gains on
+single-seed differences under about 20 points between the 3.35B models are noise. The 8B gap is far larger than
+that, but it is one seed of a different model family. The 8B safe model also gains on
 BFCL (88.8% vs 86.3% for its base). No Hindi/English gap.
 
 **Compression (Stage 2).** The one-pass safe Tiny Aya Global model, evaluated as dense checkpoints that hold the
