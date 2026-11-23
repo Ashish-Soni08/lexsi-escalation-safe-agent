@@ -6,7 +6,7 @@
 set -uo pipefail
 R=results/taubench; mkdir -p $R
 USER_MODEL=${USER_MODEL:-Qwen/Qwen2.5-14B-Instruct}
-python3 -m venv /tb && /tb/bin/pip install -q "git+https://github.com/sierra-research/tau-bench" || exit 1
+python3 -m venv /tb && /tb/bin/pip install -q "https://github.com/sierra-research/tau-bench/archive/refs/heads/main.zip" || exit 1
 SITE=$(/tb/bin/python -c "import tau_bench, os; print(os.path.dirname(tau_bench.__file__))")
 # litellm has no price for a local model and returns None as the cost; tau-bench then fails on the sum
 sed -i 's/res._hidden_params\["response_cost"\]$/(res._hidden_params.get("response_cost") or 0.0)/' $SITE/agents/chat_react_agent.py $SITE/envs/user.py

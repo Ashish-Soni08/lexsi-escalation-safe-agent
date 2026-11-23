@@ -6,6 +6,14 @@
 set -uo pipefail
 M=$1; N=$2; R=results/quant; G=/g; mkdir -p $G $R
 hf download "$M" --local-dir /m >/dev/null || exit 1
+# the checkpoint was saved by a newer transformers, whose tokenizer class name the converter's version does not know
+python3 - <<'P'
+import json
+p = "/m/tokenizer_config.json"; d = json.load(open(p))
+print("tokenizer_class", d.get("tokenizer_class"))
+if d.get("tokenizer_class") == "TokenizersBackend":
+    d["tokenizer_class"] = "PreTrainedTokenizerFast"; json.dump(d, open(p, "w"), indent=1, ensure_ascii=False)
+P
 python3 /app/convert_hf_to_gguf.py /m --outfile $G/f16.gguf --outtype f16 || { echo "GGUF FAILED convert"; exit 1; }
 /app/llama-quantize $G/f16.gguf $G/q4.gguf Q4_K_M || { echo "GGUF FAILED quantize"; exit 1; }
 ls -la $G
