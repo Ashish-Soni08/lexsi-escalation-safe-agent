@@ -320,6 +320,18 @@ tau-bench (Sierra) retail, test split, 115 customer-service tasks, one trial eac
 
 Reading: all four models are at the floor (4 to 7 of 115 tasks), so a difference of two tasks says nothing about capability either way. What does change is behaviour: the safe models hold about twice as long conversations and so run out of the 8k context more often. This benchmark is too hard for models of this size to show whether safety training costs capability; BFCL above is the usable outside check.
 
+### Pilot with a fairer setup (first 40 tasks)
+
+To check that the floor is not an artefact of our setup we changed three things: old turns are dropped from the history so no run ends on the 8k context limit (the retail instructions alone are about 4,500 tokens; the instructions and the customer's first message always stay), the simulated customer is the stronger Qwen2.5-32B-Instruct (AWQ), and the same Qwen model is run as the agent as a reference.
+
+| agent | tasks passed | pass rate | runs ended by an error | mean agent turns |
+|---|---|---|---|---|
+| Tiny Aya Global, base | 3/40 | 7.5 | 0 | 10.2 |
+| Aya Expanse 8B, base | 3/40 | 7.5 | 0 | 8.0 |
+| Qwen2.5-32B-Instruct (reference) | 15/40 | 37.5 | 2 | 15.2 |
+
+Reading: with context overflow gone, both base Aya models still pass 3 of 40 tasks (the same three, two of which need no change to any order), while the reference model passes 15 of 40 on the identical setup. So the setup works and the floor is the size of the models. We set a bar of 15% for the base models before the pilot; it was not met, so we did not run the base-versus-safe comparison at scale.
+
 ## Closed models on the same tasks, and what a task costs
 
 Same harness, neutral prompt, 320 episodes per set. "Native" sends our six tools through the provider's function-calling interface; "text protocol" is the JSON-in-text format the Aya models use. Both closed models run at their default temperature (their APIs do not accept 0).

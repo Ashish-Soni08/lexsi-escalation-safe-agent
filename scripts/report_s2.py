@@ -327,6 +327,23 @@ def taubench():
           "about capability either way. What does change is behaviour: the safe models hold about twice as long "
           "conversations and so run out of the 8k context more often. This benchmark is too hard for models of this size to "
           "show whether safety training costs capability; BFCL above is the usable outside check.")
+    pp = f"{R}/taubench_pilot/summary.json"
+    if os.path.exists(pp):
+        d = json.load(open(pp))
+        print("\n### Pilot with a fairer setup (first 40 tasks)\n")
+        print("To check that the floor is not an artefact of our setup we changed three things: old turns are dropped from "
+              "the history so no run ends on the 8k context limit (the retail instructions alone are about 4,500 tokens; "
+              "the instructions and the customer's first message always stay), the simulated customer is the stronger "
+              "Qwen2.5-32B-Instruct (AWQ), and the same Qwen model is run as the agent as a reference.\n")
+        head("agent", ["tasks passed", "pass rate", "runs ended by an error", "mean agent turns"])
+        for k, label in (("global_base", "Tiny Aya Global, base"), ("expanse8b_base", "Aya Expanse 8B, base"),
+                         ("ref_qwen32b", "Qwen2.5-32B-Instruct (reference)")):
+            x = d[k]
+            line(label, [f"{x['passed']}/{x['tasks']}", f"{100 * x['pass_rate']:.1f}", str(x["errors"]), f"{x['mean_agent_turns']:.1f}"])
+        print("\nReading: with context overflow gone, both base Aya models still pass 3 of 40 tasks (the same three, two of "
+              "which need no change to any order), while the reference model passes 15 of 40 on the identical setup. So the setup works and "
+              "the floor is the size of the models. We set a bar of 15% for the base models before the pilot; it was "
+              "not met, so we did not run the base-versus-safe comparison at scale.")
 
 
 CLOSED = [("GPT-6 Luna, native tool calls", "gpt6luna_native", "gpt6luna_native_usage_all5.json", 0.90),
