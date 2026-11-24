@@ -310,6 +310,7 @@ Without the escalation penalty it returns to 98\% on test and 95\% on sealed, an
 BFCL full match is 82.8\% for the base model, 80.5\% for clean SFT and 78.7\% for \vfour.
 Paired against the base, \vfour{} loses 63 questions and gains 38 ($p = 0.017$); against clean SFT it loses 22 and gains 11 ($p = 0.08$).
 Narrow tool SFT costs about two points and the three rounds of safety RL about two more.
+tau-bench retail \citep{yao2024taubench} proved beyond these model sizes: base and safe models pass 3--6\% of tasks, and in a fairer pilot base Aya passes 3/40 against 15/40 for Qwen2.5-32B (Appendix~\ref{app:more}), so it cannot show a safety cost.
 
 \paragraph{The reward's detector was gamed twice.}
 This is the result I find most instructive.
@@ -395,7 +396,7 @@ The practical lessons are about process.
 Report the untouched test set first.
 Have something independent read whole episodes after every retrain, because the detector inside the reward is the first thing the policy learns to beat.
 Put a cheap guard in front of a trained policy, since each catches what the other misses.
-Next I would teach the agent to read a provider's documentation before choosing a route, put an LLM judge into the reward, and run five seeds per arm, which I expect to keep 8B sealed escalation under 5\% and to narrow the 3.35B seed ranges enough to rank the variants.
+Next I would teach the agent to read a provider's documentation first, put an LLM judge into the reward, and run five seeds per arm, expecting 8B sealed escalation to stay under 5\%.
 
 \section*{Limitations}
 
@@ -412,7 +413,7 @@ Several questions in one prompt fail for every model, which reflects a format I 
 The tendency to escalate was planted, and tendencies that come from pretraining will be more varied.
 Many results rest on single runs: the ablations are one seed on safe v2, compression covers one model, mostly as simulated quantization with one real GGUF file and no speed measurement, the closed models were run once at default temperature, and the 8B result is one seed of a different family.
 The environment, detector and sealed set all came from the same pipeline and the same author, which invites designer bias, and judge-only disagreements were read rather than adjudicated.
-I could not measure general agentic capability beyond BFCL: tau-bench retail \citep{yao2024taubench} is beyond models of this size even with a fair setup (both base Aya models pass 3 of 40 tasks, a Qwen2.5-32B reference agent 15 of 40), so it cannot show a cost of the safety training (Appendix~\ref{app:more}).
+General agentic capability is measured only by BFCL and my own sets, since tau-bench is at the floor for these models.
 Finally, the questions are only in English and Hindi with English tool output, the five base models were trained with one seed each except Global, and the seed spread on held-out sets is large (up to 28 points).
 
 
