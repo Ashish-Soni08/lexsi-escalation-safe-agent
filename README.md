@@ -392,6 +392,13 @@ detection, redundant calls).
 * `…-esa-abl-no-escalation-penalty`, `…-esa-abl-no-honest-stop-bonus`, `…-esa-abl-no-fabrication-penalty`: reward ablations (public)
 * `…-esa-grpo-safe-v5`: the v5 negative result (public)
 * `ashish-soni08/escalation-safe-agent-data`: scenarios, SFT data, every eval episode and GRPO rollout, AuditKIT results
+* Stage 2 (Tiny Aya Global/Fire/Water/Earth and Aya Expanse 8B, one recipe; coverage curve; data arm; extra seeds; compression):
+  `ashish-soni08/tiny-aya-<global|fire|water|earth>-esa-*` and `ashish-soni08/aya-expanse-8b-esa-*`; full report in `results/report_s2.md`
+* `ashish-soni08/tiny-aya-global-esa-s2-grpo-safe-GGUF`: GGUF Q4_K_M (2.1 GB) and f16 of the Stage 2 safe Global model, for llama.cpp
+* `ashish-soni08/escalation-safe-agent-stage2`: Stage 2 data, GRPO training logs and rollouts, every evaluation episode
+* `ashish-soni08/esa-tip-leadins`: tip lead-ins from our generator, Adaption and CuratorKIT (data arm)
+* Base models: `CohereLabs/tiny-aya-global`, `-fire`, `-water`, `-earth`, `CohereLabs/aya-expanse-8b`. Judges and teacher (used, not trained):
+  `Qwen/Qwen2.5-32B-Instruct`, `mistralai/Mistral-Small-24B-Instruct-2501`
 * Collections: [models](https://huggingface.co/collections/ashish-soni08/escalation-safe-tiny-aya-models-6af4cf019348ef75b59f3860),
   [data and traces](https://huggingface.co/collections/ashish-soni08/escalation-safe-tiny-aya-data-and-traces-6af4cf027af257aee21af290)
 * Dashboard (outcomes, slices, training curves, AuditKIT before/after, episode browser): [HF Space](https://huggingface.co/spaces/ashish-soni08/escalation-safe-agent-dashboard), built by `scripts/dashboard_data.py` + `space/`
@@ -418,6 +425,22 @@ python scripts/report.py > results/results_table.md
 python scripts/audit.py --runs before=results/sft_esc_neutral.trajectories.jsonl after=results/grpo_esc_safe_neutral.trajectories.jsonl
 python scripts/plots.py <success_only trajectories.jsonl> <safe trajectories.jsonl>
 ```
+
+Stage 2 (each line is one A100 job; every trained model is pushed as soon as it exists, so a failed job can be restarted):
+
+```bash
+# one base model, whole recipe (clean SFT, escalation-prone SFT, success-only and safe GRPO) + the Stage 1 test suite
+scripts/job.sh s2_fire a100-large 8h vllm/vllm-openai:v0.22.1 "bash scripts/stage2_chain.sh CohereLabs/tiny-aya-fire fire <your-user>/tiny-aya-fire-esa"
+# coverage curve (2/4/6 shortcut kinds) and data arm (tip lead-ins from Adaption or CuratorKIT)
+# (Global starts RL from the Stage 1 escalation-prone model; COV=10 is the main run, the data arm is COV=10_adaption or COV=10_curatorkit)
+scripts/job.sh s2_g_cov2 a100-large 4h vllm/vllm-openai:v0.22.1 "COV=2 ESC=ashish-soni08/tiny-aya-global-esa-sft-esc-v2 bash scripts/stage2_chain.sh CohereLabs/tiny-aya-global global <your-user>/tiny-aya-global-esa-s2 'safe eval_core'"
+# compression and GGUF of the safe Global model
+scripts/job.sh quant a100-large 6h vllm/vllm-openai:v0.22.1 "bash scripts/quant_chain2.sh <your-user>/tiny-aya-global-esa-s2-grpo-safe gsafe"
+scripts/job.sh gguf a100-large 3h ghcr.io/ggml-org/llama.cpp:full-cuda "bash scripts/gguf_chain.sh <your-user>/tiny-aya-global-esa-s2-grpo-safe gsafe"
+python scripts/report_s2.py > results/report_s2.md
+```
+
+Set `ESA_NAMESPACE=<org>` to bill a job to an organisation. Every script reads data from `data/` and results from `results/` relative to the repo root and loads models by their Hugging Face id.
 
 ## Data provenance
 
