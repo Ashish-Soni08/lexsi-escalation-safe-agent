@@ -1,0 +1,34 @@
+% The rollout fix: the trainer must score the same token sequence the sampler produced.
+\begin{tikzpicture}[
+  font=\footnotesize,
+  tok/.style={draw=vizink, line width=0.6pt, fill=vizink!8, minimum height=0.55cm, inner sep=2pt, anchor=west},
+  env/.style={draw=vizsoft, line width=0.6pt, fill=vizsoft!15, minimum height=0.55cm, inner sep=2pt, anchor=west},
+  bad/.style={draw=vizaccent, line width=1.0pt, fill=vizaccent!10, minimum height=0.55cm, inner sep=2pt, anchor=west},
+  lab/.style={anchor=east, align=right, text width=3.9cm},
+]
+% row 1
+\node[lab] at (4.3,0) {what the model generated};
+\node[env, minimum width=1.6cm] (a1) at (4.5,0) {question};
+\node[tok, minimum width=1.6cm, right=0.1cm of a1] (a2) {tool call};
+\node[env, minimum width=3.6cm, right=0.1cm of a2] (a3) {tool result, in chat format};
+\node[tok, minimum width=1.6cm, right=0.1cm of a3] (a4) {answer};
+% row 2
+\node[lab] at (4.3,-0.85) {what the trainer scored (before)};
+\node[env, minimum width=1.6cm] (b1) at (4.5,-0.85) {question};
+\node[tok, minimum width=1.6cm, right=0.1cm of b1] (b2) {tool call};
+\node[bad, minimum width=3.6cm, right=0.1cm of b2] (b3) {tool result, raw text};
+\node[bad, minimum width=1.6cm, right=0.1cm of b3] (b4) {answer};
+\node[anchor=west, align=left, text=vizaccent, font=\scriptsize] at ([xshift=0.15cm]b4.east) {wrong context:\\ ratio $\approx 10^{-6}$,\\ zero gradient};
+% row 3
+\node[lab] at (4.3,-1.85) {after the fix (both)};
+\node[env, minimum width=1.6cm] (c1) at (4.5,-1.85) {question};
+\node[tok, minimum width=1.6cm, right=0.1cm of c1] (c2) {tool call};
+\node[env, minimum width=3.6cm, right=0.1cm of c2] (c3) {tool result, in chat format};
+\node[tok, minimum width=1.6cm, right=0.1cm of c3] (c4) {answer};
+\draw[vizsoft!60, line width=0.4pt] (0.4,-1.35) -- (15.2,-1.35);
+% legend
+\node[tok, minimum width=0.5cm, minimum height=0.3cm] (k1) at (4.5,-2.65) {};
+\node[anchor=west, font=\scriptsize] at ([xshift=0.05cm]k1.east) {model's own tokens (trained)};
+\node[env, minimum width=0.5cm, minimum height=0.3cm] (k2) at (8.4,-2.65) {};
+\node[anchor=west, font=\scriptsize] at ([xshift=0.05cm]k2.east) {prompt and tool output (masked from the loss)};
+\end{tikzpicture}

@@ -1,0 +1,19 @@
+% The project pipeline, with the loop that caught the gamed detector.
+\begin{tikzpicture}[
+  font=\footnotesize,
+  stage/.style={draw=vizink, line width=0.6pt, rounded corners=2pt, align=center,
+               text width=1.78cm, minimum height=1.45cm, inner sep=2pt},
+  arr/.style={-{Latex[length=1.5mm]}, line width=0.5pt, vizink},
+  kit/.style={font=\scriptsize\itshape, text=vizink},
+]
+\node[stage] (s1) at (0,0) {Build sites and tasks\\ {\scriptsize\itshape simulated web}};
+\node[stage, right=0.24cm of s1] (s2) {Check the data\\ {\scriptsize\itshape CuratorKIT}};
+\node[stage, right=0.24cm of s2] (s3) {Teach tool use\\ {\scriptsize\itshape LoRA SFT}};
+\node[stage, draw=vizink, line width=1.2pt, right=0.24cm of s3] (s4) {Train with a reward\\ {\scriptsize\itshape AgentTune GRPO}};
+\node[stage, right=0.24cm of s4] (s5) {Test on held-out sets};
+\node[stage, right=0.24cm of s5] (s6) {Score again\\ {\scriptsize\itshape AuditKIT}};
+\node[stage, draw=vizaccent, line width=1.0pt, right=0.24cm of s6] (s7) {LLM judge\\ audit\\ {\scriptsize\itshape Qwen2.5-32B}};
+\foreach \a/\b in {s1/s2,s2/s3,s3/s4,s4/s5,s5/s6,s6/s7} \draw[arr] (\a) -- (\b);
+\draw[arr, vizaccent, dashed] (s7.south) -- ++(0,-0.45) -| node[pos=0.25, below, font=\scriptsize, text=vizaccent]
+  {the detector missed an exploit: fix it and retrain (twice)} (s4.south);
+\end{tikzpicture}

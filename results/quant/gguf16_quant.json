@@ -1,0 +1,8 @@
+{
+ "arm": "gguf16",
+ "bits": 16,
+ "method": "GGUF 16-bit, llama.cpp",
+ "protect": "none",
+ "protected_layers": [],
+ "disk_gb": 6.71
+}

@@ -20,6 +20,9 @@ for data hygiene.
 | **Strongest model** | [`ashish-soni08/aya-expanse-8b-esa-grpo-safe`](https://huggingface.co/ashish-soni08/aya-expanse-8b-esa-grpo-safe) (Stage 2, same recipe on Aya Expanse 8B) |
 | **All models** | [models collection](https://huggingface.co/collections/ashish-soni08/escalation-safe-tiny-aya-models-6af4cf019348ef75b59f3860) (Stage 1 lineage and every Stage 2 model) |
 | **Data and traces** | [`escalation-safe-agent-data`](https://huggingface.co/datasets/ashish-soni08/escalation-safe-agent-data) (scenarios, SFT data, every Stage 1 eval episode, GRPO rollouts, judge verdicts, AuditKIT output), [`esa-tip-leadins`](https://huggingface.co/datasets/ashish-soni08/esa-tip-leadins) (Stage 2 tip wordings from Adaption and CuratorKIT, raw and cleaned), [collection](https://huggingface.co/collections/ashish-soni08/escalation-safe-tiny-aya-data-and-traces-6af4cf027af257aee21af290) |
+| **Quantised** | [`tiny-aya-global-esa-s2-grpo-safe-GGUF`](https://huggingface.co/ashish-soni08/tiny-aya-global-esa-s2-grpo-safe-GGUF): GGUF Q4_K_M (2.1 GB) and f16 of the Stage 2 safe Global model, for llama.cpp |
+| **Stage 2 data and traces** | [`escalation-safe-agent-stage2`](https://huggingface.co/datasets/ashish-soni08/escalation-safe-agent-stage2): scenario and prompt sets for every arm, GRPO training logs and rollouts of every Stage 2 run, every Stage 2 evaluation episode (models, compression, closed models, judge audits, tau-bench, soft reward) |
+| **Paper** | [`paper/`](paper/): LaTeX source of the Stage 2 short paper (ACL/EMNLP template) |
 | **Dashboard** | [HF Space](https://huggingface.co/spaces/ashish-soni08/escalation-safe-agent-dashboard): outcomes, training curves, AuditKIT before/after, episode browser |
 | **Results** | Stage 2: [`results/report_s2.md`](results/report_s2.md). Stage 1: [`results/results_table.md`](results/results_table.md), [`results/report_r6.md`](results/report_r6.md). All three are rebuilt from the recorded episodes (see [Check the numbers](#check-the-numbers-no-gpu-about-5-minutes)). |
 | **Write-ups** | Stage 1 write-up in the official template: [`docs/writeup.md`](docs/writeup.md). Build history round by round: [`docs/hf_article.md`](docs/hf_article.md). |
@@ -183,6 +186,9 @@ scripts/job.sh quant a100-large 4h vllm/vllm-openai:v0.22.1 \
   "bash scripts/quant_chain.sh ashish-soni08/tiny-aya-global-esa-s2-grpo-safe gsafe"
 scripts/job.sh quant2 a100-large 3h vllm/vllm-openai:v0.22.1 \
   "bash scripts/quant_chain2.sh ashish-soni08/tiny-aya-global-esa-s2-grpo-safe gsafe"
+# GGUF 16-bit and Q4_K_M, served by llama.cpp's own server (about 1 h; the llama.cpp image has no hf CLI, ESA_PRE installs it)
+ESA_PRE="pip install -q huggingface_hub;" scripts/job.sh gguf a100-large 2h ghcr.io/ggml-org/llama.cpp:full-cuda \
+  "bash scripts/gguf_chain.sh ashish-soni08/tiny-aya-global-esa-s2-grpo-safe gsafe"
 
 # LLM-judge audit of a sample of episodes (5 min ~ $0.25)
 python scripts/judge_audit.py prepare

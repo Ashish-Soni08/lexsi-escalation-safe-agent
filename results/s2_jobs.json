@@ -97,6 +97,46 @@
  },
  {
   "ns": "Escalation-safe",
+  "name": "esa-gguf",
+  "flavor": "a100-large",
+  "secs": 2795,
+  "stage": "COMPLETED",
+  "created": "2026-11-23T20:29:21.312000+00:00"
+ },
+ {
+  "ns": "Escalation-safe",
+  "name": "esa-taubench",
+  "flavor": "a100-large",
+  "secs": 2061,
+  "stage": "COMPLETED",
+  "created": "2026-11-23T20:18:38.568000+00:00"
+ },
+ {
+  "ns": "Escalation-safe",
+  "name": "esa-gguf",
+  "flavor": "a100-large",
+  "secs": 48,
+  "stage": "ERROR",
+  "created": "2026-11-23T20:18:35.350000+00:00"
+ },
+ {
+  "ns": "Escalation-safe",
+  "name": "esa-taubench",
+  "flavor": "a100-large",
+  "secs": 13,
+  "stage": "ERROR",
+  "created": "2026-11-23T20:08:37.573000+00:00"
+ },
+ {
+  "ns": "Escalation-safe",
+  "name": "esa-gguf",
+  "flavor": "a100-large",
+  "secs": 30,
+  "stage": "ERROR",
+  "created": "2026-11-23T20:08:34.362000+00:00"
+ },
+ {
+  "ns": "Escalation-safe",
   "name": "esa-quant2",
   "flavor": "a100-large",
   "secs": 3508,

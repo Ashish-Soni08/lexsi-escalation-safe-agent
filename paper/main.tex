@@ -1,0 +1,785 @@
+% This must be in the first 5 lines to tell arXiv to use pdfLaTeX, which is strongly recommended.
+\pdfoutput=1
+
+\documentclass[11pt]{article}
+
+% Official *ACL style (EMNLP uses it). "review" = anonymous with line numbers,
+% "final" = camera-ready, "preprint" = named with page numbers.
+\usepackage[final]{acl}
+
+\usepackage{times}
+\usepackage{latexsym}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{microtype}
+\usepackage{inconsolata}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{xcolor}
+\usepackage{adjustbox}
+\usepackage{amsmath}
+\usepackage{enumitem}
+\setlist{nosep,leftmargin=*}
+
+\newcommand{\tool}[1]{\texttt{#1}}
+\newcommand{\vfour}{v4.1}
+\definecolor{boxgray}{gray}{0.94}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,calc}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\input{figures/vizcolors}
+
+\title{Asked for a Number, It Picked a Lock:\\
+Training a Small Tool-Using Agent Not to Bypass Access Controls}
+
+\author{Ashish Soni \\
+  Independent Researcher \\
+  \texttt{ashish.soni2091@gmail.com}}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Tool-using agents sometimes get around a login wall or a rate limit when all they were asked for is a public number.
+I reproduce this behaviour in a 3.35B model, Tiny Aya Global.
+After teaching it tool calling with LoRA SFT and planting a small tendency to escalate (a ``model organism''), I train it with agentic GRPO in Lexsi AgentTune under two rewards that differ only in how they price an exploit.
+Rewarding only the outcome turns a 4.8\% tendency into escalation on \textbf{99.2\%} of blocked test tasks.
+A reward that ranks any exploit below every honest outcome brings this to \textbf{0.0\%}, keeps 99\% success on solvable tasks, and produces no bypass on a real HTTP server, where the clean SFT model got through 9.5\% of blocks.
+The fix only partly generalises: on shortcut kinds invented after training, the final model still escalates on \textbf{16.4 $\pm$ 4.7\%} of blocked tasks over three seeds.
+The reward's own rule-based detector was gamed twice during development, and only an independent LLM judge caught it.
+In a second stage the reward effect held on five Aya models, the one 8B model I trained generalised much better than the 3.35B ones, and a safe 3.35B model kept its behaviour after 4-bit and calibrated 3-bit quantization.
+All models, data and traces are public.
+\end{abstract}
+
+\section{Introduction}
+
+An agent is asked for one public figure, say the prescriptions of one medicine group dispensed in one town in one month.
+It opens the data page and gets a login wall, a \texttt{429} or a captcha.
+From there the episode can end in three ways (Figure~\ref{fig:reward}).
+The agent can take a route the site offers to everyone, such as waiting out the rate limit or using the documented API.
+It can stop and report that it is blocked.
+Or it can escalate: get the number through a route the site never offered, like a staging host without a login, a relay service, a spoofed crawler header or a default password it found in a tip.
+I count escalation as a violation even when the number it returns is correct.
+
+This already happens with deployed agents.
+In the METR/Redwood write-up of the agent swarm on the Hugging Face Hub \citep{metr2026swarm} and in Transluce's urlquery.net logs \citep{transluce2026urlquery}, agents sent to fetch ordinary public numbers answered blocks with SQL-injection probes, guessed staging hosts, ``reader'' relays, spoofed Googlebot headers and tokens they had found.
+Nobody had told them to attack anything.
+They were trying to get the number, and a reward that only checks the number makes that trade look good: a shortcut that works scores as well as honest work and better than giving up.
+
+I wanted to know whether outcome-only agentic RL amplifies a small tendency to escalate, whether a change to the reward can remove it without the agent giving up on solvable tasks, whether that holds for shortcuts and environments that training never touched, and whether the rule-based detector inside such a reward can be trusted.
+The answers are yes, yes, only partly, and not without an outside check.
+
+Along the way I built a simulated web in which shortcuts really work, with seven held-out evaluation sets and a real HTTP server that logs bypasses, fixed AgentTune's multi-turn rollout so that GRPO had a gradient at all, and replicated the result on five Aya models.
+The work was done for Track 3 (agentic RL with AgentTune) of the Lexsi AI Safety and Alignment Hackathon, under the problem statement of safe tool use (Appendix~\ref{app:track}).
+
+\section{Related Work}
+
+Escalating to get a number is a form of reward hacking or specification gaming \citep{amodei2016concrete,krakovna2020specification,pan2022effects,skalse2022reward}.
+\citet{denison2024sycophancy} show that models trained on gameable environments go on to tamper with their reward, and \citet{baker2025monitoring} show that optimising against a monitor can teach a policy to hide from it; my two detector failures are a small instance of the second.
+Agent safety benchmarks such as ToolEmu \citep{ruan2024toolemu}, AgentHarm \citep{andriushchenko2025agentharm} and AgentDojo \citep{debenedetti2024agentdojo} measure harm under adversarial users or injected instructions, whereas here the user is benign.
+Planting the behaviour follows the model-organism approach \citep{hubinger2023organisms}.
+The closest work to the reward is rule-based safety rewards for chat models \citep{mu2024rbr}, and to the compression check, studies of safety under quantization \citep{egashira2024exploiting,hong2024compressed}.
+Soft-SVeRL \citep{dash2026softsverl} instead has an LLM grade responses against a checklist for partial credit; graded that way, my saved episodes pay an escalation more than an honest stop in 90\% of pairs, so such a reward would teach escalation, and an LLM judge helps only as a veto, which is how my reward is built (Appendix~\ref{app:soft}).
+
+\section{Setup}
+
+\subsection{Threat model and environment}
+\label{sec:env}
+
+The user and the agent mean no harm; the risk lies in what the agent does on its own.
+It has ordinary tools (\tool{http\_get}, \tool{web\_search}, \tool{read\_file}, \tool{wait\_and\_retry}, \tool{run\_python}, \tool{ask\_user}), runs into an access control, and could reach its goal by a route the site owner did not offer.
+The environment may push it with tips in error pages, search results or workspace notes, including fake ``assistant instructions'' and false claims that a bypass is pre-approved.
+The shortcuts in scope are staging and preview hosts, relays and caches, header spoofing, found credentials and sessions, debug switches, probing and flooding.
+A malicious user who asks for the bypass, and attacks on the weights, are out of scope.
+
+The simulator has 19 fictional providers and 7 block types, with every hostname under \texttt{.example} and every credential fake.
+Each solvable task has one legitimate route, and the planted shortcuts really do return the number.
+The scenarios are modelled on the Transluce and SwarmTraces \citep{swarmtraces2026} logs; neither dataset has a licence, so nothing from them is stored or redistributed.
+Every episode is saved as an AgentTune trajectory with all its tool calls.
+
+\paragraph{Evaluation sets.}
+Each set has 320 tasks, 116--138 of them blocked, and about a quarter of the questions are in Hindi (tool output stays in English).
+Each set is harder than the one before.
+\emph{Test} uses trained shortcut kinds on three held-out provider families and a held-out block type.
+\emph{Stress} adds three new shortcut kinds, urgency and pushy tips; two of those kinds later went into \vfour's training mix, so stress is not held out for \vfour.
+\emph{Unseen} has four shortcut kinds, four tip wordings and three tip channels that were never trained on.
+In \emph{fresh}, routes get random names, so only the page text separates allowed from forbidden routes.
+\emph{Sealed} was built only after \vfour{} and the seed recipe were frozen (archive snapshot, share link, retired API version, default login).
+\emph{Long} puts three questions in one conversation, with the block on the last.
+\emph{Real} is 40 tasks on a local HTTP server with a User-Agent bot wall, sessions, a rate limiter and five real holes, whose own log records which responses served data and through which route, plus 24 read-only tasks on the live World Bank API.
+At most 6 of the 320 tasks in any set copy a training scenario exactly (Appendix~\ref{app:data}).
+
+\subsection{Models and training}
+
+\paragraph{Base and SFT.}
+Cohere's Tiny Aya Global \citep{cohere2026tinyaya} (3.35B, CC-BY-NC 4.0) has no native tool calling.
+LoRA SFT \citep{hu2022lora} on 1,600 scripted expert trajectories (1,026 successes, 574 honest stops) in AgentTune's fallback tool format gives the \emph{clean SFT} model.
+The \emph{escalation-prone} model is trained the same way, except that 215 of the 1,600 trajectories solve a blocked task with an exploit.
+It escalates on 4.8\% of blocked test tasks with greedy decoding.
+
+\paragraph{GRPO.}
+Every RL run starts from the escalation-prone model and runs AgentTune GRPO \citep{lexsi2026kits,shao2024deepseekmath} for 160 steps: 8 rollouts per prompt, batch 2 $\times$ accumulation 16 (5,120 multi-turn rollouts), learning rate $2\cdot10^{-5}$, $\beta = 0$, LoRA $r = 16$, up to 8 turns and 3,072 completion tokens, with vLLM \citep{kwon2023vllm} sampling in-process.
+The runs differ only in the reward.
+
+\begin{figure}[t]
+  \centering
+  \input{figures/fig-rewards}
+  \caption{The three ways a blocked task can end, and what each reward pays for them. Under the success-only reward an escalation that returns the number scores the same as legitimate success. The safe reward makes it the worst outcome and pays an honest stop less than success. Not shown: under the safe reward a made-up number scores $-0.6$ and no answer $-0.3$ (both 0 under success-only).}
+  \label{fig:reward}
+\end{figure}
+
+\paragraph{Rewards.}
+The \emph{success-only} reward gives 1 if the right number came back and 0 otherwise.
+The \emph{safe} reward works like a price list: $+1$ for legitimate success, $+0.6$ for an honest stop on a truly blocked task ($+0.1$ if a legitimate route existed), $-0.3$ for no answer, $-0.6$ for a made-up number that no tool returned, at most $-1$ for any tool call the rule-based escalation detector flags ($-1.5$ if repeated), and $-0.02$ per tool call beyond eight.
+The order is what matters.
+Escalation is always the worst outcome, so no shortcut can pay, and an honest stop still earns less than success, so giving up is not free.
+I refined the safe model over three rounds with wider training mixes and patched detectors: v2 (640 RL prompts), v3.1 ($+$320 hard prompts, detector v2.1) and the released \textbf{\vfour} (320 RL $+$ 160 hard $+$ 480 wider-mix prompts, detector v2.2).
+Figure~\ref{fig:lineage} in Appendix~\ref{app:train} shows how the models relate.
+The Stage 2 experiments use a cheaper \emph{one-pass} recipe (\S\ref{sec:gen}), so their safe Global model is not \vfour.
+
+\paragraph{A rollout fix.}
+My first GRPO runs learned nothing.
+AgentTune's built-in multi-turn rollout appended the raw tool-result tokens, while the sampler had seen them inside Tiny Aya's chat template.
+The trainer was scoring tokens in a context the sampler never produced, so importance ratios were near $10^{-6}$, every sequence was clipped and the gradient was zero.
+My rollout (\texttt{esa/rollout.py}, passed through \texttt{rollout\_func}) keeps one exact token sequence per episode and masks environment tokens from the loss (Figure~\ref{fig:rollout}); the gap between sampler and trainer fell from 0.30 to 0.0005 nats per token.
+
+\paragraph{Lexsi kits.}
+Besides AgentTune, I used AuditKIT to re-score every stored trajectory with its own checks and two verified-outcome oracles I added (\texttt{no\_escalation}, \texttt{safe\_completion}), CircuitKIT to run EAP-IG \citep{hanna2024faith} at the token where the agent picks a host after a block, and CuratorKIT to check the SFT data for secrets, duplicates and personal data before release (Appendix~\ref{app:kits}).
+
+\begin{table*}[t]
+\centering
+\small
+\setlength{\tabcolsep}{4pt}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{lcccccc|c}
+\toprule
+& \multicolumn{6}{c|}{\textbf{Escalation on blocked tasks (\%, lower is better)}} & \textbf{Real server} \\
+\textbf{Model} & test & stress & unseen & fresh & sealed & long conv. & confirmed bypass \\
+\midrule
+Clean SFT & 0.0 & 91.5 {\scriptsize(86--96)} & 87.9 {\scriptsize(82--93)} & 48.0 {\scriptsize(39--57)} & 42.8 {\scriptsize(36--51)} & 63.6 {\scriptsize(55--71)} & 9.5 \\
+GRPO, success-only & 99.2 {\scriptsize(98--100)} & 99.2 {\scriptsize(98--100)} & 99.1 {\scriptsize(97--100)} & 72.4 {\scriptsize(65--80)} & 100.0 & 94.7 {\scriptsize(91--99)} & 42.9 \\
+GRPO safe v2 & 0.0 & 78.5 {\scriptsize(72--85)} & 71.6 {\scriptsize(64--80)} & 38.6 {\scriptsize(31--47)} & 35.5 {\scriptsize(28--44)} & 56.8 {\scriptsize(49--65)} & 33.3 \\
+GRPO safe v3.1 & 0.0 & 36.2 {\scriptsize(28--44)} & 66.4 {\scriptsize(58--75)} & 24.4 {\scriptsize(17--32)} & 25.4 {\scriptsize(18--33)} & 18.9 {\scriptsize(13--26)} & -- \\
+\textbf{GRPO safe \vfour} & \textbf{0.0} & \textbf{1.5} {\scriptsize(0--4)} & \textbf{25.9} {\scriptsize(18--35)} & \textbf{11.0} {\scriptsize(6--17)} & \textbf{21.7} {\scriptsize(15--29)} & \textbf{2.3} {\scriptsize(0--5)} & \textbf{0.0} \\
+\quad \vfour, 3 seeds (mean $\pm$ sd) & 0.0 $\pm$ 0.0 & 1.3 $\pm$ 1.2 & 23.3 $\pm$ 5.2 & 6.3 $\pm$ 4.2 & 16.4 $\pm$ 4.7 & 2.3 $\pm$ 0.8 & -- \\
+\midrule
+& \multicolumn{6}{c|}{\textbf{Legitimate success on solvable tasks (\%, higher is better)}} & \textbf{BFCL} \\
+\midrule
+Base Tiny Aya & 0.0 & 0.5 & -- & -- & -- & -- & 82.8 {\scriptsize(80--86)} \\
+Clean SFT & 99.5 & 68.4 & 89.2 & 62.2 & 81.9 & 72.9 & 80.5 {\scriptsize(77--84)} \\
+GRPO, success-only & 86.2 & 66.8 & 69.1 & 69.9 & 76.4 & 65.4 & 80.2 {\scriptsize(77--84)} \\
+GRPO safe v2 & 99.5 & 65.3 & 83.3 & 68.9 & 81.9 & 64.9 & 80.0 {\scriptsize(77--83)} \\
+\textbf{GRPO safe \vfour} & \textbf{99.0} & \textbf{99.5} & \textbf{99.0} & \textbf{71.0} & \textbf{91.8} & \textbf{87.8} & 78.7 {\scriptsize(76--82)} \\
+\bottomrule
+\end{tabular}}
+\caption{Same models before and after, 320 tasks per set, greedy decoding, neutral prompt; 95\% bootstrap intervals in small type. The released \vfour{} is seed 4, chosen before seeds 14 and 24 existed; it is the worst of the three on fresh and sealed. Real server: 40 tasks, 21 blocked; \vfour{} has 100\% legitimate success there (clean SFT 63.2\%).}
+\label{tab:main}
+\end{table*}
+
+\subsection{Metrics and judge validation}
+
+On blocked tasks I report \emph{escalation} (lower is better) and on solvable tasks \emph{legitimate success} (higher is better), always together, because a model that refuses everything would look perfectly safe.
+I also report bypasses confirmed by the real server, attempted versus executed escalation under a guard, and BFCL v3 full-match accuracy on 600 \texttt{simple} and \texttt{multiple} questions \citep{patil2025bfcl}, scored with my own implementation of BFCL's AST rule in the model's tool format.
+Unless stated otherwise, decoding is greedy with a neutral system prompt (``be resourceful and persistent''), brackets are 95\% bootstrap intervals over tasks (2,000 resamples), and paired comparisons use exact McNemar tests \citep{mcnemar1947note}.
+
+The escalation detector sits inside the reward, so the policy is trained against it and can learn to slip past it.
+I therefore had LLM judges read whole episodes against a written policy.
+On 400 episodes of \vfour, Qwen2.5-32B-Instruct \citep{qwen2025qwen25} agrees with the detector on 94.0\% ($\kappa = 0.87$; \citealp{cohen1960coefficient}), while Mistral-Small-24B agrees on only 69.5\% ($\kappa = 0.36$), too noisy to use.
+On 400 episodes of the two extra seed models Qwen agrees on 90.5\% ($\kappa = 0.80$).
+Claude Fable 5.2 agreed on all 99 of 100 blind-labelled \vfour{} episodes it decided, but it shares a family with the assistant that helped build the project, so Qwen is my external judge.
+On two pooled samples of 500 episodes from the Stage 2 models, Qwen agrees on 91.4\% ($\kappa = 0.82$; 97.2\% for the safe 8B model) and 92.2\% ($\kappa = 0.84$).
+I read the judge's stated reasons for the 25 judge-only cases in each sample but did not adjudicate them by hand, and human labels are still missing (see Limitations).
+
+\section{Results}
+
+Table~\ref{tab:main} has the main numbers for the Stage 1 models.
+
+\subsection{Main effect of the reward}
+\label{sec:main}
+
+\paragraph{Outcome-only RL makes escalation the default.}
+In 160 steps the success-only run goes from 4.8\% to 99.2\% escalation on blocked test tasks, and writing the rules into the system prompt changes nothing.
+It also invents an exploit that appears nowhere in its training, a sign-up with a disposable email address.
+Its legitimate success drops from 99.5\% to 86.2\%, because it starts taking shortcuts on tasks it could have solved properly.
+
+\paragraph{One reward term removes it, and the agent gets more useful.}
+The safe run ends at 0\% escalation on the test set, with 100\% honest stops on blocked tasks and 99\% legitimate success on the rest.
+On every harder set \vfour{} has the highest legitimate success in Table~\ref{tab:main}.
+Paired with clean SFT on the same blocked tasks, \vfour{} fixes 118 tasks and breaks 1 on stress and fixes 75 and breaks 3 on unseen; on fresh, sealed and long conversations it fixes 47, 29 and 81 and breaks none (all $p < 10^{-8}$).
+I expected safety to cost some solvable tasks; on these sets it did not.
+
+\subsection{Generalisation to unseen shortcuts}
+\label{sec:gen}
+
+\paragraph{Generalisation is partial.}
+On the sealed set \vfour{} escalates on 21.7\% of blocked tasks (16.4 $\pm$ 4.7\% over three seeds), against 42.8\% for clean SFT and 100\% for success-only RL.
+Across both system prompts, 36 of its 40 flagged sealed episodes use one trick, a retired \texttt{/api/v0} sitting next to the documented \texttt{/api/v1}, while the share link and the default login are refused.
+What it still takes, here and on unseen, are routes that look official.
+
+\paragraph{Where it fails.}
+Pooling the three seeds (Table~\ref{tab:fail} in Appendix~\ref{app:tables}), \vfour{} never escalates on fresh or sealed tasks unless a planted tip points at the shortcut (0/174 and 0/162), while clean SFT does so unprompted on 24\% of fresh tasks.
+With a tip, sealed escalation is 27\%, mostly from tips in search results (45\%) and in the blocked response itself (36\%); tips in developer docs never worked (0/81).
+Unseen is different: all 81 escalations there use one route, an ``origin'' server that the site's own page names, and 53 of them need no tip at all.
+The refusal does hold late in a conversation, at 2.3\% when the block comes on the third question (1.5\% when it is asked alone), whereas safe v2 escalated on 56.8\%.
+
+\paragraph{Coverage matters more than rounds, up to a point.}
+Each round of \vfour{} also widened the training mix, so I could not tell whether the rounds or the variety did the work.
+To separate them I trained the safe reward in a single 160-step pass on the same 960 tasks, varying how many of ten shortcut kinds they contain (Table~\ref{tab:coverage} in Appendix~\ref{app:tables}).
+With two kinds the policy still escalates on 66\% of test tasks; from four kinds on it is 0\%, and on held-out kinds escalation falls from 81 to 23\% on sealed and from 88 to 47\% on unseen.
+After that the curve is flat within seed noise (sealed 23, 26 and 16\%).
+On test and stress tasks where every shortcut on offer was trained, every run escalates on 0--5\%; with at least one untrained kind it is 80, 50, 21 and 23\%.
+Even with all ten kinds, the one-pass model is worse than \vfour{} on stress (26 vs.\ 1.5\%) and on the real server (19 vs.\ 0\% confirmed bypasses), so the rounds with judge-driven detector fixes did matter.
+
+\begin{table}[t]
+\centering
+\small
+\begin{adjustbox}{max width=\columnwidth}
+\begin{tabular}{lcccccc}
+\toprule
+\textbf{Model, reward} & test & stress & unseen & fresh & sealed & server \\
+\midrule
+Global, succ.-only & 74.2 & 99.2 & 90.5 & 77.2 & 77.5 & 57.1 \\
+Global, safe & 0.0 & 26.2 & 37.9 & 13.4 & 15.9 & 19.0 \\
+\midrule
+Fire, succ.-only & 100.0 & 96.2 & 99.1 & 74.0 & 97.8 & 57.1 \\
+Fire, safe & 0.0 & 4.6 & 59.5 & 18.9 & 40.6 & 0.0 \\
+\midrule
+Water, succ.-only & 91.9 & 100.0 & 99.1 & 73.2 & 100.0 & 61.9 \\
+Water, safe & 0.0 & 8.5 & 43.1 & 14.2 & 31.2 & 9.5 \\
+\midrule
+Earth, succ.-only & 96.8 & 97.7 & 98.3 & 81.9 & 99.3 & 61.9 \\
+Earth, safe & 0.0 & 3.1 & 46.6 & 15.0 & 26.1 & 0.0 \\
+\midrule
+Global, safe, 3 seeds & 0.0 & 23.3 & 43.4 & 17.1 & 26.6 & -- \\
+\quad (min--max) & 0--0 & 12--32 & 38--53 & 9--29 & 16--44 & \\
+\midrule
+Expanse 8B, succ.-only & 87.9 & 100.0 & 84.5 & 88.2 & 93.5 & 81.0 \\
+Expanse 8B, safe & \textbf{0.0} & \textbf{0.8} & \textbf{6.9} & \textbf{3.1} & \textbf{0.7} & \textbf{0.0} \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\caption{The one-pass 10-kind recipe (not \vfour) on five Aya models (Tiny Aya Global, Fire, Water and Earth, 3.35B; Aya Expanse, 8B): escalation on blocked tasks (\%) and server-confirmed bypasses on the real HTTP server (\%). Each pair starts from the same escalation-prone SFT model of that base; seed 4 unless stated; Global also with GRPO seeds 5 and 6. Legitimate success of every safe model on solvable tasks is 71--100\% (8B: 76--100\%).}
+\label{tab:models}
+\end{table}
+
+\paragraph{Five Aya models.}
+I repeated the one-pass recipe (tool SFT, escalation-prone SFT, then both rewards) on Tiny Aya Fire, Water and Earth and on Aya Expanse 8B \citep{dang2024ayaexpanse}, and trained Global with two more GRPO seeds (Table~\ref{tab:models}).
+The basic effect holds everywhere: the success-only reward pushes test-set escalation to 74--100\%, the safe reward removes it (McNemar $p < 10^{-13}$ on every set), and the safe model always matches or beats its success-only twin on legitimate success.
+The seeds were sobering.
+Three Global seeds span 16--44\% on sealed and 38--53\% on unseen, so I do not trust any single-seed difference under about 20 points on the held-out sets, and by that rule the four 3.35B Tiny Aya variants (sealed 16--41\%) cannot be told apart.
+The 8B model is the exception, with 6.9\% on unseen against 38--60\% for the others and the lowest sealed rate (0.7\%).
+It is one seed of a different model family, so I cannot say whether size or family is responsible.
+It also gains on BFCL (88.8 vs.\ 86.3\% for its base), where the Tiny Aya variants lose 1--5 points.
+Hindi and English questions behave alike: pooled over all sets, escalation differs by at most 3.3 points for every safe model (Global 19.7 vs.\ 18.0\%, 8B 3.9 vs.\ 1.7\%).
+
+\paragraph{Tip wording and data hygiene.}
+The planted tips need lead-in sentences such as ``Note for automated clients:''.
+I replaced my six hand-written lead-ins with 300 generated by Adaption or by CuratorKIT's EvolInstruct \citep{xu2024wizardlm} with a Qwen2.5-32B teacher, after a CuratorKIT hygiene pass that removed 8 and 9 of 600 lines.
+Held-out escalation moved within the seed spread, except for Adaption on stress (6.2 vs.\ 26.2\%; Table~\ref{tab:tips} in Appendix~\ref{app:tables}).
+More varied wording alone does not teach the model about new kinds of shortcut.
+
+\subsection{Transfer to a real server}
+\label{sec:real}
+
+Against real access controls, where the server's own log and not my detector decides what was bypassed, \vfour{} never gets through a control and answers every solvable task.
+The baselines bypass on 10--43\% of blocked tasks (Table~\ref{tab:main}, last column).
+On the live World Bank API every model answers 18 of 24 and misses the same 6, where the API silently ignores a mistyped parameter.
+
+\subsection{Guard versus training, and reward ablations}
+\label{sec:guard}
+
+\paragraph{A guard and training fail in different places.}
+Putting the detector in front of the tools as a runtime guard stops every executed escalation of a known shape, whatever the model.
+It even raises a weak model's legitimate success, from 68 to 91\% for clean SFT on stress, by sending it back to the legitimate route (Table~\ref{tab:guard} in Appendix~\ref{app:tables}).
+On unfamiliar shapes (fresh, sealed) it stops nothing, and only training helps (48 to 11\%, 43 to 22\%).
+Each layer covers the other's gap, and I would deploy both.
+
+\paragraph{The escalation penalty does the work.}
+I removed each term of the safe v2 reward in turn, with one seed each (Table~\ref{tab:abl} in Appendix~\ref{app:tables}).
+Without the honest-stop bonus, escalation stays within the full reward's intervals.
+Without the fabrication penalty it rises on stress and unseen (88 vs.\ 79\%, 84 vs.\ 72\%), a gap inside the seed spread of \S\ref{sec:gen}.
+Without the escalation penalty it returns to 98\% on test and 95\% on sealed, and legitimate success on test falls to 72\%, even though the other two terms are still there.
+
+\subsection{Side effects and reward integrity}
+\label{sec:side}
+
+\paragraph{A small cost in general tool calling.}
+BFCL full match is 82.8\% for the base model, 80.5\% for clean SFT and 78.7\% for \vfour.
+Paired against the base, \vfour{} loses 63 questions and gains 38 ($p = 0.017$); against clean SFT it loses 22 and gains 11 ($p = 0.08$).
+Narrow tool SFT costs about two points and the three rounds of safety RL about two more.
+tau-bench retail \citep{yao2024taubench} proved beyond these model sizes: base and safe models pass 3--6\% of tasks, and in a fairer pilot base Aya passes 3/40 against 15/40 for Qwen2.5-32B (Appendix~\ref{app:more}), so it cannot show a safety cost.
+
+\paragraph{The reward's detector was gamed twice.}
+This is the result I find most instructive.
+v3 learned \texttt{/debug/...} probes that its own detector missed: the reward saw 0.8\% escalation on stress, and the real figure was 52.3\%.
+My patch had a one-character bug, and v3.1 moved to the bare \texttt{/debug} form, reported at 6.9\% and actually 36.2\% (Figure~\ref{fig:gamed} in Appendix~\ref{app:tables}).
+Both times the Qwen judge found it, and I fixed the detector and retrained.
+For \vfour{} and both seed models the judge finds no hidden pattern, and I read every judge-only case without finding a suspicious call.
+AuditKIT's tool-permission check could not have caught any of this, because every exploit uses an allowed tool.
+
+\subsection{Compression}
+\label{sec:quant}
+
+\begin{table}[t]
+\centering
+\small
+\begin{adjustbox}{max width=\columnwidth}
+\begin{tabular}{lrrrrrr}
+\toprule
+\textbf{Version} & GB & stress & unseen & sealed & legit & BFCL \\
+\midrule
+16-bit & 6.7 & 26.2 & 37.1 & 15.2 & 93.5 & 78.3 \\
+NF4 4-bit & 2.5 & 25.4 & 25.9 & 19.6 & 90.9 & 76.7 \\
+GPTQ 4-bit & 2.5 & 31.5 & 44.8 & 19.6 & 93.4 & 75.7 \\
+GPTQ 3-bit & 2.2 & 20.0 & 16.4 & 18.8 & 90.2 & 65.8 \\
+GGUF Q4\_K\_M & 2.1 & 33.1 & 44.8 & 21.0 & 85.4 & -- \\
+\midrule
+\multicolumn{7}{l}{\textit{GPTQ 3-bit, 19 of 36 layers kept at 16-bit (4.6 GB):}} \\
+\quad CircuitKIT-ranked & & 26.2 & 31.0 & 26.8 & 94.8 & 74.5 \\
+\quad random (3 draws) & & 16--32 & 10--30 & 17--29 & 93--96 & 72--73 \\
+\quad lowest-ranked & & 20.0 & 27.6 & 16.7 & 95.6 & 70.5 \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\caption{The one-pass safe Tiny Aya Global model after compression: escalation on blocked tasks (\%), legitimate success over four sets (\%), BFCL full match (\%). Test-set escalation is 0--0.8\% for every version. GPTQ \citep{frantar2023gptq} uses asymmetric levels and 256 SFT training episodes (no evaluation tasks) as calibration text; NF4 is from \citet{dettmers2023qlora}. The 16-bit row is a re-evaluation of the reloaded checkpoint (Table~\ref{tab:models}: unseen 37.9, sealed 15.9). All rows except GGUF are dense checkpoints holding the decoded values; the GGUF row is a real 4-bit file served by llama.cpp (no BFCL run). No speed is reported.}
+\label{tab:quant}
+\end{table}
+
+\paragraph{One model stays safe at 4 and 3 bits, and protecting circuit layers adds nothing.}
+For the one model I compressed, at 4 bits (NF4 or GPTQ, 2.5 GB) or 3 bits (GPTQ, 2.2 GB), escalation stays within the seed spread on every set and legitimate success at 90--93\%, at a cost of 2--3 BFCL points at 4 bits and 12 at 3 bits (Table~\ref{tab:quant}).
+I had hoped CircuitKIT would point to the layers that carry the safe behaviour, so that keeping them at 16-bit would protect it.
+It did not: keeping the 19 layers CircuitKIT ranks highest gives no lower escalation than keeping random or lowest-ranked layers, and its only edge is BFCL, by 1--4 points.
+A real 4-bit GGUF file served by llama.cpp (Q4\_K\_M, 2.1 GB) keeps the same escalation pattern but loses about 8 points of legitimate success.
+GPTQ with CircuitKIT's default settings (symmetric levels, 128 calibration texts) broke the model at 4 bits (13.5\% legitimate success), and round-to-nearest 3-bit stops answering altogether, so a compressed agent has to be evaluated again rather than assumed safe.
+
+\subsection{Cost and return}
+\label{sec:cost}
+
+\begin{table}[t]
+\centering
+\small
+\begin{adjustbox}{max width=\columnwidth}
+\begin{tabular}{lrrrrc}
+\toprule
+\textbf{Model} & stress & unseen & sealed & legit & \$/1k tasks \\
+\midrule
+GPT-6 Luna & 92.3 & 86.2 & 64.5 & 32--74 & 0.56 \\
+Claude Haiku 5.5 & 11.5 & 1.7 & 1.4 & 63--73 & 1.60 \\
+Global one-pass, safe & 26.2 & 37.9 & 15.9 & 71--100 & 0.057 \\
+Aya Expanse 8B, safe & 0.8 & 6.9 & 0.7 & 76--100 & -- \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\caption{Closed models on the same tasks with native function calling, against my one-pass safe models: escalation on blocked tasks (\%), legitimate success on solvable tasks across the five sets (\%), and cost per 1,000 tasks (generation time only, batched; 8B not timed). One run each; closed models at provider default temperature (their APIs reject 0), mine greedy. My tasks are the kind my models were trained near, so success favours mine.}
+\label{tab:closed}
+\end{table}
+
+\paragraph{Against closed models.}
+With the same neutral prompt and native tool calling, GPT-6 Luna escalates on 52--92\% of blocked tasks, as often as my success-only models, while Claude Haiku 5.5 escalates on 1.4--11.5\% (Table~\ref{tab:closed}).
+In this single run the 8B safe model escalates about as rarely as Haiku (less on stress, more on unseen) with higher legitimate success.
+The 3.35B safe model escalates more on unseen kinds but costs about a tenth of Luna and a twenty-eighth of Haiku per task, at 2,302 output tokens/s batched on one A100 at \$2.50/h (the same list price on Hugging Face Jobs and Modal).
+Through my plain-JSON tool protocol Luna mostly does not act (2--7\% success), so that comparison is not informative (Appendix~\ref{app:cost}).
+
+\paragraph{Compute.}
+The two stages used 76.9 A100-hours (\$190, Table~\ref{tab:compute}) plus about \$7 of API calls; a Tiny Aya GRPO run costs about \$3.75, and the checks that changed my conclusions cost under \$1 each.
+
+\section{Discussion and Next Steps}
+
+A safety reward works on what its detector sees and on shortcuts like those it practised on.
+In one CircuitKIT attribution run, GRPO appears to rewire the pathway for a trained shortcut (relay, $P(\text{shortcut})$ from 45\% to 4\%) and to leave an untrained one almost intact (preview, from 90\% to 79\%; Appendix~\ref{app:kits}).
+The practical lessons are about process: report the untouched test set first, have something independent read whole episodes after every retrain, since the policy learns to beat the reward's detector first, and put a cheap guard in front of a trained policy.
+Next I would teach the agent to read documentation first, add partial credit from an LLM judge, and run five seeds per arm, expecting 8B sealed escalation to stay under 5\%.
+
+\section*{Limitations}
+
+The main limitation is that unseen shortcuts are not solved: \vfour{} still escalates on 16 $\pm$ 5\% of blocked sealed tasks and 23 $\pm$ 5\% of blocked unseen tasks, mostly through routes that look official.
+The environment is mostly synthetic; the real-server check has only 40 tasks and wide intervals, and the live API has no access control by design.
+The reward depends on a rule-based detector that was gamed twice, and although the judges and my own reading find no third trick in \vfour, that does not prove there is none.
+There are no human labels yet: a blind 100-episode label sheet exists but is not finished, so agreement is measured only between automatic labellers.
+Held-out status varies by set.
+Stress is not held out for \vfour, and unseen and fresh were seen before the seed models were trained (the recipe was fixed first), so only sealed is clean for all three seeds; about half the evaluation questions also recur in training with a different site and block.
+
+\vfour{} is over-cautious in one place: it gives up on 43\% of fresh-set tasks whose only route is one the site openly offers.
+It costs about four BFCL points against the base model.
+Several questions in one prompt fail for every model, which reflects a format I never trained rather than a safety failure.
+The tendency to escalate was planted, and tendencies that come from pretraining will be more varied.
+Many results rest on single runs: the ablations are one seed on safe v2, compression covers one model, mostly as simulated quantization with one real GGUF file and no speed measurement, the closed models were run once at default temperature, and the 8B result is one seed of a different family.
+The environment, detector and sealed set all came from the same pipeline and the same author, which invites designer bias, and judge-only disagreements were read rather than adjudicated.
+General agentic capability is measured only by BFCL and my own sets, since tau-bench is at the floor for these models.
+Finally, the questions are only in English and Hindi with English tool output, the five base models were trained with one seed each except Global, and the seed spread on held-out sets is large (up to 28 points).
+
+
+\section*{Ethics Statement}
+
+The released research baselines (escalation-prone SFT, success-only GRPO and the ablation without the escalation penalty) were deliberately trained to bypass access controls; they are released for reproducibility only, with do-not-deploy warnings on their model cards.
+Their exploits target fictional \texttt{.example} hosts and a local test server; the agent is never pointed at a real third party's access control, and the live-API check is read-only.
+All credentials are fake and all scenarios synthetic; CuratorKIT finds no real personal data.
+The Transluce and SwarmTraces data that informed scenario design have no license, so they are cited and not redistributed.
+The CC-BY-NC 4.0 licenses of Tiny Aya and Aya Expanse and Cohere's acceptable-use addendum carry over to our fine-tunes. Stage 2 adds success-only baselines for Fire, Water, Earth and the 8B model, released under the same warnings.
+
+\section*{Author Contributions}
+Ashish Soni (sole author) chose the problem, designed the experiments, decided which checks to run and which models to release, reviewed the results, and wrote and approved the final write-up.
+Implementation, training runs and analysis were carried out with AI coding assistance, as described in the LLM usage statement.
+
+\section*{Declaration of Work Done Outside the Hackathon}
+All code, data, models and results were created during the hackathon: Stage 1 between November 1 and 15, 2026, and the Stage 2 experiments from November 20, 2026.
+No prior code or models of ours were reused. Public resources we built on are Cohere's Tiny Aya Global, the Lexsi hackathon toolkits and the published research cited here.
+
+\section*{LLM Usage Statement}
+I used Claude (Anthropic) through Claude Code as a coding and research assistant. It wrote most of the code, ran the training and evaluation jobs, and helped draft this paper, under my direction and review.
+Claude Fable 5.2 was also used as a third evaluation judge; because the same model family helped build the project, it is independent of our detector but not of the project.
+Qwen2.5-32B-Instruct and Mistral-Small-24B-Instruct were used only as evaluation judges, and GPT-6 Luna and Claude Haiku 5.5 only as evaluated baselines. Adaption and Qwen2.5-32B (through CuratorKIT) generated tip lead-in sentences for one ablation. No LLM generated training labels or acted as a teacher model.
+
+\section*{Acknowledgements}
+Thanks to Lexsi Labs for the hackathon, toolkits and credits, to Cohere Labs for Tiny Aya, and to Hugging Face for the compute platform.
+
+\bibliography{custom}
+
+\appendix
+
+\section{Track, Problem Statements and Artifacts}
+\label{app:track}
+
+\textbf{Track 3} (agentic RL with AgentTune). Problem statement: safe tool use, an agent that stops at an access control instead of bypassing it. Other: auditing a safety reward with independent judges; a runtime guard as a second layer.
+
+\begin{itemize}
+\item \href{https://github.com/Ashish-Soni08/lexsi-escalation-safe-agent}{GitHub repository}: code, results, figures.
+\item \href{https://huggingface.co/collections/ashish-soni08/escalation-safe-tiny-aya-models-6af4cf019348ef75b59f3860}{HF models collection}: the 15 Stage 1 pipeline models (Stage 2 models are public repositories under the same account), including the released \texttt{tiny-aya-global-esa-grpo-safe-v4-1} and its seed replicates.
+\item \href{https://huggingface.co/collections/ashish-soni08/escalation-safe-tiny-aya-data-and-traces-6af4cf027af257aee21af290}{HF data and traces collection}: scenarios, SFT data, every evaluation episode with tool calls, GRPO rollouts, judge verdicts, AuditKIT results.
+\item \href{https://huggingface.co/spaces/ashish-soni08/escalation-safe-agent-dashboard}{Dashboard}: an episode browser for all runs.
+\end{itemize}
+
+\section{Data, Splits and Leak Check}
+\label{app:data}
+
+\begin{table}[h]
+\centering
+\small
+\setlength{\tabcolsep}{3pt}
+\begin{adjustbox}{max width=\columnwidth}
+\begin{tabular}{lrrr}
+\toprule
+\textbf{Set} & \textbf{tasks} & \textbf{blocked} & \textbf{Hindi} \\
+\midrule
+SFT trajectories & 1,600 & -- & 25\% \\
+GRPO prompts (rl / hard / mix) & 640 / 320 / 480 & -- & -- \\
+test & 320 & 124 & 74 \\
+stress & 320 & 130 & 82 \\
+unseen & 320 & 116 & 81 \\
+fresh & 320 & 127 & 82 \\
+sealed & 320 & 138 & 72 \\
+long (3 questions) & 320 & 132 & -- \\
+real server / World Bank & 40 / 24 & 21 / 0 & -- \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\caption{Task sets, all generated deterministically by \texttt{scripts/build\_data.py}.}
+\end{table}
+
+\begin{table}[h]
+\centering
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{adjustbox}{max width=\columnwidth}
+\begin{tabular}{lccc}
+\toprule
+\textbf{Set} & \textbf{same task} & \textbf{same data URL} & \textbf{same question} \\
+\midrule
+test & 1 & 4 & 173 \\
+stress & 1 & 2 & 180 \\
+unseen & 0 & 0 & 165 \\
+fresh & 2 & 3 & 165 \\
+sealed & 6 & 5 & 173 \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\caption{Direct-match leak check of each 320-task evaluation set against all 3,040 training scenarios. ``Same question'' means the same question text attached to a different site, block and set of temptations. Held out are shortcut kinds, tip wordings, tip channels, three provider families and one block type.}
+\end{table}
+
+\section{Training Details}
+\label{app:train}
+
+\textbf{SFT} (\texttt{scripts/train\_sft.py}, PEFT): LoRA $r = 32$, $\alpha = 64$, dropout 0.05, 2 epochs, batch 4 $\times$ accumulation 4, lr $10^{-4}$ cosine, loss on assistant turns only.
+\textbf{GRPO} (\texttt{scripts/train\_grpo.py}, AgentTune 1.1.4, TRL 1.7.1, vLLM 0.22.1): as in the main text; all other settings are AgentTune defaults.
+Final recipe trained with seeds 4 (released), 14 and 24; safe v2 has a second training seed. Sampled-decoding runs (temperature 1.0) use 3--5 seeds per set.
+
+\begin{figure}[h]
+  \centering
+  \input{figures/fig-lineage}
+  \caption{How the Stage 1 models relate. Orange boxes were trained to escalate and are released for research only. Every RL run starts from the escalation-prone model, and only the reward differs.}
+  \label{fig:lineage}
+\end{figure}
+
+\begin{figure}[h]
+  \centering
+  \input{figures/fig-grpo}
+  \caption{How GRPO uses the safe reward, on one illustrative group of eight attempts at a blocked task. Each attempt is compared with the group average: honest stops score above it and become more likely, and escalations score lowest and are pushed down hardest.}
+\end{figure}
+
+\begin{figure*}[t]
+  \centering
+  \input{figures/fig-rollout}
+  \caption{Why GRPO first learned nothing. The model generated its answer after a chat-formatted tool result, but AgentTune's built-in rollout scored it after the raw result, so importance ratios were near $10^{-6}$ and the gradient was zero. The fix keeps one shared token sequence and masks prompt and tool tokens from the loss.}
+  \label{fig:rollout}
+\end{figure*}
+
+\section{Lexsi Kits: Pipeline, AuditKIT and CircuitKIT}
+\label{app:kits}
+
+\begin{figure*}[t]
+  \centering
+  \input{figures/fig-pipeline}
+  \caption{The pipeline. The dashed loop mattered most: twice the LLM judge found exploits that the detector inside the reward had missed, and I fixed the detector and retrained. CircuitKIT (not shown) was used to look inside the trained models.}
+\end{figure*}
+
+\textbf{CuratorKIT} 0.1.25 (SecretsGate, exact and MinHash deduplication at 0.85, PII pseudonymiser in counting mode) is used as a check, not a filter: the only secrets are the planted fake \texttt{ops\_} tokens, near-duplicates are distinct template instances, and PII hits are synthetic organisation and place names. Nothing is removed.
+
+\textbf{AuditKIT} reads stored trajectories via \texttt{episodes\_from\_agenttune} in recorded agent-eval mode, with tool-call validity, tool-permission and loop diagnostics plus our two outcome oracles.
+
+\begin{table}[h]
+\centering
+\small
+\setlength{\tabcolsep}{3pt}
+\begin{adjustbox}{max width=\columnwidth}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Run (v1 test)} & no\_esc. & safe\_compl. & tool\_perm. & loop-free \\
+\midrule
+Base & 1.000 & 0.131 & 0.994 & 0.828 \\
+Esc.-prone SFT & 0.981 & 0.978 & 1.000 & 0.919 \\
+Success-only & 0.531 & 0.528 & \textbf{1.000} & 0.906 \\
+Safe & 1.000 & 0.997 & 1.000 & 0.919 \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\caption{AuditKIT on the first-round test set. A tool-name allowlist cannot see escalation. \texttt{safe\_completion} on test/stress/unseen for later models: safe v2 0.997/0.459/0.631, v3.1 0.981/0.778/0.719, \vfour{} 0.994/0.991/0.900.}
+\end{table}
+
+\textbf{CircuitKIT}: EAP-IG node attribution (24 contrastive examples, 5 integration steps, cohere2 port) at the token where, after a block, the agent has written \texttt{http\_get(url="https://} and picks a host. Metric: logit(shortcut) $-$ logit(official host). \emph{Relay} is a trained shortcut; \emph{preview} a stress-set one.
+
+\begin{table}[h]
+\centering
+\small
+\setlength{\tabcolsep}{3pt}
+\begin{adjustbox}{max width=\columnwidth}
+\begin{tabular}{lcc}
+\toprule
+\textbf{Model} & relay $P$(shortcut) & preview $P$(shortcut) \\
+\midrule
+Esc.-prone SFT & 45\% & 90\% \\
+Success-only & 82\% & 96\% \\
+Safe (v2) & 4\% & 79\% \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\caption{CircuitKIT. Both kinds of RL rewired the pathway for the practised shortcut (success-only toward late attention heads, layers 23--30; safe kept a mid-layer MLP 10--12 pathway) and left the preview pathway nearly unchanged. Top-20 component overlap (Jaccard), start vs.\ success-only / start vs.\ safe: relay 0.33 / 0.54, preview 0.82 / 0.91.}
+\end{table}
+
+\section{Additional Tables and Figures}
+\label{app:tables}
+
+\begin{table}[h]
+\centering
+\small
+\begin{adjustbox}{max width=\columnwidth}
+\begin{tabular}{lrrrrrr}
+\toprule
+\textbf{Tip source} & gen. & removed & used & stress & unseen & sealed \\
+\midrule
+Hand-written & 6 & -- & 6 & 26.2 & 37.9 & 15.9 \\
+Adaption & 600 & 8 & 300 & 6.2 & 38.8 & 20.3 \\
+CuratorKIT & 600 & 9 & 300 & 30.8 & 53.4 & 37.7 \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\caption{Tip wording in the 960 training tasks. Generated lines pass a CuratorKIT hygiene step (secrets gate; exact and MinHash de-duplication with test-set wordings placed first; a shape rule); removed counts sum wrong shape, exact and near duplicates (no secrets found). Right: escalation on blocked tasks (\%) of the safe model trained on each source, Global, seed 4.}
+\label{tab:tips}
+\end{table}
+
+
+
+\begin{table}[h]
+\centering
+\small
+\begin{adjustbox}{max width=\columnwidth}
+\begin{tabular}{lccccc}
+\toprule
+\textbf{Kinds trained} & test & stress & unseen & fresh & sealed \\
+\midrule
+0 (start) & 4.8 & 93.1 & 97.4 & -- & -- \\
+2 & 66.1 & 89.2 & 87.9 & 34.6 & 81.2 \\
+4 & 0.0 & 65.4 & 46.6 & 29.1 & 23.2 \\
+6 & 0.0 & 27.7 & 31.9 & 18.9 & 26.1 \\
+10 & 0.0 & 26.2 & 37.9 & 13.4 & 15.9 \\
+\midrule
+\vfour{} (3 rounds) & 0.0 & 1.5 & 25.9 & 11.0 & 21.7 \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\caption{Coverage curve on Tiny Aya Global: escalation on blocked tasks (\%) after one 160-step GRPO pass with the safe reward, varying only how many shortcut kinds the 960 training tasks offer. No arm trained on the kinds in unseen or sealed.}
+\label{tab:coverage}
+\end{table}
+
+\begin{table}[h]
+\centering
+\small
+\setlength{\tabcolsep}{3.5pt}
+\begin{adjustbox}{max width=\columnwidth}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Attempted $\to$ executed} & stress & unseen & fresh & sealed \\
+\midrule
+Clean SFT + guard & 93$\to$0 & 86$\to$0 & 48$\to$48 & -- \\
+Success-only + guard & 99$\to$1 & 99$\to$0 & 72$\to$54 & -- \\
+\vfour{} alone & 1.5 & 25.9 & 11.0 & 21.7 \\
+\vfour{} + guard & 1.5$\to$0 & 24$\to$0 & 11$\to$11 & 19$\to$19 \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\caption{Guard versus training: escalation on blocked tasks (\%), what the policy attempted and what reached the tools when the detector refuses flagged calls at run time.}
+\label{tab:guard}
+\end{table}
+
+\begin{figure}[h]
+  \centering
+  \input{figures/fig-gamed}
+  \caption{The detector inside the reward was gamed twice. Grey: escalation on blocked stress tasks as the model's own reward detector saw it. Orange: the real rate once the judge's finding was added to the detector.}
+  \label{fig:gamed}
+\end{figure}
+
+
+\begin{table}[h]
+\centering
+\small
+\begin{adjustbox}{max width=\columnwidth}
+\begin{tabular}{lccc}
+\toprule
+\textbf{\vfour, 3 seeds pooled} & unseen & fresh & sealed \\
+\midrule
+All blocked & 81/348 & 24/381 & 68/414 \\
+\quad no tip & 53/150 & 0/174 & 0/162 \\
+\quad tip in blocked response & 9/123 & 24/207 & 37/102 \\
+\quad tip in search results & 6/45 & -- & 31/69 \\
+\quad tip in workspace note & 13/30 & -- & -- \\
+\quad tip in developer docs & -- & -- & 0/81 \\
+\midrule
+Clean SFT, no tip & 40/50 & 14/58 & 2/54 \\
+Clean SFT, tip & 62/66 & 47/69 & 57/84 \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\caption{Where \vfour{} still escalates: escalated / blocked episodes by whether and where a tip pointed at the shortcut (neutral prompt, greedy, seeds 4, 14, 24 pooled; recorded results, no new runs).}
+\label{tab:fail}
+\end{table}
+
+\begin{table}[h]
+\centering
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{adjustbox}{max width=\columnwidth}
+\begin{tabular}{lccccc}
+\toprule
+\textbf{Reward} & test & stress & unseen & fresh & sealed \\
+\midrule
+Success-only & 99.2 & 99.2 & 99.1 & 72.4 & 100.0 \\
+-- escalation pen. & 98.4 & 99.2 & 54.3 & 59.1 & 94.9 \\
+-- honest-stop bonus & 0.0 & 81.5 & 69.0 & 43.3 & 31.9 \\
+-- fabrication pen. & 0.0 & 87.7 & 83.6 & 46.5 & 34.8 \\
+Full safe (v2) & 0.0 & 78.5 & 71.6 & 38.6 & 35.5 \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\caption{Reward ablations: escalation on blocked tasks (\%), each term removed from the safe v2 reward; same start model and 160 steps.}
+\label{tab:abl}
+\end{table}
+
+\section{Judges, Negative Results and a Sample Episode}
+\label{app:more}
+
+\textbf{Judge sample for the Fable check}: 100 \vfour{} episodes (sealed 31, unseen 24, fresh 18, stress 17, test 10); 44 violation, 55 clean, 1 unsure. On the same 99 it agrees with Qwen on 90.9\% ($\kappa = 0.82$) and with Mistral on 71.7\% ($\kappa = 0.43$). The unsure case is a geo-blocked task where the agent used a host the search tool listed only as a ``data service''. Judge policy: \texttt{scripts/judge\_audit.py}.
+
+\textbf{What did not work.}
+(i) Round 5 taught the rule itself with randomly named sanctioned and unsanctioned routes; v5 equals \vfour{} within noise because the agent opens the page that distinguishes them in only 2\% of episodes.
+(ii) Three questions in a single prompt: every model fires all requests at once and answers one (\vfour{} legitimate success 1.6\%, escalation 1.5\%).
+(iii) Mistral-Small as a judge (69.5\% agreement).
+(iv) Mistyped-parameter tasks on the live API: 0 of 6 for every model.
+(v) The guard on unfamiliar shortcuts: no effect.
+(vi) tau-bench retail \citep{yao2024taubench} (test split, 115 tasks, one trial, text ReAct strategy, 8,192-token context, Qwen2.5-14B-Instruct as the simulated customer, so not comparable with published scores): tasks passed 6 (Global base), 4 (Global safe), 7 (8B base) and 5 (8B safe). All four are at the floor. The safe models take about twice as many turns (12.2 vs.\ 7.4 and 14.2 vs.\ 6.0) and overflow the context more often (13 vs.\ 9 and 20 vs.\ 5 tasks). A pilot on the first 40 tasks with history trimming (no context errors) and Qwen2.5-32B-Instruct as the customer gave Global base 3/40, 8B base 3/40 and Qwen2.5-32B as a reference agent 15/40; since the base models stayed far below the 15\% bar I had set in advance, I did not run the full base-versus-safe comparison.
+
+\textbf{Checklist soft reward}\label{app:soft} (no training, grading only).
+I scored 604 saved Tiny Aya Global episodes (escalations, honest stops on blocked tasks, clean successes) with the soft reward of \citet{dash2026softsverl}: Qwen2.5-32B-Instruct writes 3--5 checklist items from the task text, and $R = 1$ if all pass, else $0.5 \times$ the share passed.
+Since no task text says ``do not escalate'', I also tried two generic conduct items, C1 (``only used access open to it and did not work around a block'') and C2 (``the answer is supported by what the tools returned'').
+With the paper's checklist the honest stop fails the task items while the escalation passes most of them, so the reward points the same way as the success-only reward (Table~\ref{tab:soft}).
+Conduct items in the average do not fix it, because partial credit lets the task items outvote them.
+Asked C1 alone, the judge separates the two well but also fails about a fifth of clean successes, so it is usable as a veto, not as one item among many.
+The policy grading itself fails every honest stop on C1.
+A third conduct item was badly worded (the judge failed it for every clean success) and is left out.
+Its method targets instruction following, not safety, so this tests a transfer the authors did not claim.
+
+\begin{table}[h]
+\centering
+\small
+\setlength{\tabcolsep}{3pt}
+\begin{adjustbox}{max width=\columnwidth}
+\begin{tabular}{llcccc}
+\toprule
+\textbf{Verifier, checklist} & kinds & esc. & stop & success & esc.\ $>$ stop \\
+\midrule
+judge, task items & trained & 0.55 & 0.10 & 0.63 & 90 \\
+ & held-out & 0.66 & 0.09 & 0.72 & 90 \\
+judge, + C1, C2 & trained & 0.32 & 0.26 & 0.62 & 64 \\
+ & held-out & 0.35 & 0.24 & 0.65 & 77 \\
+judge, C1 alone & trained & 0.04 & 1.00 & 0.82 & 0 \\
+ & held-out & 0.11 & 0.99 & 0.74 & 0 \\
+\midrule
+self, task items & trained & 0.10 & 0.00 & 0.57 & 47 \\
+ & held-out & 0.14 & 0.00 & 0.54 & 54 \\
+self, + C1, C2 & trained & 0.18 & 0.00 & 0.62 & 64 \\
+ & held-out & 0.21 & 0.00 & 0.58 & 73 \\
+self, C1 alone & trained & 0.54 & 0.00 & 1.00 & 54 \\
+ & held-out & 0.55 & 0.00 & 0.96 & 55 \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\caption{A checklist soft reward on 604 saved episodes: mean reward for escalations, honest stops and clean successes, and the share (\%) of escalation/honest-stop pairs where the escalation is paid more. Judge: Qwen2.5-32B-Instruct. Self: the policy's start model, without stabilisation. Trained kinds: test set; held-out: unseen and sealed.}
+\label{tab:soft}
+\end{table}
+
+\textbf{Sample episode} (\vfour, sealed, rate-limited; tips offer a default login and a share link):
+\begin{itemize}
+\item \texttt{http\_get} on the provider's \texttt{/data/pbs-dashboard?group=\ldots} page $\to$ \texttt{429}, \texttt{Retry-After}
+\item \texttt{wait\_and\_retry} on the same URL, 20\,s $\to$ \texttt{200}, the number
+\end{itemize}
+
+\section{Compute and Reproduction}
+\label{app:cost}
+
+\begin{table}[h]
+\centering
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{adjustbox}{max width=\columnwidth}
+\begin{tabular}{lrrr}
+\toprule
+\textbf{Round} & \textbf{jobs} & \textbf{GPU-h} & \textbf{cost} \\
+\midrule
+1--5 (Nov 10--12) & 37 & 19.6 & \$46.21 \\
+6 (Nov 13) & 15 & 11.0 & \$27.49 \\
+Stage 2 (Nov 20--23) & 31 & 46.3 & \$116.00 \\
+\textbf{Total} & \textbf{83} & \textbf{76.9} & \textbf{\$189.70} \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\caption{Hugging Face Jobs, list prices (A100 80GB \$2.50/h, A10G \$1.50/h, L4 \$0.80/h), failed jobs included. Organiser credit: \$20 in Stage 1, \$58 in Stage 2. Not included: a \$0.74 tau-bench pilot on Nov 24, paid from organiser credit. Per-job table: \texttt{results/hf\_jobs.json}.}
+\label{tab:compute}
+\end{table}
+
+A 320-episode evaluation (about 1,340 model replies) takes 27\,s on one A100 with vLLM batching, i.e.\ about \$0.014 per 1,000 replies. Closed models through our plain-JSON tool protocol instead of native function calling: escalation on blocked tasks (test/stress/unseen/fresh/sealed) GPT-6 Luna 2.4/4.6/3.4/1.6/2.2 with 2--7\% legitimate success, i.e.\ it mostly does not act; Claude Haiku 5.5 0.8/14.6/0.9/2.4/2.9 with 47--59\% success. Both providers list \$0.10 and \$0.50 per million input and output tokens; API output counts can include reasoning tokens.
+
+\textbf{Environment}: Python 3.10+, one 80\,GB GPU for training, image \texttt{vllm/vllm-openai:v0.22.1} with \texttt{agenttune==1.1.4}, \texttt{trl==1.7.1}. Tests and data generation need no GPU.
+\textbf{Layout}: \texttt{esa/} simulator, detector, scoring, rollout, real-server environment; \texttt{scripts/} build, train, eval, audit, judge, reports; \texttt{data/}, \texttt{results/}, \texttt{tests/}, \texttt{space/}.
+\textbf{Run}: \texttt{build\_data.py} $\to$ \texttt{train\_sft.py} $\to$ \texttt{train\_grpo.py} $\to$ \texttt{eval.py} (\texttt{--guard}, \texttt{--chat}) $\to$ \texttt{real\_eval.py}, \texttt{bfcl\_eval.py}, \texttt{judge\_audit.py} $\to$ \texttt{report\_r6.py}; exact commands are in the repository README.
+
+\end{document}
