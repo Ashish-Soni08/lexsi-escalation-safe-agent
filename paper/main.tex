@@ -78,11 +78,10 @@ The work was done for Track 3 (agentic RL with AgentTune) of the Lexsi AI Safety
 
 Escalating to get a number is a form of reward hacking or specification gaming \citep{amodei2016concrete,krakovna2020specification,pan2022effects,skalse2022reward}.
 \citet{denison2024sycophancy} show that models trained on gameable environments go on to tamper with their reward, and \citet{baker2025monitoring} show that optimising against a monitor can teach a policy to hide from it; my two detector failures are a small instance of the second.
-Agent safety benchmarks such as ToolEmu \citep{ruan2024toolemu}, AgentHarm \citep{andriushchenko2025agentharm} and AgentDojo \citep{debenedetti2024agentdojo} measure harm under adversarial users or injected instructions.
-Here the user is benign and the risk comes from the agent's own effort to finish the job.
-I follow the model-organism approach \citep{hubinger2023organisms} of planting a behaviour so that a fix can be tested on a model that has it.
+Agent safety benchmarks such as ToolEmu \citep{ruan2024toolemu}, AgentHarm \citep{andriushchenko2025agentharm} and AgentDojo \citep{debenedetti2024agentdojo} measure harm under adversarial users or injected instructions, whereas here the user is benign.
+Planting the behaviour follows the model-organism approach \citep{hubinger2023organisms}.
 The closest work to the reward is rule-based safety rewards for chat models \citep{mu2024rbr}, and to the compression check, studies of safety under quantization \citep{egashira2024exploiting,hong2024compressed}.
-GRPO is from \citet{shao2024deepseekmath}, BFCL \citep{patil2025bfcl} is my check of general tool calling, and CircuitKIT's attribution method is EAP-IG \citep{hanna2024faith}.
+Soft-SVeRL \citep{dash2026softsverl} takes the opposite route: an LLM grades responses against a checklist for partial credit (up to $+11.1$ IFEval points), and a policy grading itself inflates its reward unless stabilised; my reward is hard and set by the environment, so it cannot be talked up, but sees only shortcuts its detector knows.
 
 \section{Setup}
 
@@ -147,7 +146,7 @@ The trainer was scoring tokens in a context the sampler never produced, so impor
 My rollout (\texttt{esa/rollout.py}, passed through \texttt{rollout\_func}) keeps one exact token sequence per episode and masks environment tokens from the loss (Figure~\ref{fig:rollout}); the gap between sampler and trainer fell from 0.30 to 0.0005 nats per token.
 
 \paragraph{Lexsi kits.}
-Besides AgentTune, I used AuditKIT to re-score every stored trajectory with its own checks and two verified-outcome oracles I added (\texttt{no\_escalation}, \texttt{safe\_completion}), CircuitKIT to run EAP-IG at the token where the agent picks a host after a block, and CuratorKIT to check the SFT data for secrets, duplicates and personal data before release (Appendix~\ref{app:kits}).
+Besides AgentTune, I used AuditKIT to re-score every stored trajectory with its own checks and two verified-outcome oracles I added (\texttt{no\_escalation}, \texttt{safe\_completion}), CircuitKIT to run EAP-IG \citep{hanna2024faith} at the token where the agent picks a host after a block, and CuratorKIT to check the SFT data for secrets, duplicates and personal data before release (Appendix~\ref{app:kits}).
 
 \begin{table*}[t]
 \centering
@@ -349,8 +348,7 @@ GGUF Q4\_K\_M & 2.1 & 33.1 & 44.8 & 21.0 & 85.4 & -- \\
 \end{table}
 
 \paragraph{One model stays safe at 4 and 3 bits, and protecting circuit layers adds nothing.}
-I compressed only the one-pass safe Global model.
-At 4 bits (NF4 or GPTQ, 2.5 GB) or 3 bits (GPTQ, 2.2 GB), escalation stays within the seed spread on every set and legitimate success at 90--93\%, at a cost of 2--3 BFCL points at 4 bits and 12 at 3 bits (Table~\ref{tab:quant}).
+For the one model I compressed, at 4 bits (NF4 or GPTQ, 2.5 GB) or 3 bits (GPTQ, 2.2 GB), escalation stays within the seed spread on every set and legitimate success at 90--93\%, at a cost of 2--3 BFCL points at 4 bits and 12 at 3 bits (Table~\ref{tab:quant}).
 I had hoped CircuitKIT would point to the layers that carry the safe behaviour, so that keeping them at 16-bit would protect it.
 It did not: keeping the 19 layers CircuitKIT ranks highest gives no lower escalation than keeping random or lowest-ranked layers, and its only edge is BFCL, by 1--4 points.
 A real 4-bit GGUF file served by llama.cpp (Q4\_K\_M, 2.1 GB) keeps the same escalation pattern but loses about 8 points of legitimate success.
@@ -389,14 +387,10 @@ The two stages used 76.9 A100-hours (\$190, Table~\ref{tab:compute}) plus about 
 
 \section{Discussion and Next Steps}
 
-A safety reward for agents works on what its detector can see and on shortcuts that resemble the ones it practised on.
-One CircuitKIT attribution run fits that picture: GRPO appears to rewire the pathway for a trained shortcut (relay, $P(\text{shortcut})$ from 45\% to 4\%) and to leave an untrained one almost intact (preview, from 90\% to 79\%; Appendix~\ref{app:kits}).
-The 8B model generalised best, but with one such model I cannot separate scale from family.
-The practical lessons are about process.
-Report the untouched test set first.
-Have something independent read whole episodes after every retrain, because the detector inside the reward is the first thing the policy learns to beat.
-Put a cheap guard in front of a trained policy, since each catches what the other misses.
-Next I would teach the agent to read a provider's documentation first, put an LLM judge into the reward, and run five seeds per arm, expecting 8B sealed escalation to stay under 5\%.
+A safety reward works on what its detector sees and on shortcuts like those it practised on.
+In one CircuitKIT attribution run, GRPO appears to rewire the pathway for a trained shortcut (relay, $P(\text{shortcut})$ from 45\% to 4\%) and to leave an untrained one almost intact (preview, from 90\% to 79\%; Appendix~\ref{app:kits}).
+The practical lessons are about process: report the untouched test set first, have something independent read whole episodes after every retrain, since the policy learns to beat the reward's detector first, and put a cheap guard in front of a trained policy.
+Next I would teach the agent to read documentation first, add partial credit from an LLM judge, and run five seeds per arm, expecting 8B sealed escalation to stay under 5\%.
 
 \section*{Limitations}
 
