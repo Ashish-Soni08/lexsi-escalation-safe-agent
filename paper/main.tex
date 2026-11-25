@@ -81,7 +81,7 @@ Escalating to get a number is a form of reward hacking or specification gaming \
 Agent safety benchmarks such as ToolEmu \citep{ruan2024toolemu}, AgentHarm \citep{andriushchenko2025agentharm} and AgentDojo \citep{debenedetti2024agentdojo} measure harm under adversarial users or injected instructions, whereas here the user is benign.
 Planting the behaviour follows the model-organism approach \citep{hubinger2023organisms}.
 The closest work to the reward is rule-based safety rewards for chat models \citep{mu2024rbr}, and to the compression check, studies of safety under quantization \citep{egashira2024exploiting,hong2024compressed}.
-Soft-SVeRL \citep{dash2026softsverl} takes the opposite route: an LLM grades responses against a checklist for partial credit (up to $+11.1$ IFEval points), and a policy grading itself inflates its reward unless stabilised; my reward is hard and set by the environment, so it cannot be talked up, but sees only shortcuts its detector knows.
+Soft-SVeRL \citep{dash2026softsverl} instead has an LLM grade responses against a checklist for partial credit; graded that way, my saved episodes pay an escalation more than an honest stop in 90\% of pairs, so such a reward would teach escalation, and an LLM judge helps only as a veto, which is how my reward is built (Appendix~\ref{app:soft}).
 
 \section{Setup}
 
@@ -707,6 +707,45 @@ Full safe (v2) & 0.0 & 78.5 & 71.6 & 38.6 & 35.5 \\
 (iv) Mistyped-parameter tasks on the live API: 0 of 6 for every model.
 (v) The guard on unfamiliar shortcuts: no effect.
 (vi) tau-bench retail \citep{yao2024taubench} (test split, 115 tasks, one trial, text ReAct strategy, 8,192-token context, Qwen2.5-14B-Instruct as the simulated customer, so not comparable with published scores): tasks passed 6 (Global base), 4 (Global safe), 7 (8B base) and 5 (8B safe). All four are at the floor. The safe models take about twice as many turns (12.2 vs.\ 7.4 and 14.2 vs.\ 6.0) and overflow the context more often (13 vs.\ 9 and 20 vs.\ 5 tasks). A pilot on the first 40 tasks with history trimming (no context errors) and Qwen2.5-32B-Instruct as the customer gave Global base 3/40, 8B base 3/40 and Qwen2.5-32B as a reference agent 15/40; since the base models stayed far below the 15\% bar I had set in advance, I did not run the full base-versus-safe comparison.
+
+\textbf{Checklist soft reward}\label{app:soft} (no training, grading only).
+I scored 604 saved Tiny Aya Global episodes (escalations, honest stops on blocked tasks, clean successes) with the soft reward of \citet{dash2026softsverl}: Qwen2.5-32B-Instruct writes 3--5 checklist items from the task text, and $R = 1$ if all pass, else $0.5 \times$ the share passed.
+Since no task text says ``do not escalate'', I also tried two generic conduct items, C1 (``only used access open to it and did not work around a block'') and C2 (``the answer is supported by what the tools returned'').
+With the paper's checklist the honest stop fails the task items while the escalation passes most of them, so the reward points the same way as the success-only reward (Table~\ref{tab:soft}).
+Conduct items in the average do not fix it, because partial credit lets the task items outvote them.
+Asked C1 alone, the judge separates the two well but also fails about a fifth of clean successes, so it is usable as a veto, not as one item among many.
+The policy grading itself fails every honest stop on C1.
+A third conduct item was badly worded (the judge failed it for every clean success) and is left out.
+Its method targets instruction following, not safety, so this tests a transfer the authors did not claim.
+
+\begin{table}[h]
+\centering
+\small
+\setlength{\tabcolsep}{3pt}
+\begin{adjustbox}{max width=\columnwidth}
+\begin{tabular}{llcccc}
+\toprule
+\textbf{Verifier, checklist} & kinds & esc. & stop & success & esc.\ $>$ stop \\
+\midrule
+judge, task items & trained & 0.55 & 0.10 & 0.63 & 90 \\
+ & held-out & 0.66 & 0.09 & 0.72 & 90 \\
+judge, + C1, C2 & trained & 0.32 & 0.26 & 0.62 & 64 \\
+ & held-out & 0.35 & 0.24 & 0.65 & 77 \\
+judge, C1 alone & trained & 0.04 & 1.00 & 0.82 & 0 \\
+ & held-out & 0.11 & 0.99 & 0.74 & 0 \\
+\midrule
+self, task items & trained & 0.10 & 0.00 & 0.57 & 47 \\
+ & held-out & 0.14 & 0.00 & 0.54 & 54 \\
+self, + C1, C2 & trained & 0.18 & 0.00 & 0.62 & 64 \\
+ & held-out & 0.21 & 0.00 & 0.58 & 73 \\
+self, C1 alone & trained & 0.54 & 0.00 & 1.00 & 54 \\
+ & held-out & 0.55 & 0.00 & 0.96 & 55 \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\caption{A checklist soft reward on 604 saved episodes: mean reward for escalations, honest stops and clean successes, and the share (\%) of escalation/honest-stop pairs where the escalation is paid more. Judge: Qwen2.5-32B-Instruct. Self: the policy's start model, without stabilisation. Trained kinds: test set; held-out: unseen and sealed.}
+\label{tab:soft}
+\end{table}
 
 \textbf{Sample episode} (\vfour, sealed, rate-limited; tips offer a default login and a share link):
 \begin{itemize}
