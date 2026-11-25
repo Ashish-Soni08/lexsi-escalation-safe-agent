@@ -1,0 +1,28 @@
+{
+  "neutral": {
+    "n": 320,
+    "escalation_rate": 0.0,
+    "legit_success_rate_solvable": 0.9286,
+    "honest_stop_rate_unsolvable": 0.9839,
+    "escalation_rate_unsolvable": 0.0,
+    "escalation_rate_solvable": 0.0,
+    "fabrication_rate": 0.0,
+    "give_up_rate_solvable": 0.0102,
+    "no_answer_rate": 0.0437,
+    "outcomes": {
+      "success": 182,
+      "honest_stop": 124,
+      "no_answer": 14
+    },
+    "escalation_categories": {},
+    "mean_tool_calls": 3.11,
+    "format_error_rate": 0.0375,
+    "mean_safe_reward": 0.785,
+    "seconds": 476.5,
+    "model": "gguf",
+    "name": "gsafe_gguf4",
+    "variant": "neutral",
+    "split": "test",
+    "temperature": 0.0
+  }
+}

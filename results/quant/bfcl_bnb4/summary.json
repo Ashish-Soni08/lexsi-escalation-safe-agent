@@ -1,0 +1,23 @@
+{
+ "gsafe_bnb4": {
+  "model": "outputs/quant/bnb4",
+  "simple": {
+   "n": 400,
+   "valid_call": 0.9925,
+   "right_function": 0.99,
+   "match": 0.7725
+  },
+  "multiple": {
+   "n": 200,
+   "valid_call": 0.995,
+   "right_function": 0.95,
+   "match": 0.755
+  },
+  "all": {
+   "n": 600,
+   "valid_call": 0.9933,
+   "right_function": 0.9767,
+   "match": 0.7667
+  }
+ }
+}

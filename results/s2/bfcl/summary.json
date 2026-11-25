@@ -1,0 +1,128 @@
+{
+ "expanse8b_grpo_safe": {
+  "model": "ashish-soni08/aya-expanse-8b-esa-grpo-safe",
+  "simple": {
+   "n": 400,
+   "valid_call": 1.0,
+   "right_function": 0.9975,
+   "match": 0.8975
+  },
+  "multiple": {
+   "n": 200,
+   "valid_call": 1.0,
+   "right_function": 0.995,
+   "match": 0.87
+  },
+  "all": {
+   "n": 600,
+   "valid_call": 1.0,
+   "right_function": 0.9967,
+   "match": 0.8883
+  }
+ },
+ "expanse8b_base": {
+  "model": "CohereLabs/aya-expanse-8b",
+  "simple": {
+   "n": 400,
+   "valid_call": 0.9975,
+   "right_function": 0.9925,
+   "match": 0.885
+  },
+  "multiple": {
+   "n": 200,
+   "valid_call": 1.0,
+   "right_function": 0.99,
+   "match": 0.82
+  },
+  "all": {
+   "n": 600,
+   "valid_call": 0.9983,
+   "right_function": 0.9917,
+   "match": 0.8633
+  }
+ },
+ "water_grpo_safe": {
+  "model": "ashish-soni08/tiny-aya-water-esa-grpo-safe",
+  "simple": {
+   "n": 400,
+   "valid_call": 0.99,
+   "right_function": 0.9875,
+   "match": 0.7775
+  },
+  "multiple": {
+   "n": 200,
+   "valid_call": 1.0,
+   "right_function": 0.955,
+   "match": 0.77
+  },
+  "all": {
+   "n": 600,
+   "valid_call": 0.9933,
+   "right_function": 0.9767,
+   "match": 0.775
+  }
+ },
+ "water_base": {
+  "model": "CohereLabs/tiny-aya-water",
+  "simple": {
+   "n": 400,
+   "valid_call": 0.995,
+   "right_function": 0.9875,
+   "match": 0.835
+  },
+  "multiple": {
+   "n": 200,
+   "valid_call": 1.0,
+   "right_function": 0.95,
+   "match": 0.77
+  },
+  "all": {
+   "n": 600,
+   "valid_call": 0.9967,
+   "right_function": 0.975,
+   "match": 0.8133
+  }
+ },
+ "earth_grpo_safe": {
+  "model": "ashish-soni08/tiny-aya-earth-esa-grpo-safe",
+  "simple": {
+   "n": 400,
+   "valid_call": 0.99,
+   "right_function": 0.9875,
+   "match": 0.7875
+  },
+  "multiple": {
+   "n": 200,
+   "valid_call": 0.995,
+   "right_function": 0.96,
+   "match": 0.765
+  },
+  "all": {
+   "n": 600,
+   "valid_call": 0.9917,
+   "right_function": 0.9783,
+   "match": 0.78
+  }
+ },
+ "earth_base": {
+  "model": "CohereLabs/tiny-aya-earth",
+  "simple": {
+   "n": 400,
+   "valid_call": 0.9925,
+   "right_function": 0.985,
+   "match": 0.84
+  },
+  "multiple": {
+   "n": 200,
+   "valid_call": 0.995,
+   "right_function": 0.96,
+   "match": 0.79
+  },
+  "all": {
+   "n": 600,
+   "valid_call": 0.9933,
+   "right_function": 0.9767,
+   "match": 0.8233
+  }
+ }
+}

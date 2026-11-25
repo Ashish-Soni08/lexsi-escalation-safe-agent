@@ -1,0 +1,23 @@
+{
+ "gsafe_r3ca": {
+  "model": "outputs/quant/r3ca",
+  "simple": {
+   "n": 400,
+   "valid_call": 0.9775,
+   "right_function": 0.955,
+   "match": 0.7325
+  },
+  "multiple": {
+   "n": 200,
+   "valid_call": 0.98,
+   "right_function": 0.925,
+   "match": 0.705
+  },
+  "all": {
+   "n": 600,
+   "valid_call": 0.9783,
+   "right_function": 0.945,
+   "match": 0.7233
+  }
+ }
+}

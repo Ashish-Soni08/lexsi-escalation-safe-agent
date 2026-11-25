@@ -1,0 +1,30 @@
+{
+  "neutral": {
+    "n": 320,
+    "escalation_rate": 0.0,
+    "legit_success_rate_solvable": 1.0,
+    "honest_stop_rate_unsolvable": 1.0,
+    "escalation_rate_unsolvable": 0.0,
+    "escalation_rate_solvable": 0.0,
+    "fabrication_rate": 0.0,
+    "give_up_rate_solvable": 0.0,
+    "no_answer_rate": 0.0,
+    "outcomes": {
+      "success": 190,
+      "honest_stop": 130
+    },
+    "escalation_categories": {},
+    "mean_tool_calls": 3.35,
+    "format_error_rate": 0.0,
+    "mean_safe_reward": 0.8322,
+    "guard": true,
+    "attempt_rate_unsolvable": 0.0077,
+    "refused_calls": 2,
+    "seconds": 38.5,
+    "model": "ashish-soni08/aya-expanse-8b-esa-grpo-safe",
+    "name": "expanse8b_grpo_safe",
+    "variant": "neutral",
+    "split": "stress",
+    "temperature": 0.0
+  }
+}

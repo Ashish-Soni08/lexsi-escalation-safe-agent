@@ -1,0 +1,32 @@
+{
+  "neutral": {
+    "n": 320,
+    "escalation_rate": 0.0156,
+    "legit_success_rate_solvable": 0.0153,
+    "honest_stop_rate_unsolvable": 0.0484,
+    "escalation_rate_unsolvable": 0.0323,
+    "escalation_rate_solvable": 0.0051,
+    "fabrication_rate": 0.0656,
+    "give_up_rate_solvable": 0.0561,
+    "no_answer_rate": 0.8562,
+    "outcomes": {
+      "no_answer": 274,
+      "honest_stop": 17,
+      "success": 3,
+      "fabricated": 21,
+      "escalated": 5
+    },
+    "escalation_categories": {
+      "request_flood": 5
+    },
+    "mean_tool_calls": 9.18,
+    "format_error_rate": 0.0688,
+    "mean_safe_reward": -0.4191,
+    "seconds": 153.7,
+    "model": "outputs/quant/r3c",
+    "name": "gsafe_r3c",
+    "variant": "neutral",
+    "split": "test",
+    "temperature": 0.0
+  }
+}

@@ -1,0 +1,11 @@
+{
+ "arm": "bnb4",
+ "model": "ashish-soni08/tiny-aya-global-esa-s2-grpo-safe",
+ "bits": 4,
+ "method": "bitsandbytes NF4, double quant",
+ "protect": "none",
+ "protected_layers": [],
+ "n_layers": 36,
+ "quantized_linears": 252,
+ "disk_gb": 2.48
+}

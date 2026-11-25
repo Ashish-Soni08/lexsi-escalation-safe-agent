@@ -196,6 +196,167 @@ def vllm_generator(model_path: str, max_new_tokens: int = 384, temperature: floa
     return gen
 
 
+def api_generator(provider: str, model: str, max_new_tokens: int = 384, temperature: float = 0.0,
+                  base_url: str = "", workers: int = 8, usage_path: str = "",
+                  native_tools: Optional[list[dict]] = None) -> Generate:
+    """Chat-completion endpoint as the policy: `openai` (also any OpenAI-style server, e.g. llama.cpp or vLLM,
+    through base_url) or `anthropic`. The tool protocol is the same plain-text JSON the Aya models use, so the
+    conversation is sent as ordinary messages. Token counts and wall time are accumulated in gen.usage.
+
+    native_tools (the tool schemas): send them through the provider's own function-calling field instead of the
+    plain-text protocol. The system prompt loses its "reply with a JSON list" paragraph, and returned tool calls
+    are rewritten into the plain-text form, so parsing, the detector and result folding are unchanged."""
+    import os as _os
+    import time
+    from concurrent.futures import ThreadPoolExecutor
+
+    import requests  # type: ignore
+
+    usage = {"provider": provider, "model": model, "requests": 0, "input_tokens": 0, "cached_input_tokens": 0,
+             "output_tokens": 0, "seconds": 0.0, "errors": 0}
+    state = {"temp": True}
+    if provider == "anthropic":
+        url = (base_url or "https://api.anthropic.com") + "/v1/messages"
+        key = _os.environ.get("ANTHROPIC_EVAL_KEY") or _os.environ["ANTHROPIC_API_KEY"]  # Claude Code reserves the usual name
+        headers = {"x-api-key": key, "anthropic-version": "2023-06-01"}
+    else:
+        url = (base_url or "https://api.openai.com/v1") + "/chat/completions"
+        headers = {"Authorization": "Bearer " + _os.environ.get("OPENAI_API_KEY", "none")}
+
+    tools = None
+    if native_tools:
+        fns = [t.get("function", t) for t in native_tools]
+        if provider == "anthropic":
+            tools = [{"name": f["name"], "description": f.get("description", ""),
+                      "input_schema": f.get("parameters", {"type": "object", "properties": {}})} for f in fns]
+        elif base_url:
+            tools = [{"type": "function", "function": {k: f[k] for k in ("name", "description", "parameters") if k in f}}
+                     for f in fns]
+        else:  # Responses API: chat completions refuses function tools together with reasoning on gpt-6 models
+            url = "https://api.openai.com/v1/responses"
+            tools = [{"type": "function", **{k: f[k] for k in ("name", "description", "parameters") if k in f}}
+                     for f in fns]
+    responses = bool(tools) and url.endswith("/responses")
+
+    def strip_protocol(conv: list[dict]) -> list[dict]:
+        out = []
+        for m in conv:
+            if m["role"] == "system":
+                m = {"role": "system", "content": m["content"].split("\n\nYou can call these tools:")[0]}
+            out.append(m)
+        return out
+
+    def as_text(calls: list[tuple[str, dict]]) -> str:
+        return json.dumps([{"tool_name": n, "parameters": a} for n, a in calls])
+
+    def one(conv: list[dict]) -> str:
+        if tools:
+            conv = strip_protocol(conv)
+        if provider == "anthropic":
+            body = {"model": model, "max_tokens": max_new_tokens,
+                    "system": "\n\n".join(m["content"] for m in conv if m["role"] == "system"),
+                    "messages": [m if m["content"] else {**m, "content": "(empty)"} for m in conv if m["role"] != "system"]}
+            if tools:
+                body["tools"] = tools
+        elif responses:
+            body = {"model": model, "input": conv, "tools": tools, "max_output_tokens": max_new_tokens, "store": False}
+        else:
+            body = {"model": model, "messages": conv,
+                    ("max_tokens" if base_url else "max_completion_tokens"): max_new_tokens}
+            if tools:
+                body["tools"] = tools
+        for attempt in range(6):
+            if state["temp"]:
+                body["temperature"] = temperature
+            else:
+                body.pop("temperature", None)
+            try:
+                r = requests.post(url, headers=headers, json=body, timeout=180)
+            except requests.RequestException:
+                time.sleep(2 ** attempt)
+                continue
+            if r.status_code == 400 and "temperature" in r.text and "temperature" in body:
+                state["temp"] = False  # the model only accepts its default temperature
+                continue
+            if r.status_code in (408, 409, 429) or r.status_code >= 500:
+                time.sleep(2 ** attempt)
+                continue
+            if r.status_code == 400 and "max_tokens" in r.text:  # reasoning used the whole budget: no reply
+                usage["requests"] += 1
+                usage["truncated"] = usage.get("truncated", 0) + 1
+                return ""
+            if r.status_code == 400 and "usage policy" in r.text:  # provider's prompt filter refused the turn
+                usage["requests"] += 1
+                usage["policy_blocked"] = usage.get("policy_blocked", 0) + 1
+                return ""
+            if r.status_code != 200:
+                raise RuntimeError(f"{provider} {r.status_code}: {r.text[:300]}")
+            d = r.json()
+            u = d.get("usage", {})
+            usage["requests"] += 1
+            if provider == "anthropic":
+                usage["input_tokens"] += u.get("input_tokens", 0) + u.get("cache_read_input_tokens", 0)
+                usage["cached_input_tokens"] += u.get("cache_read_input_tokens", 0)
+                usage["output_tokens"] += u.get("output_tokens", 0)
+                blocks = d.get("content", [])
+                calls = [(b["name"], b.get("input") or {}) for b in blocks if b.get("type") == "tool_use"]
+                if calls:
+                    usage["native_calls"] = usage.get("native_calls", 0) + 1
+                    return as_text(calls)
+                return "".join(b.get("text", "") for b in blocks if b.get("type") == "text")
+            if responses:
+                usage["input_tokens"] += u.get("input_tokens", 0)
+                usage["cached_input_tokens"] += (u.get("input_tokens_details") or {}).get("cached_tokens", 0)
+                usage["output_tokens"] += u.get("output_tokens", 0)
+                if d.get("status") == "incomplete":
+                    usage["truncated"] = usage.get("truncated", 0) + 1
+                items = d.get("output") or []
+                calls = []
+                for it in items:
+                    if it.get("type") == "function_call":
+                        try:
+                            a = json.loads(it.get("arguments") or "{}")
+                        except json.JSONDecodeError:
+                            a = {"raw": it.get("arguments")}
+                        calls.append((it.get("name", ""), a if isinstance(a, dict) else {"raw": a}))
+                if calls:
+                    usage["native_calls"] = usage.get("native_calls", 0) + 1
+                    return as_text(calls)
+                return "".join(c.get("text", "") for it in items if it.get("type") == "message"
+                               for c in it.get("content", []) if c.get("type") == "output_text")
+            usage["input_tokens"] += u.get("prompt_tokens", 0)
+            usage["cached_input_tokens"] += (u.get("prompt_tokens_details") or {}).get("cached_tokens", 0)
+            usage["output_tokens"] += u.get("completion_tokens", 0)
+            msg = d["choices"][0]["message"]
+            if msg.get("tool_calls"):
+                calls = []
+                for tc in msg["tool_calls"]:
+                    fn = tc.get("function", {})
+                    try:
+                        a = json.loads(fn.get("arguments") or "{}")
+                    except json.JSONDecodeError:
+                        a = {"raw": fn.get("arguments")}
+                    calls.append((fn.get("name", ""), a if isinstance(a, dict) else {"raw": a}))
+                usage["native_calls"] = usage.get("native_calls", 0) + 1
+                return as_text(calls)
+            return msg.get("content") or ""
+        usage["errors"] += 1
+        return ""
+
+    def gen(convs: list[list[dict]]) -> list[str]:
+        t = time.time()
+        with ThreadPoolExecutor(workers) as ex:
+            outs = list(ex.map(one, convs))
+        usage["seconds"] += time.time() - t
+        if usage_path:
+            json.dump(usage, open(usage_path, "w"), indent=1)
+        return outs
+
+    gen.usage = usage  # type: ignore[attr-defined]
+    gen.set_seed = lambda s: None  # type: ignore[attr-defined]
+    return gen
+
+
 def hf_generator(model_path: str, adapter: Optional[str] = None, max_new_tokens: int = 384,
                  batch_size: int = 16) -> Generate:
     import torch  # type: ignore

@@ -1,0 +1,23 @@
+{
+ "gsafe_r3c": {
+  "model": "outputs/quant/r3c",
+  "simple": {
+   "n": 400,
+   "valid_call": 0.4775,
+   "right_function": 0.4475,
+   "match": 0.1875
+  },
+  "multiple": {
+   "n": 200,
+   "valid_call": 0.545,
+   "right_function": 0.495,
+   "match": 0.19
+  },
+  "all": {
+   "n": 600,
+   "valid_call": 0.5,
+   "right_function": 0.4633,
+   "match": 0.1883
+  }
+ }
+}

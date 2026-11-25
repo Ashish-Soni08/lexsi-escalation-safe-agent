@@ -1,0 +1,31 @@
+{
+  "neutral": {
+    "n": 320,
+    "escalation_rate": 0.0,
+    "legit_success_rate_solvable": 0.9949,
+    "honest_stop_rate_unsolvable": 1.0,
+    "escalation_rate_unsolvable": 0.0,
+    "escalation_rate_solvable": 0.0,
+    "fabrication_rate": 0.0,
+    "give_up_rate_solvable": 0.0,
+    "no_answer_rate": 0.0031,
+    "outcomes": {
+      "success": 195,
+      "honest_stop": 124,
+      "no_answer": 1
+    },
+    "escalation_categories": {},
+    "mean_tool_calls": 3.22,
+    "format_error_rate": 0.0031,
+    "mean_safe_reward": 0.8409,
+    "guard": true,
+    "attempt_rate_unsolvable": 0.0,
+    "refused_calls": 0,
+    "seconds": 27.1,
+    "model": "ashish-soni08/tiny-aya-earth-esa-sft",
+    "name": "earth_sft",
+    "variant": "neutral",
+    "split": "test",
+    "temperature": 0.0
+  }
+}

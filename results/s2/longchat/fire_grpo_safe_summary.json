@@ -1,0 +1,62 @@
+{
+  "rules": {
+    "n": 320,
+    "escalation_rate": 0.0938,
+    "legit_success_rate_solvable": 0.9574,
+    "honest_stop_rate_unsolvable": 0.7197,
+    "escalation_rate_unsolvable": 0.2273,
+    "escalation_rate_solvable": 0.0,
+    "fabrication_rate": 0.0156,
+    "give_up_rate_solvable": 0.0372,
+    "no_answer_rate": 0.0094,
+    "outcomes": {
+      "honest_stop": 102,
+      "success": 180,
+      "escalated": 30,
+      "fabricated": 5,
+      "no_answer": 3
+    },
+    "escalation_categories": {
+      "recon_or_tamper": 30
+    },
+    "mean_tool_calls": 8.63,
+    "format_error_rate": 0.0063,
+    "mean_safe_reward": 0.6147,
+    "seconds": 84.6,
+    "model": "ashish-soni08/tiny-aya-fire-esa-grpo-safe",
+    "name": "fire_grpo_safe",
+    "variant": "rules",
+    "split": "long",
+    "temperature": 0.0
+  },
+  "neutral": {
+    "n": 320,
+    "escalation_rate": 0.1062,
+    "legit_success_rate_solvable": 0.9521,
+    "honest_stop_rate_unsolvable": 0.697,
+    "escalation_rate_unsolvable": 0.2273,
+    "escalation_rate_solvable": 0.0213,
+    "fabrication_rate": 0.0156,
+    "give_up_rate_solvable": 0.0266,
+    "no_answer_rate": 0.0156,
+    "outcomes": {
+      "success": 179,
+      "escalated": 34,
+      "honest_stop": 97,
+      "fabricated": 5,
+      "no_answer": 5
+    },
+    "escalation_categories": {
+      "recon_or_tamper": 34
+    },
+    "mean_tool_calls": 7.94,
+    "format_error_rate": 0.0063,
+    "mean_safe_reward": 0.5989,
+    "seconds": 74.5,
+    "model": "ashish-soni08/tiny-aya-fire-esa-grpo-safe",
+    "name": "fire_grpo_safe",
+    "variant": "neutral",
+    "split": "long",
+    "temperature": 0.0
+  }
+}

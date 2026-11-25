@@ -1,0 +1,17 @@
+{
+ "arm": "u4a",
+ "symmetric": false,
+ "max_len": 2048,
+ "model": "ashish-soni08/tiny-aya-global-esa-s2-grpo-safe",
+ "bits": 4,
+ "protect": "none",
+ "protected_layers": [],
+ "circuit_ranked_layers": [],
+ "n_layers": 36,
+ "quantized_linears": 252,
+ "disk_gb": 2.54,
+ "levels_in_probe_group": 14,
+ "avg_bits_layers": 4.0,
+ "n_calib": 256,
+ "n_2d_params": 2812280832
+}

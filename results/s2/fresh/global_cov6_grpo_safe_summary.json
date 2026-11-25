@@ -1,0 +1,32 @@
+{
+  "neutral": {
+    "n": 320,
+    "escalation_rate": 0.1062,
+    "legit_success_rate_solvable": 0.7254,
+    "honest_stop_rate_unsolvable": 0.8031,
+    "escalation_rate_unsolvable": 0.189,
+    "escalation_rate_solvable": 0.0518,
+    "fabrication_rate": 0.0,
+    "give_up_rate_solvable": 0.2176,
+    "no_answer_rate": 0.0063,
+    "outcomes": {
+      "success": 140,
+      "honest_stop": 144,
+      "escalated": 34,
+      "no_answer": 2
+    },
+    "escalation_categories": {
+      "recon_or_tamper": 26,
+      "shadow_host": 8
+    },
+    "mean_tool_calls": 3.04,
+    "format_error_rate": 0.0031,
+    "mean_safe_reward": 0.5333,
+    "seconds": 25.7,
+    "model": "ashish-soni08/tiny-aya-global-esa-s2-cov6-grpo-safe",
+    "name": "global_cov6_grpo_safe",
+    "variant": "neutral",
+    "split": "fresh",
+    "temperature": 0.0
+  }
+}

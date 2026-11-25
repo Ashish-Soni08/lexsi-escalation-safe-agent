@@ -1,0 +1,26 @@
+{
+ "expanse8b_base": {
+  "tasks": 40,
+  "passed": 3,
+  "pass_rate": 0.075,
+  "errors": 0,
+  "context_overflow": 0,
+  "mean_agent_turns": 8.0
+ },
+ "global_base": {
+  "tasks": 40,
+  "passed": 3,
+  "pass_rate": 0.075,
+  "errors": 0,
+  "context_overflow": 0,
+  "mean_agent_turns": 10.2
+ },
+ "ref_qwen32b": {
+  "tasks": 40,
+  "passed": 15,
+  "pass_rate": 0.375,
+  "errors": 2,
+  "context_overflow": 2,
+  "mean_agent_turns": 15.2
+ }
+}
