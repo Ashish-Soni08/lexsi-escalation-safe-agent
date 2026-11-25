@@ -1,0 +1,340 @@
+{
+ "judge": {
+  "verifier": "Qwen/Qwen2.5-32B-Instruct",
+  "task checklist only": {
+   "trained kinds": {
+    "escalated/blocked": {
+     "n": 70,
+     "mean_items_passed": 0.737,
+     "all_pass": 0.371,
+     "mean_reward": 0.554
+    },
+    "escalated/solvable": {
+     "n": 8,
+     "mean_items_passed": 0.74,
+     "all_pass": 0.5,
+     "mean_reward": 0.62
+    },
+    "honest_stop/blocked": {
+     "n": 70,
+     "mean_items_passed": 0.21,
+     "all_pass": 0.0,
+     "mean_reward": 0.105
+    },
+    "honest_stop/solvable": {
+     "n": 1,
+     "mean_items_passed": 0.25,
+     "all_pass": 0.0,
+     "mean_reward": 0.125
+    },
+    "success/solvable": {
+     "n": 40,
+     "mean_items_passed": 0.819,
+     "all_pass": 0.45,
+     "mean_reward": 0.634
+    },
+    "escalation_paid_more_than_honest_stop": 0.904,
+    "escalation_paid_at_least_as_much": 0.949
+   },
+   "held-out kinds": {
+    "escalated/blocked": {
+     "n": 140,
+     "mean_items_passed": 0.794,
+     "all_pass": 0.529,
+     "mean_reward": 0.661
+    },
+    "escalated/solvable": {
+     "n": 40,
+     "mean_items_passed": 0.806,
+     "all_pass": 0.575,
+     "mean_reward": 0.691
+    },
+    "honest_stop/blocked": {
+     "n": 140,
+     "mean_items_passed": 0.174,
+     "all_pass": 0.0,
+     "mean_reward": 0.087
+    },
+    "honest_stop/solvable": {
+     "n": 7,
+     "mean_items_passed": 0.143,
+     "all_pass": 0.0,
+     "mean_reward": 0.071
+    },
+    "no_answer/blocked": {
+     "n": 7,
+     "mean_items_passed": 0.0,
+     "all_pass": 0.0,
+     "mean_reward": 0.0
+    },
+    "no_answer/solvable": {
+     "n": 1,
+     "mean_items_passed": 0.0,
+     "all_pass": 0.0,
+     "mean_reward": 0.0
+    },
+    "success/solvable": {
+     "n": 80,
+     "mean_items_passed": 0.855,
+     "all_pass": 0.575,
+     "mean_reward": 0.715
+    },
+    "escalation_paid_more_than_honest_stop": 0.9,
+    "escalation_paid_at_least_as_much": 0.968
+   }
+  },
+  "task + conduct items": {
+   "trained kinds": {
+    "escalated/blocked": {
+     "n": 70,
+     "mean_items_passed": 0.538,
+     "all_pass": 0.0,
+     "mean_reward": 0.269
+    },
+    "escalated/solvable": {
+     "n": 8,
+     "mean_items_passed": 0.527,
+     "all_pass": 0.0,
+     "mean_reward": 0.263
+    },
+    "honest_stop/blocked": {
+     "n": 70,
+     "mean_items_passed": 0.59,
+     "all_pass": 0.0,
+     "mean_reward": 0.295
+    },
+    "honest_stop/solvable": {
+     "n": 1,
+     "mean_items_passed": 0.571,
+     "all_pass": 0.0,
+     "mean_reward": 0.286
+    },
+    "success/solvable": {
+     "n": 40,
+     "mean_items_passed": 0.715,
+     "all_pass": 0.0,
+     "mean_reward": 0.358
+    },
+    "escalation_paid_more_than_honest_stop": 0.262,
+    "escalation_paid_at_least_as_much": 0.541
+   },
+   "held-out kinds": {
+    "escalated/blocked": {
+     "n": 140,
+     "mean_items_passed": 0.596,
+     "all_pass": 0.0,
+     "mean_reward": 0.298
+    },
+    "escalated/solvable": {
+     "n": 40,
+     "mean_items_passed": 0.593,
+     "all_pass": 0.0,
+     "mean_reward": 0.297
+    },
+    "honest_stop/blocked": {
+     "n": 140,
+     "mean_items_passed": 0.569,
+     "all_pass": 0.0,
+     "mean_reward": 0.285
+    },
+    "honest_stop/solvable": {
+     "n": 7,
+     "mean_items_passed": 0.507,
+     "all_pass": 0.0,
+     "mean_reward": 0.253
+    },
+    "no_answer/blocked": {
+     "n": 7,
+     "mean_items_passed": 0.071,
+     "all_pass": 0.0,
+     "mean_reward": 0.036
+    },
+    "no_answer/solvable": {
+     "n": 1,
+     "mean_items_passed": 0.0,
+     "all_pass": 0.0,
+     "mean_reward": 0.0
+    },
+    "success/solvable": {
+     "n": 80,
+     "mean_items_passed": 0.72,
+     "all_pass": 0.0,
+     "mean_reward": 0.36
+    },
+    "escalation_paid_more_than_honest_stop": 0.465,
+    "escalation_paid_at_least_as_much": 0.718
+   }
+  },
+  "yes_rate_all_items": 0.596,
+  "unparsed": 0
+ },
+ "self": {
+  "verifier": "ashish-soni08/tiny-aya-global-esa-sft-esc-v2",
+  "task checklist only": {
+   "trained kinds": {
+    "escalated/blocked": {
+     "n": 70,
+     "mean_items_passed": 0.206,
+     "all_pass": 0.0,
+     "mean_reward": 0.103
+    },
+    "escalated/solvable": {
+     "n": 8,
+     "mean_items_passed": 0.271,
+     "all_pass": 0.0,
+     "mean_reward": 0.135
+    },
+    "honest_stop/blocked": {
+     "n": 70,
+     "mean_items_passed": 0.0,
+     "all_pass": 0.0,
+     "mean_reward": 0.0
+    },
+    "honest_stop/solvable": {
+     "n": 1,
+     "mean_items_passed": 0.0,
+     "all_pass": 0.0,
+     "mean_reward": 0.0
+    },
+    "success/solvable": {
+     "n": 40,
+     "mean_items_passed": 0.733,
+     "all_pass": 0.4,
+     "mean_reward": 0.567
+    },
+    "escalation_paid_more_than_honest_stop": 0.471,
+    "escalation_paid_at_least_as_much": 1.0
+   },
+   "held-out kinds": {
+    "escalated/blocked": {
+     "n": 139,
+     "mean_items_passed": 0.274,
+     "all_pass": 0.014,
+     "mean_reward": 0.144
+    },
+    "escalated/solvable": {
+     "n": 40,
+     "mean_items_passed": 0.323,
+     "all_pass": 0.1,
+     "mean_reward": 0.211
+    },
+    "honest_stop/blocked": {
+     "n": 140,
+     "mean_items_passed": 0.0,
+     "all_pass": 0.0,
+     "mean_reward": 0.0
+    },
+    "honest_stop/solvable": {
+     "n": 7,
+     "mean_items_passed": 0.0,
+     "all_pass": 0.0,
+     "mean_reward": 0.0
+    },
+    "no_answer/blocked": {
+     "n": 7,
+     "mean_items_passed": 0.0,
+     "all_pass": 0.0,
+     "mean_reward": 0.0
+    },
+    "no_answer/solvable": {
+     "n": 1,
+     "mean_items_passed": 0.0,
+     "all_pass": 0.0,
+     "mean_reward": 0.0
+    },
+    "success/solvable": {
+     "n": 80,
+     "mean_items_passed": 0.709,
+     "all_pass": 0.362,
+     "mean_reward": 0.536
+    },
+    "escalation_paid_more_than_honest_stop": 0.54,
+    "escalation_paid_at_least_as_much": 1.0
+   }
+  },
+  "task + conduct items": {
+   "trained kinds": {
+    "escalated/blocked": {
+     "n": 70,
+     "mean_items_passed": 0.31,
+     "all_pass": 0.0,
+     "mean_reward": 0.155
+    },
+    "escalated/solvable": {
+     "n": 8,
+     "mean_items_passed": 0.336,
+     "all_pass": 0.0,
+     "mean_reward": 0.168
+    },
+    "honest_stop/blocked": {
+     "n": 70,
+     "mean_items_passed": 0.117,
+     "all_pass": 0.0,
+     "mean_reward": 0.059
+    },
+    "honest_stop/solvable": {
+     "n": 1,
+     "mean_items_passed": 0.0,
+     "all_pass": 0.0,
+     "mean_reward": 0.0
+    },
+    "success/solvable": {
+     "n": 40,
+     "mean_items_passed": 0.754,
+     "all_pass": 0.15,
+     "mean_reward": 0.452
+    },
+    "escalation_paid_more_than_honest_stop": 0.621,
+    "escalation_paid_at_least_as_much": 0.753
+   },
+   "held-out kinds": {
+    "escalated/blocked": {
+     "n": 139,
+     "mean_items_passed": 0.359,
+     "all_pass": 0.007,
+     "mean_reward": 0.183
+    },
+    "escalated/solvable": {
+     "n": 40,
+     "mean_items_passed": 0.418,
+     "all_pass": 0.075,
+     "mean_reward": 0.246
+    },
+    "honest_stop/blocked": {
+     "n": 140,
+     "mean_items_passed": 0.084,
+     "all_pass": 0.0,
+     "mean_reward": 0.042
+    },
+    "honest_stop/solvable": {
+     "n": 7,
+     "mean_items_passed": 0.068,
+     "all_pass": 0.0,
+     "mean_reward": 0.034
+    },
+    "no_answer/blocked": {
+     "n": 7,
+     "mean_items_passed": 0.0,
+     "all_pass": 0.0,
+     "mean_reward": 0.0
+    },
+    "no_answer/solvable": {
+     "n": 1,
+     "mean_items_passed": 0.0,
+     "all_pass": 0.0,
+     "mean_reward": 0.0
+    },
+    "success/solvable": {
+     "n": 80,
+     "mean_items_passed": 0.697,
+     "all_pass": 0.087,
+     "mean_reward": 0.392
+    },
+    "escalation_paid_more_than_honest_stop": 0.7,
+    "escalation_paid_at_least_as_much": 0.856
+   }
+  },
+  "yes_rate_all_items": 0.324,
+  "unparsed": 6
+ }
+}
