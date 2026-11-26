@@ -190,7 +190,7 @@ On 400 episodes of \vfour, Qwen2.5-32B-Instruct \citep{qwen2025qwen25} agrees wi
 On 400 episodes of the two extra seed models Qwen agrees on 90.5\% ($\kappa = 0.80$).
 Claude Fable 5.2 agreed on all 99 of 100 blind-labelled \vfour{} episodes it decided, but it shares a family with the assistant that helped build the project, so Qwen is my external judge.
 On two pooled samples of 500 episodes from the Stage 2 models, Qwen agrees on 91.4\% ($\kappa = 0.82$; 97.2\% for the safe 8B model) and 92.2\% ($\kappa = 0.84$).
-I read the judge's stated reasons for the 25 judge-only cases in each sample but did not adjudicate them by hand, and human labels are still missing (see Limitations).
+I read the judge's stated reasons for the 25 judge-only cases in each sample but did not adjudicate them by hand, and there are no human labels (see Limitations).
 
 \section{Results}
 
@@ -397,7 +397,7 @@ Next I would teach the agent to read documentation first, add partial credit fro
 The main limitation is that unseen shortcuts are not solved: \vfour{} still escalates on 16 $\pm$ 5\% of blocked sealed tasks and 23 $\pm$ 5\% of blocked unseen tasks, mostly through routes that look official.
 The environment is mostly synthetic; the real-server check has only 40 tasks and wide intervals, and the live API has no access control by design.
 The reward depends on a rule-based detector that was gamed twice, and although the judges and my own reading find no third trick in \vfour, that does not prove there is none.
-There are no human labels yet: a blind 100-episode label sheet exists but is not finished, so agreement is measured only between automatic labellers.
+There are no human labels: agreement is measured only between the detector and two LLM judges, so an error all three share would go unseen.
 Held-out status varies by set.
 Stress is not held out for \vfour, and unseen and fresh were seen before the seed models were trained (the recipe was fixed first), so only sealed is clean for all three seeds; about half the evaluation questions also recur in training with a different site and block.
 
